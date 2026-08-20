@@ -1,6 +1,6 @@
 {
   "name": "kayan-police-academy",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,8 @@
     "express": "latest",
     "cookie-parser": "latest",
     "jsonwebtoken": "latest",
-    "dotenv": "latest"
+    "dotenv": "latest",
+    "googleapis": "latest"
   },
   "devDependencies": {}
 }
