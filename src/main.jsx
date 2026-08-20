@@ -1,7 +1,8 @@
 import React,{useEffect,useState}from'react';
 import{createRoot}from'react-dom/client';
 import{LayoutDashboard,Users,ClipboardCheck,FileText,GraduationCap,Shield,LogIn,Menu,X,ChevronLeft,Star,BookOpen,BarChart3,LockKeyhole,ArrowLeft,UserRound,Settings,Network,UserCog,Upload,Save,Search,Eye,Scale,UserPlus,Trash2,Check,RefreshCw}from'lucide-react';
-import'./styles.css';import logo from'./police-logo.svg';
+import'./styles.css';
+const logo = '/police-logo.png';
 const ROLE={officer:'ضابط',trainer:'مدرب',affairs:'الشؤون',academy_president:'رئيس الأكاديمية',academy_vice_president:'نائب رئيس الأكاديمية',academy_assistant_vice:'مساعد نائب الرئيس',police_commander:'قائد الشرطة'};
 function App(){const[page,setPage]=useState('home'),[open,setOpen]=useState(false),[user,setUser]=useState(null),[rows,setRows]=useState([]),[hierarchy,setHierarchy]=useState([]);const go=p=>{setPage(p);setOpen(false)},login=()=>location.href='/auth/discord';
 useEffect(()=>{fetch('/api/me').then(r=>r.json()).then(setUser).catch(()=>setUser({authenticated:false}));fetch('/api/public/hierarchy').then(r=>r.ok?r.json():null).then(d=>d&&setHierarchy(d.hierarchy||[])).catch(()=>{})},[]);
