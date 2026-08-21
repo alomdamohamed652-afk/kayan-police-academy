@@ -1,0 +1,85 @@
+name: Finalize Academy Results
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: ${{ !contains(github.event.head_commit.message, '[finalized-results]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch production results system
+        shell: python
+        run: |
+          from pathlib import Path
+
+          server = Path('server/index.mjs')
+          s = server.read_text(encoding='utf-8')
+          marker = '// FINAL_RESULTS_V1'
+          if marker not in s:
+              s = s.replace("const ADMIN_SHEET = process.env.GOOGLE_ADMIN_SHEET_NAME || 'ACADEMY_ADMINS';", "const ADMIN_SHEET = process.env.GOOGLE_ADMIN_SHEET_NAME || 'ACADEMY_ADMINS';\nconst RESULTS_SHEET = process.env.GOOGLE_RESULTS_SHEET_NAME || 'ACADEMY_RESULTS';")
+              middleware = r'''
+// FINAL_RESULTS_V1
+const resultMemory = [];
+let resultsSheetReady = false;
+async function ensureResultsSheet(api){
+  if(resultsSheetReady)return;
+  const meta=await api.spreadsheets.get({spreadsheetId:SHEET_ID,fields:'sheets.properties'});
+  const exists=(meta.data.sheets||[]).some(x=>x.properties?.title===RESULTS_SHEET);
+  if(!exists)await api.spreadsheets.batchUpdate({spreadsheetId:SHEET_ID,requestBody:{requests:[{addSheet:{properties:{title:RESULTS_SHEET}}}]}});
+  const head=await api.spreadsheets.values.get({spreadsheetId:SHEET_ID,range:`${RESULTS_SHEET}!A1:K1`});
+  if(!head.data.values?.length)await api.spreadsheets.values.update({spreadsheetId:SHEET_ID,range:`${RESULTS_SHEET}!A1`,valueInputOption:'RAW',requestBody:{values:[['id','discordId','name','examId','examTitle','score','total','percentage','passed','submittedAt','answersJson']]}});
+  resultsSheetReady=true;
+}
+async function saveResult(row){
+  resultMemory.unshift(row);
+  if(resultMemory.length>500)resultMemory.length=500;
+  const api=await adminSheetApi();
+  if(!api)return;
+  try{await ensureResultsSheet(api);await api.spreadsheets.values.append({spreadsheetId:SHEET_ID,range:`${RESULTS_SHEET}!A:K`,valueInputOption:'RAW',requestBody:{values:[[row.id,row.discordId,row.name,row.examId,row.examTitle,row.score,row.total,row.percentage,row.passed?'true':'false',row.submittedAt,JSON.stringify(row.answers||[])]]}})}catch(e){console.warn(`Results persistence failed: ${e.message}`)}
+}
+async function readResults(){
+  const api=await adminSheetApi();
+  if(!api)return resultMemory;
+  try{await ensureResultsSheet(api);const d=await api.spreadsheets.values.get({spreadsheetId:SHEET_ID,range:`${RESULTS_SHEET}!A:K`});const v=d.data.values||[];return v.slice(1).filter(r=>r[0]).reverse().map(r=>({id:r[0],discordId:r[1]||'',name:r[2]||'',examId:r[3]||'',examTitle:r[4]||'',score:Number(r[5]||0),total:Number(r[6]||0),percentage:Number(r[7]||0),passed:String(r[8])==='true',submittedAt:r[9]||'',answers:JSON.parse(r[10]||'[]')}))}catch(e){console.warn(`Results read failed: ${e.message}`);return resultMemory}
+}
+async function enrichExamAnswers(examId, answers){
+  try{const base=`http://127.0.0.1:${PORT}`;const r=await fetch(`${base}/api/public/exams`);if(!r.ok)return answers;const d=await r.json();const exam=(d.exams||[]).find(x=>String(x.id)===String(examId));if(!exam)return answers;return Object.entries(answers||{}).map(([qid,answer])=>{const q=(exam.questions||[]).find(x=>String(x.id)===String(qid));const correctAnswer=q?.answer??q?.correctAnswer;const isChoice=q?.type==='choice'||q?.type==='yesno';return{questionId:qid,question:q?.text||'السؤال',answer,correctAnswer:isChoice?correctAnswer:null,correct:isChoice?String(answer)===String(correctAnswer):null,points:isChoice&&String(answer)===String(correctAnswer)?Number(q?.points||q?.score||0):0}})}catch{return answers}
+}
+app.use((req,res,next)=>{
+  if(req.method==='POST' && /^\/api\/exams\/[^/]+\/submit$/.test(req.path)){
+    const original=res.json.bind(res);res.json=(payload)=>{try{const examId=req.path.split('/')[3];const token=session(req);const result=payload?.result||payload;const answers=req.body?.answers||{};setImmediate(async()=>{const enriched=await enrichExamAnswers(examId,answers);await saveResult({id:`attempt-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,discordId:String(token?.id||''),name:String(token?.global_name||token?.username||''),examId:String(examId),examTitle:String(result?.examTitle||''),score:Number(result?.score||0),total:Number(result?.total||100),percentage:Number(result?.percentage??result?.score??0),passed:Boolean(result?.passed),submittedAt:new Date().toISOString(),answers:enriched})}catch(e){console.warn(`Result capture failed: ${e.message}`)});return original(payload)}catch{return original(payload)}}
+  }
+  next();
+});
+app.get('/api/admin/results',async(q,s)=>{const c=await requirePerm(q,s,'manage_exams');if(!c)return;try{s.json({results:await readResults()})}catch(e){s.status(500).json({error:e.message})}});
+'''
+              s = s.replace("app.use(cookieParser());", "app.use(cookieParser());\n" + middleware, 1)
+              server.write_text(s, encoding='utf-8')
+
+          front = Path('src/academy-fixed.jsx')
+          f = front.read_text(encoding='utf-8')
+          if "./admin-results.jsx" not in f:
+              f = f.replace("import './styles.css';", "import './styles.css';\nimport AdminResults from './admin-results.jsx';\nimport './admin-results.css';", 1)
+              old = "['overview','نظرة عامة'],['members','الأفراد والرتب'],['hierarchy','هيكل الأكاديمية'],['applications','التقديمات'],['exams','الاختبارات']"
+              new = "['overview','نظرة عامة'],['members','الأفراد والرتب'],['hierarchy','هيكل الأكاديمية'],['applications','التقديمات'],['exams','الاختبارات'],['results','النتائج']"
+              f = f.replace(old, new, 1)
+              needle = "{tab==='exams'&&<AdminExams data={content.exams||[]} refresh={load}/>}"
+              f = f.replace(needle, needle + " {tab==='results'&&<AdminResults/>}", 1)
+              front.write_text(f, encoding='utf-8')
+
+      - name: Commit finalized changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/index.mjs src/academy-fixed.jsx src/admin-results.jsx src/admin-results.css
+          git diff --cached --quiet && exit 0
+          git commit -m "Finalize exam results center [finalized-results]"
+          git push
