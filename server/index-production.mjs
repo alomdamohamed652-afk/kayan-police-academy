@@ -48,7 +48,47 @@ function role(r){if(!r)return'citizen';const t=`${r.rank} ${r.responsibility}`.t
 function sess(req){try{return jwt.verify(req.cookies.kayan_session,SESSION_SECRET)}catch{return null}}
 function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function perms(uid){return ADMINS.has(id(uid))?ALL:(admin(uid)?.enabled?(admin(uid).permissions||[]):[])}
-async function current(req){const x=sess(req);if(!x)return{x:null,police:null,role:'citizen',admin:false,permissions:[]};try{const rows=await police(),p=rows.find(r=>id(r.discordId)===id(x.id))||null,a=admin(x.id),isAdmin=ADMINS.has(id(x.id))||Boolean(a?.enabled);return{x,police:p,role:role(p),admin:isAdmin,permissions:perms(x.id),sheet:true}}catch(e){const a=admin(x.id);return{x,police:null,role:'unknown',admin:ADMINS.has(id(x.id))||Boolean(a?.enabled),permissions:perms(x.id),sheet:false,error:e.message)}}}
+async function current(req) {
+  const x = sess(req);
+
+  if (!x) {
+    return {
+      x: null,
+      police: null,
+      role: 'citizen',
+      admin: false,
+      permissions: []
+    };
+  }
+
+  try {
+    const rows = await police();
+    const p = rows.find(r => id(r.discordId) === id(x.id)) || null;
+    const a = admin(x.id);
+    const isAdmin = ADMINS.has(id(x.id)) || Boolean(a?.enabled);
+
+    return {
+      x,
+      police: p,
+      role: role(p),
+      admin: isAdmin,
+      permissions: perms(x.id),
+      sheet: true
+    };
+  } catch (e) {
+    const a = admin(x.id);
+
+    return {
+      x,
+      police: null,
+      role: 'unknown',
+      admin: ADMINS.has(id(x.id)) || Boolean(a?.enabled),
+      permissions: perms(x.id),
+      sheet: false,
+      error: e.message
+    };
+  }
+}
 async function requireAdmin(req,res,p='view_dashboard'){const c=await current(req);if(!c.x)return res.status(401).json({error:'UNAUTHENTICATED'});if(!c.sheet)return res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});if(!storageReady)return res.status(503).json({error:'ACADEMY_STORAGE_UNAVAILABLE',retryable:true});if(!c.admin)return res.status(403).json({error:'FORBIDDEN'});if(p&&!c.permissions.includes(p))return res.status(403).json({error:'INSUFFICIENT_PERMISSION',permission:p});return c}
 function audit(c,a,t,d=''){data.audit.unshift({id:`audit-${Date.now()}`,at:new Date().toISOString(),actorId:String(c.x.id),actorName:c.police?.name||c.x.global_name||c.x.username,action:a,target:t,details:d});data.audit=data.audit.slice(0,1000)}
 function member(r){return{...r,role:role(r),image:data.memberImages?.[r.discordId]||''}}
