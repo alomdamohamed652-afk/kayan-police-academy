@@ -15,6 +15,16 @@ express.response.send = function(body) {
   if (this.headersSent) return this;
   return nativeSend.call(this, body);
 };
+
+if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+  try {
+    JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  } catch (error) {
+    console.warn('Invalid GOOGLE_SERVICE_ACCOUNT_JSON; falling back to GOOGLE_SERVICE_ACCOUNT_FILE.', error.message);
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  }
+}
+
 const nativeParse = JSON.parse.bind(JSON);
 JSON.parse = (input, reviver) => {
   try {
