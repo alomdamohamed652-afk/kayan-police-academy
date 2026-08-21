@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run patch && vite\" \"node scripts/apply-academy-fixes.mjs && node server/index-production.mjs\"",
-    "dev:web": "node scripts/fix-patch-script-escaping.mjs && npm run patch && vite",
-    "dev:api": "node scripts/fix-patch-script-escaping.mjs && node scripts/apply-academy-fixes.mjs && node server/index-production.mjs",
-    "patch": "node scripts/fix-patch-script-escaping.mjs && node scripts/apply-academy-fixes.mjs",
+    "dev": "concurrently \"npm run patch && vite\" \"node scripts/fix-identity-and-admin.mjs && node scripts/apply-academy-fixes.mjs && node server/index-production.mjs\"",
+    "dev:web": "node scripts/fix-patch-script-escaping.mjs && node scripts/fix-identity-and-admin.mjs && npm run patch && vite",
+    "dev:api": "node scripts/fix-patch-script-escaping.mjs && node scripts/fix-identity-and-admin.mjs && node scripts/apply-academy-fixes.mjs && node server/index-production.mjs",
+    "patch": "node scripts/fix-patch-script-escaping.mjs && node scripts/fix-identity-and-admin.mjs && node scripts/apply-academy-fixes.mjs",
     "build": "npm run patch && vite build",
-    "start": "node scripts/fix-patch-script-escaping.mjs && node scripts/apply-academy-fixes.mjs && node server/index-production.mjs",
+    "start": "node scripts/fix-patch-script-escaping.mjs && node scripts/fix-identity-and-admin.mjs && node scripts/apply-academy-fixes.mjs && node server/index-production.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
