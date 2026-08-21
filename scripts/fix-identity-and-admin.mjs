@@ -51,7 +51,7 @@ const currentReplacement = String.raw`async function current(req){
   const a=admin(x.id);
   const isAdmin=ADMINS.has(id(x.id))||Boolean(a?.enabled);
   try{
-    const rows=await police(true);
+    const rows=await police();
     const needle=id(x.id);
     const p=rows.find(r=>id(r.discordId)===needle)||null;
     return{x,police:p,role:role(p),admin:isAdmin,permissions:perms(x.id),sheet:true};
