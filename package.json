@@ -1,14 +1,15 @@
 {
   "name": "kayan-police-academy",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"node server/index-production.mjs\"",
-    "dev:web": "vite",
-    "dev:api": "node server/index-production.mjs",
-    "build": "vite build",
-    "start": "node server/index-production.mjs",
+    "dev": "concurrently \"npm run patch && vite\" \"node scripts/apply-academy-fixes.mjs && node server/index-production.mjs\"",
+    "dev:web": "npm run patch && vite",
+    "dev:api": "node scripts/apply-academy-fixes.mjs && node server/index-production.mjs",
+    "patch": "node scripts/apply-academy-fixes.mjs",
+    "build": "npm run patch && vite build",
+    "start": "npm run patch && node server/index-production.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
