@@ -8,7 +8,7 @@ const policeReplacement = String.raw`async function police(force=false){
   if(!force&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;
   let last=null;
   const sheetName=POLICE_RANGE.includes('!')?POLICE_RANGE.split('!')[0]:'officers';
-  const ranges=[\`${sheetName}!A:Z\`,POLICE_RANGE];
+  const ranges=[\`\${sheetName}!A:Z\`,POLICE_RANGE];
   for(const range of [...new Set(ranges)]){
     try{
       const svc=await service();
