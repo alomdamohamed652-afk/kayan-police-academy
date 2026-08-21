@@ -4,6 +4,17 @@
 // System Data recovery: if the System Data cell contains stale/concatenated JSON,
 // the production loader must start from a clean default dataset instead of leaving
 // storage permanently unavailable. Credentials are still parsed strictly.
+import express from 'express';
+const nativeJson = express.response.json;
+const nativeSend = express.response.send;
+express.response.json = function(body) {
+  if (this.headersSent) return this;
+  return nativeJson.call(this, body);
+};
+express.response.send = function(body) {
+  if (this.headersSent) return this;
+  return nativeSend.call(this, body);
+};
 const nativeParse = JSON.parse.bind(JSON);
 JSON.parse = (input, reviver) => {
   try {
