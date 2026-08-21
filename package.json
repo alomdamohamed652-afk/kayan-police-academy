@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"node server/index-v2.mjs\"",
+    "dev": "concurrently \"vite\" \"node server/index-production.mjs\"",
     "dev:web": "vite",
-    "dev:api": "node server/index-v2.mjs",
+    "dev:api": "node server/index-production.mjs",
     "build": "vite build",
-    "start": "node server/index-v2.mjs",
+    "start": "node server/index-production.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
