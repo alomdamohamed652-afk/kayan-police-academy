@@ -1,2 +1,2 @@
 import './academy-final.css';
-import './academy-production-fixed.jsx';
+import './academy-final.jsx';
