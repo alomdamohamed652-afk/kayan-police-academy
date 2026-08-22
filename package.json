@@ -7,7 +7,7 @@
     "dev": "concurrently \"vite\" \"node server/index-production.mjs\"",
     "dev:web": "vite",
     "dev:api": "node server/index-production.mjs",
-    "build": "node scripts/apply-final-academy-patch.mjs && vite build",
+    "build": "node scripts/repair-final-academy-patch.mjs && node scripts/apply-final-academy-patch.mjs && vite build",
     "start": "node server/index-production.mjs",
     "preview": "vite preview"
   },
