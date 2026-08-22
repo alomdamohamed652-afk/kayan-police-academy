@@ -3,6 +3,8 @@ name: Apply Academy Enhancements
 on:
   push:
     branches: [fix/evaluation-batches-and-people]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
