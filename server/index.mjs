@@ -1,25 +1,24 @@
 // Render compatibility entrypoint.
 // The production server lives in index-production.mjs.
-//
-// System Data recovery: if the System Data cell contains stale/concatenated JSON,
-// the production loader must start from a clean default dataset instead of leaving
-// storage permanently unavailable. Credentials are still parsed strictly.
-const nativeParse = JSON.parse.bind(JSON);
-JSON.parse = (input, reviver) => {
-  try {
-    return nativeParse(input, reviver);
-  } catch (error) {
-    const text = String(input ?? '').trim();
-    const looksLikeAcademyData = text.includes('"version"') &&
-      (text.includes('"settings"') || text.includes('"applications"') || text.includes('"exams"'));
+// Prefer the mounted Render Secret File over a stale/malformed JSON environment variable.
+// The Academy data worksheet is now named DATA.
+import fs from 'node:fs/promises';
 
-    if (looksLikeAcademyData) {
-      console.warn('Invalid Google System Data JSON detected; starting with default academy data.', error.message);
-      return {};
-    }
-
-    throw error;
+try {
+  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_FILE || '/etc/secrets/google-service-account.json';
+  const serviceAccountJson = await fs.readFile(serviceAccountPath, 'utf8');
+  JSON.parse(serviceAccountJson);
+  process.env.GOOGLE_SERVICE_ACCOUNT_JSON = serviceAccountJson;
+  process.env.GOOGLE_SERVICE_ACCOUNT_FILE = serviceAccountPath;
+} catch (error) {
+  // Fall back to the environment variable when no Render Secret File is mounted.
+  // The production server will perform strict JSON validation itself.
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    console.warn('Google service-account secret file is unavailable:', error.message);
   }
-};
+}
+
+process.env.ACADEMY_GOOGLE_SHEET_NAME = 'DATA';
+process.env.GOOGLE_ACADEMY_DATA_SHEET_NAME = 'DATA';
 
 await import('./index-production.mjs');
