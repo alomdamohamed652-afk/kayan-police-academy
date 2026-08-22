@@ -7,8 +7,8 @@ const slash=String.fromCharCode(92);
 let changed=false;
 
 // apply-final-academy-patch.mjs stores JSX blocks inside outer template literals.
-// Escape ${...} expressions that belong to the generated JSX, so Node does not
-// evaluate them while parsing the patch script itself.
+// Escape every template expression and every nested backtick that belongs to
+// the generated JSX, so Node parses this repair/patch script safely.
 const expressions=[
   '${x.discordId}',
   '${b.id}',
@@ -16,12 +16,20 @@ const expressions=[
   '${a.reviewerName}',
   '${editing.id}',
   '${e.id}',
-  '${Date.now()}'
+  '${Date.now()}',
+  '${q.id}',
+  '${i}',
+  '${z.id}',
+  '${j}',
+  '${m.discordId}',
+  '${m.name}',
+  '${m.rank}',
+  '${e.type}',
+  '${e.id}'
 ];
 
 for(const expr of expressions){
   const escaped=slash+expr;
-  // Do not double-escape an expression that is already escaped.
   const plainCount=s.split(expr).length-1;
   const escapedCount=s.split(escaped).length-1;
   if(plainCount>escapedCount){
@@ -30,9 +38,37 @@ for(const expr of expressions){
   }
 }
 
+// Each generated component is stored as a one-line outer template literal:
+// const name=`...`;
+// Any backtick between the opening and final backtick is part of generated JSX
+// and must therefore be escaped. This catches future nested template literals
+// without having to maintain an ever-growing list of variable names.
+const lines=s.split('\n');
+for(let n=0;n<lines.length;n++){
+  const line=lines[n];
+  const marker=line.indexOf('=`');
+  if(marker<0) continue;
+  const first=marker+1;
+  const last=line.lastIndexOf(bt);
+  if(last<=first) continue;
+  let out=line.slice(0,first+1);
+  for(let i=first+1;i<last;i++){
+    const ch=line[i];
+    if(ch===bt && line[i-1]!==slash){
+      out+=slash+bt;
+      changed=true;
+    }else{
+      out+=ch;
+    }
+  }
+  out+=line.slice(last);
+  lines[n]=out;
+}
+s=lines.join('\n');
+
 if(changed){
   await fs.writeFile(path,s);
-  console.log('Escaped generated JSX template expressions in final academy patch');
+  console.log('Escaped all nested template literals and generated JSX expressions in final academy patch');
 }else{
-  console.log('No generated JSX template expressions needed escaping');
+  console.log('No nested template literals needed escaping');
 }
