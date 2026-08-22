@@ -1,0 +1,44 @@
+name: One-time Google Sheets timeout fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Remove unsupported Google Sheets timeout option
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('server/index-production.mjs')
+          s = p.read_text(encoding='utf-8')
+          old = s
+          s = s.replace(',timeout:10000', '')
+          s = s.replace(', timeout: 10000', '')
+          if s == old:
+              print('No unsupported Google Sheets timeout option found.')
+          else:
+              p.write_text(s, encoding='utf-8')
+              print('Removed unsupported timeout options from server/index-production.mjs')
+          PY
+
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add server/index-production.mjs
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix: remove unsupported Google Sheets timeout option [skip ci]'
+          git push
