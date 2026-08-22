@@ -8,4 +8,4 @@ const marker='/* KAYAN_ACADEMY_RUNTIME_ENHANCEMENTS_V2 */';
 let source=await fs.readFile(original,'utf8');
 if(!source.includes(marker)){await import(runtime);}
 else await import('./academy-production-original.mjs');
-await import('./evaluation-role-hotfix.mjs');
+await import('./evaluation-details.mjs');
