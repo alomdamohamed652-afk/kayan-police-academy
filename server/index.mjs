@@ -2,3 +2,4 @@
 import './runtime-hooks.mjs';
 import './academy-v3.mjs';
 import './evaluation-admin.mjs';
+import './evaluation-role-hotfix.mjs';
