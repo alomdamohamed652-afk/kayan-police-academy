@@ -18,7 +18,7 @@
     "react-dom": "latest",
     "lucide-react": "latest",
     "concurrently": "latest",
-    "express": "latest",
+    "express": "4.21.2",
     "cookie-parser": "latest",
     "jsonwebtoken": "latest",
     "dotenv": "latest",
