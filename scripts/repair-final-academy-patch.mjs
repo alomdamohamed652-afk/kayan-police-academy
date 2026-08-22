@@ -6,43 +6,12 @@ const bt=String.fromCharCode(96);
 const slash=String.fromCharCode(92);
 let changed=false;
 
-// apply-final-academy-patch.mjs stores JSX blocks inside outer template literals.
-// Escape every template expression and every nested backtick that belongs to
-// the generated JSX, so Node parses this repair/patch script safely.
-const expressions=[
-  '${x.discordId}',
-  '${b.id}',
-  '${a.id}',
-  '${a.reviewerName}',
-  '${editing.id}',
-  '${e.id}',
-  '${Date.now()}',
-  '${q.id}',
-  '${i}',
-  '${z.id}',
-  '${j}',
-  '${m.discordId}',
-  '${m.name}',
-  '${m.rank}',
-  '${e.type}',
-  '${e.id}'
-];
+// Generated JSX components live inside outer template literals. Escape every
+// unescaped ${...} expression so the outer patch script never evaluates it.
+const expressionPattern=new RegExp('(?<!\\\\)\\$\\{','g');
+s=s.replace(expressionPattern,()=>{changed=true;return slash+'${';});
 
-for(const expr of expressions){
-  const escaped=slash+expr;
-  const plainCount=s.split(expr).length-1;
-  const escapedCount=s.split(escaped).length-1;
-  if(plainCount>escapedCount){
-    s=s.split(expr).join(escaped);
-    changed=true;
-  }
-}
-
-// Each generated component is stored as a one-line outer template literal:
-// const name=`...`;
-// Any backtick between the opening and final backtick is part of generated JSX
-// and must therefore be escaped. This catches future nested template literals
-// without having to maintain an ever-growing list of variable names.
+// Escape any nested backtick inside an outer generated-component template.
 const lines=s.split('\n');
 for(let n=0;n<lines.length;n++){
   const line=lines[n];
@@ -68,7 +37,7 @@ s=lines.join('\n');
 
 if(changed){
   await fs.writeFile(path,s);
-  console.log('Escaped all nested template literals and generated JSX expressions in final academy patch');
+  console.log('Escaped all generated JSX template expressions and nested template literals');
 }else{
-  console.log('No nested template literals needed escaping');
+  console.log('No generated JSX template expressions needed escaping');
 }
