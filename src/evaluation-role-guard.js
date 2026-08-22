@@ -1,12 +1,12 @@
 const nativeFetch = window.fetch.bind(window);
 let cachedMe = null;
-const norm = v => String(v ?? '').trim().replace(/\s+/g, '');
-const traineeRanks = new Set(['مستجد','جندي','جنديأول'].map(norm));
-const trainerRanks = new Set(['رقيب','رقيبأول','مساعد','مساعدأول','ملازم','ملازماول','ملازمتاني','نقيب','رائد','مقدم','عقيد','عميد','لواء','فريق'].map(norm));
-const roleOf = rank => {
-  const r = norm(rank);
-  if (traineeRanks.has(r)) return 'trainee';
-  if (trainerRanks.has(r)) return 'trainer';
+const norm = v => String(v ?? '').trim().toLowerCase().replace(/[\u064B-\u065F\u0670\u0640\s_\-#]+/g, '');
+const traineeRanks = ['مستجد','جندي','جنديأول','طالب','متدرب'].map(norm);
+const trainerRanks = ['رقيب','رقيبأول','مساعد','مساعدأول','ملازم','ملازماول','ملازمثاني','نقيب','رائد','مقدم','عقيد','عميد','لواء','فريق','رئيسالأكاديمية','نائبرئيسالأكاديمية','مساعدنائبرئيسالأكاديمية','قائدالشرطة','رئيسالشرطة','نائبرئيسالشرطة','مساعدقائدالشرطة'].map(norm);
+const roleOf = police => {
+  const r = norm(police?.rank), responsibility = norm(police?.responsibility);
+  if (traineeRanks.some(x => r === x || r.includes(x)) || responsibility.includes('متدرب')) return 'trainee';
+  if (trainerRanks.some(x => r === x || r.includes(x))) return 'trainer';
   return 'none';
 };
 async function me(){
@@ -19,7 +19,7 @@ const trainerText = t => /تقييم\s*(المدرب|المدربين)/.test(t);
 const traineeText = t => /تقييم\s*(المتدرب|المتدربين)/.test(t);
 async function apply(){
   if(location.pathname !== '/academy/evaluations') return;
-  const u = await me(), role = roleOf(u?.police?.rank);
+  const u = await me(), role = roleOf(u?.police);
   if(role === 'none') return;
   const tabs = [...document.querySelectorAll('.tabs button,[role="tab"]')];
   if(!tabs.length) return;
