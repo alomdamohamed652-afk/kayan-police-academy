@@ -16,4 +16,7 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - run: node --check server/index.mjs
+      - run: node --check server/runtime-hooks.mjs
+      - run: node --check server/evaluation-admin.mjs
       - run: npm run build
