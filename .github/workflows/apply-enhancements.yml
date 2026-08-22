@@ -1,41 +1,11 @@
-name: Apply Academy Enhancements
-
+name: Temporary Patch Workflow
 on:
-  push:
-    branches: [fix/evaluation-batches-and-people]
-  pull_request:
-    branches: [main]
-
+  workflow_dispatch:
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  apply-and-build:
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: fix/evaluation-batches-and-people
-          fetch-depth: 0
-
-      - name: Apply requested enhancements
-        run: python3 scripts/apply-enhancements.py
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Commit generated changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add server/academy-v3.mjs src/main-v2.jsx scripts/apply-enhancements.py .github/workflows/apply-enhancements.yml
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git commit -m "feat: expand academy administration and evaluation details"
-          git push origin fix/evaluation-batches-and-people
+      - run: echo disabled
