@@ -1,2 +1,2 @@
-// Single production entrypoint. Keep Render pointed at server/index.mjs.
-import './index-production.mjs';
+// Single production entrypoint. Render runs this file.
+import './academy-v3.mjs';
