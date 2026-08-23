@@ -1,4 +1,4 @@
-const nativeFetch=window.fetch.bind(window.fetch);
+const nativeFetch=window.fetch.bind(window);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const discord=id=>`https://discord.com/users/${encodeURIComponent(id||'')}`;
 let state=null,loading=false;
