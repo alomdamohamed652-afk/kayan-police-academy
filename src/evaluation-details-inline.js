@@ -1,4 +1,4 @@
-const nativeFetch=window.fetch.bind(window.fetch);
+const nativeFetch=window.fetch.bind(window);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const label={trainingHours:'عدد ساعات التدريب',leadershipRating:'مهارة القيادة',citizensRating:'التعامل مع المواطنين والزملاء',devicesRating:'التعامل مع أجهزة الشرطة',reportsRating:'التعامل مع البلاغات',weaponsRating:'التعامل مع الأسلحة',cases:'الحالات التي باشرها',trainerView:'رؤية المتدرب للمدرب',clarity:'وضوح المدرب',trainingNotes:'ملاحظات التدريب',trainerNotes:'ملاحظات على المدرب',sameTrainer:'نفس المدرب مرة أخرى',notes:'الملاحظات',rating:'التقييم النهائي'};
 const fields=e=>Object.entries(label).filter(([k])=>e?.[k]!==undefined&&String(e[k]??'').trim()!=='').map(([k,l])=>`<div class="kedField"><span>${esc(l)}</span><b>${esc(e[k])}${k==='rating'?' / 10':''}</b></div>`).join('');
