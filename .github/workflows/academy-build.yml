@@ -19,4 +19,5 @@ jobs:
       - run: node --check server/index.mjs
       - run: node --check server/runtime-hooks.mjs
       - run: node --check server/evaluation-admin.mjs
+      - run: node --check server/academy-controls.mjs
       - run: npm run build
