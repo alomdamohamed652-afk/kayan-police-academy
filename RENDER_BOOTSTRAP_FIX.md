@@ -1,0 +1,1 @@
+Temporary release note: the production entrypoint must initialize academy-v3 before importing academy-controls. academy-controls consumes globalThis.__kayanApp/__kayanData, so importing it first causes KAYAN_CONTROLS_INIT_FAILED.
