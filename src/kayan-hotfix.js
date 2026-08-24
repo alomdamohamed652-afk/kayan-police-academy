@@ -6,7 +6,37 @@ async function hfMe(){
   try { hotfixMe = await previousFetch('/api/me').then(r => r.json()); } catch { hotfixMe = null; }
   return hotfixMe;
 }
-const fileData = file => new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(String(r.result||'')); r.onerror=reject; r.readAsDataURL(file); });
+const optimizeImage = file => new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=reject;
+  reader.onload=()=>{
+    const img=new Image();
+    img.onerror=reject;
+    img.onload=()=>{
+      const max=512;
+      const scale=Math.min(1,max/Math.max(img.width,img.height));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.width*scale));
+      canvas.height=Math.max(1,Math.round(img.height*scale));
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      let data=canvas.toDataURL('image/webp',0.72);
+      for(const quality of [0.62,0.52,0.44,0.36]){
+        if(data.length<=48000) break;
+        data=canvas.toDataURL('image/webp',quality);
+      }
+      if(data.length>48000){
+        const smaller=document.createElement('canvas');
+        smaller.width=384; smaller.height=Math.max(1,Math.round(canvas.height*(384/canvas.width)));
+        smaller.getContext('2d').drawImage(canvas,0,0,smaller.width,smaller.height);
+        data=smaller.toDataURL('image/webp',0.5);
+      }
+      if(data.length>48000) reject(Error('IMAGE_TOO_LARGE')); else resolve(data);
+    };
+    img.src=String(reader.result||'');
+  };
+  reader.readAsDataURL(file);
+});
 
 window.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : (input?.url || '');
@@ -62,10 +92,10 @@ async function addSelfImageUpload(){
   button.onclick=()=>input.click();
   input.onchange=async()=>{
     const file=input.files?.[0]; if(!file) return;
-    if(file.size>300000){small.textContent='الصورة كبيرة؛ الحد 300KB';return;}
-    button.disabled=true; small.textContent='جاري الرفع...';
+    button.disabled=true; small.textContent='جاري تجهيز الصورة...';
     try{
-      const image=await fileData(file);
+      const image=await optimizeImage(file);
+      small.textContent='جاري الرفع...';
       const r=await previousFetch('/api/admin/member-image-link',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({discordId:uid,image})});
       const d=await r.json(); if(!r.ok) throw Error(d.error||'UPLOAD_FAILED');
       small.textContent='تم حفظ الصورة';
