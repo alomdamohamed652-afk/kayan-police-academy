@@ -9,3 +9,4 @@ let source=await fs.readFile(original,'utf8');
 if(!source.includes(marker)){await import(runtime);}
 else await import('./academy-production-original.mjs');
 await import('./evaluation-details.mjs');
+await import('./kayan-hotfix.mjs');
