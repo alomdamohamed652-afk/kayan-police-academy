@@ -96,3 +96,7 @@ app.get('/api/public/exams',(_,res)=>res.json({exams:data.exams.filter(e=>e.acti
 app.use(express.static(DIST));
 app.use((req,res)=>{if(req.path.startsWith('/api/')||req.path.startsWith('/auth/'))return res.status(404).json({error:'NOT_FOUND'});res.sendFile(path.join(DIST,'index.html'))});
 load().finally(()=>app.listen(PORT,'0.0.0.0',()=>console.log(`Kayan Academy v3 server listening on ${PORT}`)));
+
+// Feature modules are loaded after this module; expose the initialized objects first.
+globalThis.__kayanApp = app;
+globalThis.__kayanData = data;
