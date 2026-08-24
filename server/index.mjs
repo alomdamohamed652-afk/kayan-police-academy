@@ -2,3 +2,4 @@
 import './runtime-hooks.mjs';
 await import('./academy-v3.mjs');
 await import('./academy-controls.mjs');
+await import('./kayan-hotfix.mjs');
