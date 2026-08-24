@@ -20,4 +20,5 @@ jobs:
       - run: node --check server/runtime-hooks.mjs
       - run: node --check server/evaluation-admin.mjs
       - run: node --check server/academy-controls.mjs
+      - run: node --input-type=module -e "globalThis.__kayanData={settings:{},batches:[],admins:[],evaluations:[],audit:[]}; const add=(path,handler)=>globalThis.__kayanApp._router.stack.push({route:{path},handle:handler}); globalThis.__kayanApp={_router:{stack:[]},get:add,post:add,put:add,delete:add}; await import('./server/academy-controls.mjs'); console.log('academy-controls import smoke test passed')"
       - run: npm run build
