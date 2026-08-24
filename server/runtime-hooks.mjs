@@ -18,6 +18,14 @@ express.application.get=function(...args){
 
 express.application.use=function(...args){
   globalThis.__kayanApp=this;
+  const handlers=args.filter(x=>typeof x==='function');
+  const candidate=handlers[handlers.length-1];
+  if(candidate){
+    const source=Function.prototype.toString.call(candidate);
+    if(source.includes('NOT_FOUND')||source.includes("req.path.startsWith('/api/')")||source.includes('req.path.startsWith(\"/api/\")')){
+      globalThis.__kayanFallback=candidate;
+    }
+  }
   return originalUse.apply(this,args);
 };
 
