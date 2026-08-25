@@ -1,4 +1,0 @@
-/* Canonical admin center cleanup: keep legacy admin/settings UI unreachable from the public SPA. */
-body:has(.adminTag) aside nav button:nth-last-child(-n+2){display:none!important}
-/* The batch controls the application state; the obsolete global toggle must not appear. */
-.settingsPanel .switchLine{display:none!important}
