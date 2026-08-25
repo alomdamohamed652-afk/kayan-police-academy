@@ -1,0 +1,2 @@
+const adminPath=location.pathname==='/admin'||location.pathname==='/settings';
+if(adminPath){import('./admin-center-v2.jsx');}else{import('./main-legacy.jsx');}
