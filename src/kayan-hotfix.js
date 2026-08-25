@@ -22,12 +22,37 @@ const optimizeImage = file => new Promise((resolve,reject)=>{
 window.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : (input?.url || '');
   const method = String(init.method || 'GET').toUpperCase();
+
+  // Evaluations use a batch that is independent from application batches.
+  // The existing React page reads /api/public/academy, so merge the selected
+  // evaluation batch into that response without changing application data.
+  if(url.endsWith('/api/public/academy') && method==='GET'){
+    const [academyResponse, contextResponse] = await Promise.all([
+      previousFetch(input, init),
+      previousFetch('/api/evaluation-context')
+    ]);
+    if(!contextResponse.ok) return academyResponse;
+    try{
+      const academy=await academyResponse.json();
+      const context=await contextResponse.json();
+      const evaluationBatch=context.batch||null;
+      const body={...academy,evaluationBatch};
+      return new Response(JSON.stringify(body),{status:academyResponse.status,statusText:academyResponse.statusText,headers:{'Content-Type':'application/json'}});
+    }catch{return academyResponse}
+  }
+
   if (url.includes('/api/evaluations') && method === 'POST') {
     let body={};try{body=JSON.parse(init.body||'{}')}catch{}
     const me=await hfMe();
-    if(me?.discord?.id){const role=me?.role||(['مستجد','جندي','جندي أول','جنديأول'].includes(String(me?.police?.rank||''))?'trainee':'trainer');if(role==='trainer')body.trainerId=hfId(me.discord.id);if(role==='trainee')body.traineeId=hfId(me.discord.id)}
-    return previousFetch('/api/kayan/evaluations',{...init,body:JSON.stringify(body)});
+    if(me?.discord?.id){
+      const role=me?.role||(['مستجد','جندي','جندي أول','جنديأول'].includes(String(me?.police?.rank||''))?'trainee':'trainer');
+      if(role==='trainer')body.trainerId=hfId(me.discord.id);
+      if(role==='trainee')body.traineeId=hfId(me.discord.id);
+    }
+    // Use the independent evaluation-batch endpoint, never the application batch.
+    return previousFetch('/api/evaluations-v2',{...init,body:JSON.stringify(body)});
   }
+
   if((url.includes('/api/member-image')||url.includes('/api/admin/member-image'))&&(method==='PATCH'||method==='PUT')){
     let body={};try{body=JSON.parse(init.body||'{}')}catch{}
     const me=await hfMe();if(!body.discordId&&me?.discord?.id)body.discordId=hfId(me.discord.id);
