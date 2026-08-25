@@ -23,10 +23,9 @@ window.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : (input?.url || '');
   const method = String(init.method || 'GET').toUpperCase();
 
-  // Evaluations use a batch that is independent from application batches.
-  // The existing React page reads /api/public/academy, so merge the selected
-  // evaluation batch into that response without changing application data.
-  if(url.endsWith('/api/public/academy') && method==='GET'){
+  // Only the evaluations page receives the independent evaluation batch.
+  // Application pages keep using the normal application batch unchanged.
+  if(url.endsWith('/api/public/academy') && method==='GET' && location.pathname==='/academy/evaluations'){
     const [academyResponse, contextResponse] = await Promise.all([
       previousFetch(input, init),
       previousFetch('/api/evaluation-context')
@@ -36,11 +35,12 @@ window.fetch = async (input, init = {}) => {
       const academy=await academyResponse.json();
       const context=await contextResponse.json();
       const evaluationBatch=context.batch||null;
-      const body={...academy,evaluationBatch};
+      const body={...academy,batch:evaluationBatch};
       return new Response(JSON.stringify(body),{status:academyResponse.status,statusText:academyResponse.statusText,headers:{'Content-Type':'application/json'}});
     }catch{return academyResponse}
   }
 
+  // Route evaluation submissions to the independent evaluation-batch backend.
   if (url.includes('/api/evaluations') && method === 'POST') {
     let body={};try{body=JSON.parse(init.body||'{}')}catch{}
     const me=await hfMe();
@@ -49,7 +49,6 @@ window.fetch = async (input, init = {}) => {
       if(role==='trainer')body.trainerId=hfId(me.discord.id);
       if(role==='trainee')body.traineeId=hfId(me.discord.id);
     }
-    // Use the independent evaluation-batch endpoint, never the application batch.
     return previousFetch('/api/evaluations-v2',{...init,body:JSON.stringify(body)});
   }
 
