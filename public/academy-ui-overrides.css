@@ -1,24 +1,38 @@
-/* KAYAN UI — established right sidebar. Keep the navigation vertical on desktop and as a drawer on mobile. */
-.menu{display:grid;place-items:center;background:#0c1726;color:#d5b45e;border:1px solid #26374c;border-radius:10px;width:42px;height:42px;padding:0;flex:none}
+/* KAYAN UI — stable right sidebar. Desktop keeps navigation vertical; mobile uses the same sidebar as a drawer. */
+header{min-height:68px!important;height:68px!important;padding:8px 20px!important;gap:12px!important;background:rgba(5,12,21,.94)!important;border-bottom:1px solid #203047!important;backdrop-filter:blur(14px)!important}
+.menu{display:grid;place-items:center;background:#0c1726;color:#d5b45e;border:1px solid #26374c;border-radius:10px;width:40px;height:40px;padding:0;flex:none}
 .menu:hover{background:#142238;border-color:#d5b45e}
-header{min-height:72px;padding:8px 22px;gap:14px}
-.headerBrand{font-size:12px;gap:10px}
-.headerBrand img{width:38px;height:38px}
-.userHeader{font-size:11px;gap:8px}
-.userHeader strong{font-weight:700}
-.sirenBar{height:7px}
+.userHeader{font-size:10px!important;gap:8px!important}
+.userHeader strong{font-weight:700!important;color:#e8edf4}
+.headerBrand{font-size:11px!important;gap:9px!important}
+.headerBrand img{width:36px!important;height:36px!important}
+.sirenBar{height:6px!important}
+
 @media(min-width:761px){
-.app main{margin-right:245px!important;min-height:100vh!important}
-header{height:72px!important;position:sticky!important;top:0!important;z-index:50!important}
-.headerBrand{display:none!important}.menu{display:none!important}
-.topNav{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;width:245px!important;height:100vh!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:4px!important;padding:92px 12px 18px!important;margin:0!important;background:linear-gradient(180deg,#07101c 0%,#060e18 100%)!important;border:0!important;border-left:1px solid #203047!important;border-radius:0!important;box-shadow:-14px 0 45px rgba(0,0,0,.35)!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:200!important}
-.topNav:before{content:""!important;position:absolute!important;top:18px!important;right:0!important;left:0!important;height:54px!important;background:url('/police-logo.png') right 18px center/48px 48px no-repeat!important;pointer-events:none!important}
-.topNav:after{content:"أكاديمية شرطة كيان"!important;position:absolute!important;top:29px!important;right:76px!important;color:#e8edf4!important;font-size:13px!important;font-weight:800!important;white-space:nowrap!important;pointer-events:none!important}
-.topNav button{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;flex:0 0 auto!important;gap:9px!important;padding:12px 13px!important;margin:1px 0!important;background:transparent!important;color:#8997a8!important;border:1px solid transparent!important;border-radius:10px!important;font-size:11px!important;text-align:right!important}
-.topNav button:hover{background:#101d2d!important;color:#fff!important}.topNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}.userHeader{margin-right:auto!important}
+  .app main{margin-right:230px!important;min-height:100vh!important}
+  header{position:sticky!important;top:0!important;z-index:50!important}
+  .headerBrand{display:none!important}
+  .menu{display:none!important}
+  .topNav{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;width:230px!important;height:100vh!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:5px!important;padding:92px 11px 18px!important;margin:0!important;background:linear-gradient(180deg,#07101c 0%,#060d17 100%)!important;border:0!important;border-left:1px solid #203047!important;border-radius:0!important;box-shadow:-14px 0 45px rgba(0,0,0,.35)!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:200!important}
+  .topNav:before{content:""!important;position:absolute!important;top:17px!important;right:0!important;left:0!important;height:54px!important;background:url('/police-logo.png') right 16px center/46px 46px no-repeat!important;pointer-events:none!important}
+  .topNav:after{content:"أكاديمية شرطة كيان"!important;position:absolute!important;top:29px!important;right:70px!important;color:#eef2f7!important;font-size:12px!important;font-weight:800!important;white-space:nowrap!important;pointer-events:none!important}
+  .topNav button{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;flex:0 0 auto!important;gap:9px!important;padding:11px 12px!important;margin:0!important;background:transparent!important;color:#8b98a9!important;border:1px solid transparent!important;border-radius:9px!important;font-size:10px!important;text-align:right!important;transition:background .15s ease,border-color .15s ease,color .15s ease!important}
+  .topNav button:hover{background:#101d2d!important;color:#fff!important}
+  .topNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}
+  .userHeader{margin-right:auto!important}
 }
+
 @media(max-width:760px){
-header{padding:8px 12px!important}.headerBrand span{display:block;font-size:10px}.userHeader strong,.rankText{display:none}.menu{display:grid!important;width:40px;height:40px}
-.topNav{position:fixed!important;top:0!important;right:-270px!important;bottom:0!important;left:auto!important;width:270px!important;height:100vh!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:4px!important;padding:92px 12px 18px!important;margin:0!important;background:#07101c!important;border:0!important;border-left:1px solid #26374c!important;border-radius:0!important;box-shadow:-20px 0 60px rgba(0,0,0,.65)!important;overflow-y:auto!important;z-index:200!important;transition:right .2s ease!important}
-.topNav.open{right:0!important;display:flex!important}.topNav:before{content:""!important;position:absolute!important;top:18px!important;right:0!important;left:0!important;height:54px!important;background:url('/police-logo.png') right 18px center/46px 46px no-repeat!important}.topNav:after{content:"أكاديمية شرطة كيان"!important;position:absolute!important;top:28px!important;right:72px!important;color:#e8edf4!important;font-size:12px!important;font-weight:800!important;white-space:nowrap!important}.topNav button{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;gap:8px!important;padding:12px 13px!important;margin:2px 0!important;background:transparent!important;color:#8997a8!important;border:1px solid transparent!important;border-radius:10px!important;font-size:11px!important;text-align:right!important}.topNav button:hover{background:#101d2d!important;color:#fff!important}.topNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}
+  header{padding:8px 12px!important}
+  .headerBrand{display:flex!important;margin-right:auto!important}
+  .headerBrand span{display:block!important;font-size:10px!important}
+  .userHeader strong,.rankText{display:none!important}
+  .menu{display:grid!important;width:40px!important;height:40px!important}
+  .topNav{position:fixed!important;top:0!important;right:-270px!important;bottom:0!important;left:auto!important;width:270px!important;height:100vh!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:5px!important;padding:92px 12px 18px!important;margin:0!important;background:#07101c!important;border:0!important;border-left:1px solid #26374c!important;border-radius:0!important;box-shadow:-20px 0 60px rgba(0,0,0,.65)!important;overflow-y:auto!important;z-index:200!important;transition:right .2s ease!important}
+  .topNav.open{right:0!important;display:flex!important}
+  .topNav:before{content:""!important;position:absolute!important;top:18px!important;right:0!important;left:0!important;height:54px!important;background:url('/police-logo.png') right 18px center/46px 46px no-repeat!important}
+  .topNav:after{content:"أكاديمية شرطة كيان"!important;position:absolute!important;top:28px!important;right:72px!important;color:#e8edf4!important;font-size:12px!important;font-weight:800!important;white-space:nowrap!important}
+  .topNav button{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;gap:8px!important;padding:12px 13px!important;margin:0!important;background:transparent!important;color:#8997a8!important;border:1px solid transparent!important;border-radius:10px!important;font-size:11px!important;text-align:right!important}
+  .topNav button:hover{background:#101d2d!important;color:#fff!important}
+  .topNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}
 }
