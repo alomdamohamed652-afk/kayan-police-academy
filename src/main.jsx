@@ -1,4 +1,5 @@
 import React,{useEffect,useMemo,useState}from'react';
+import{createRoot}from'react-dom/client';
 import{LayoutDashboard,Users,ClipboardCheck,FileText,Shield,LogIn,Menu,X,ArrowLeft,UserRound,Settings,Network,Upload,Search,ExternalLink,Clock,RefreshCw,Check}from'lucide-react';
 import'./styles.css';
 import{AdminCenter}from'./admin-center.jsx';
