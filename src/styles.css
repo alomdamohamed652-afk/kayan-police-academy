@@ -61,3 +61,20 @@
 .appCrash{min-height:100vh;display:grid;place-items:center;padding:24px;background:#07101c}
 .crashCard{max-width:520px;text-align:center}
 .crashCard>svg{color:#d5b45e;margin-bottom:10px}
+
+
+/* CANONICAL SIDEBAR FIX — one real sidebar, no duplicate pseudo-branding */
+.topNav::before,.topNav::after{content:none!important;display:none!important}
+@media(min-width:761px){
+  .app main{margin-right:245px}
+  .topNav{position:fixed;right:0;top:0;bottom:0;width:245px;height:100vh;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:18px 12px;overflow-y:auto;overflow-x:hidden}
+  .sideBrand{position:relative;z-index:1}
+  header{display:flex;align-items:center;justify-content:flex-start}
+  .userHeader{margin-left:0;margin-right:0}
+  .logoutBtn{margin-right:auto}
+}
+@media(max-width:760px){
+  .topNav::before,.topNav::after{content:none!important;display:none!important}
+  .userHeader{margin-right:auto}
+  .logoutBtn{margin-right:0}
+}
