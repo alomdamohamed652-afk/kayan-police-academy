@@ -11,3 +11,53 @@
 @media(max-width:760px){
 .app main{margin-right:0}.topNav{position:fixed;display:flex;top:0;bottom:0;right:-270px;left:auto;width:270px;height:100vh;z-index:100;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:94px 12px 18px;background:#07101c;border-left:1px solid #26374c;border-radius:0;box-shadow:-20px 0 60px #000b;overflow-y:auto;transition:right .2s ease}.topNav.open{right:0;display:flex}
 .topNav:before{content:"";position:absolute;top:18px;right:0;left:0;height:54px;background:url('/police-logo.png') right 18px center/46px 46px no-repeat}.topNav:after{content:"أكاديمية شرطة كيان";position:absolute;top:28px;right:72px;color:#e8edf4;font-size:12px;font-weight:800;white-space:nowrap}.topNav button{width:100%;justify-content:flex-start;gap:8px;padding:12px 13px;margin:2px 0;border:1px solid transparent;border-radius:10px;background:transparent;color:#8997a8;font-size:11px}.topNav button.active{background:#142236;color:#fff;border-color:#263950;box-shadow:inset -3px 0 #d5b45e}.topNav button:hover{background:#101d2d;color:#fff}.headerBrand{display:flex;margin-right:auto}.menu{display:block}}
+
+
+/* FINAL UI STABILITY OVERRIDES — keep the established right sidebar */
+@media(min-width:761px){
+  .app main{margin-right:245px;min-height:100vh}
+  .topNav{position:fixed;right:0;top:0;bottom:0;width:245px;height:100vh;z-index:80;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:4px;padding:18px 12px;background:linear-gradient(180deg,#07101c 0%,#060e18 100%);border-left:1px solid #203047;box-shadow:-14px 0 45px #0005;overflow-y:auto;overflow-x:hidden}
+  .sideBrand{height:62px;display:flex;align-items:center;gap:10px;padding:0 8px 12px;border-bottom:1px solid #203047;margin-bottom:10px}
+  .sideBrand img{width:48px;height:48px;object-fit:contain}
+  .sideBrand div{display:flex;flex-direction:column;gap:2px}
+  .sideBrand strong{font-size:12px;color:#edf1f6}
+  .sideBrand small{font-size:7px;color:#6f7f91;letter-spacing:1.4px}
+  .sideNav{display:flex;flex-direction:column;gap:5px}
+  .sideNav button{width:100%;display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid transparent;border-radius:11px;background:transparent;color:#8997a8;font-size:11px;text-align:right}
+  .sideNav button span{flex:1}
+  .sideNav button svg:last-child{opacity:.8}
+  .sideNav button.active{background:#142236;color:#fff;border-color:#263950;box-shadow:inset -3px 0 #d5b45e}
+  .sideNav button:hover{background:#101d2d;color:#fff}
+  header{margin:0;height:72px;padding:8px 24px}
+  .menu,.mobileBrand{display:none}
+  .userHeader{margin-left:auto}
+}
+@media(max-width:760px){
+  .app main{margin-right:0}
+  .topNav{position:fixed;display:flex;top:0;bottom:0;right:-280px;left:auto;width:280px;height:100vh;z-index:100;flex-direction:column;align-items:stretch;padding:18px 12px;background:#07101c;border-left:1px solid #26374c;box-shadow:-20px 0 60px #000b;overflow-y:auto;transition:right .2s ease}
+  .topNav.open{right:0}
+  .sideBrand{height:64px;display:flex;align-items:center;gap:10px;padding:0 8px 12px;border-bottom:1px solid #203047;margin-bottom:10px}
+  .sideBrand img{width:48px;height:48px}
+  .sideBrand div{display:flex;flex-direction:column;gap:2px}
+  .sideBrand strong{font-size:12px;color:#edf1f6}
+  .sideBrand small{font-size:7px;color:#6f7f91;letter-spacing:1.4px}
+  .sideNav{display:flex;flex-direction:column;gap:5px}
+  .sideNav button{width:100%;display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid transparent;border-radius:11px;background:transparent;color:#8997a8;font-size:11px;text-align:right}
+  .sideNav button span{flex:1}
+  .sideNav button.active{background:#142236;color:#fff;border-color:#263950;box-shadow:inset -3px 0 #d5b45e}
+  header{height:72px;padding:8px 14px}
+  .menu{display:flex;align-items:center;justify-content:center;background:none;color:#fff;padding:7px}
+  .mobileBrand{display:flex;align-items:center;gap:7px;color:#cbd4df;font-size:10px;white-space:nowrap}
+  .mobileBrand img{width:34px;height:34px;object-fit:contain}
+  .userHeader{margin-right:auto;gap:6px;font-size:10px;min-width:0}
+  .userHeader strong,.rankText{display:inline;color:#e8edf4;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rankText{color:#d5b45e;max-width:90px}
+  .adminTag{font-size:7px;padding:4px 6px}
+  .logoutBtn{padding:7px 9px;font-size:8px;white-space:nowrap}
+  .sirenBar{height:6px}
+}
+.logoutBtn{display:inline-flex;align-items:center;gap:5px;background:#3a1a24;color:#f2c4cc;border:1px solid #5b2a38;border-radius:8px;padding:8px 10px;font-size:9px}
+.logoutBtn:hover{background:#4b202d;color:#fff}
+.appCrash{min-height:100vh;display:grid;place-items:center;padding:24px;background:#07101c}
+.crashCard{max-width:520px;text-align:center}
+.crashCard>svg{color:#d5b45e;margin-bottom:10px}
