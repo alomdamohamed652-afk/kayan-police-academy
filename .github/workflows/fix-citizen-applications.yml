@@ -1,0 +1,58 @@
+name: Fix citizen applications flow
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch citizen identity and applications
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('server/academy-production-original.mjs')
+          s = p.read_text(encoding='utf-8')
+
+          old = "if(!c.sheet)return res.json({authenticated:true,identityPending:true,discord:c.x,role:'unknown',permissions:{isCitizen:false,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions}});"
+          new = "if(!c.sheet)return res.json({authenticated:true,identityPending:false,discord:c.x,police:null,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:false}});"
+          if old not in s:
+              raise SystemExit('Expected /api/me identity-pending code was not found')
+          s = s.replace(old, new, 1)
+
+          old = "if(!c.sheet)return res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});if(c.police)return res.status(403).json({error:'OFFICERS_CANNOT_APPLY'});"
+          new = "let applicantPolice=c.police;if(!applicantPolice){try{const rows=await police(true);applicantPolice=rows.find(r=>id(r.discordId)===id(c.x.id))||null}catch(_e){applicantPolice=null}}if(applicantPolice)return res.status(403).json({error:'OFFICERS_CANNOT_APPLY'});"
+          if old not in s:
+              raise SystemExit('Expected applications POST guard was not found')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s, encoding='utf-8')
+
+          # Remove the old identity-pending UI branch only if the backend still sends it.
+          q = Path('src/main.jsx')
+          t = q.read_text(encoding='utf-8')
+          old_ui = "if(user.identityPending)return <IdentityPending onRetry={load}/>;"
+          if old_ui in t:
+              # Keep the component for compatibility, but don't block citizens from the portal.
+              t = t.replace(old_ui, "if(user.identityPending){setUser({...user,identityPending:false,role:'citizen',permissions:{...user.permissions,isCitizen:true,isOfficer:false}});return null;}", 1)
+              q.write_text(t, encoding='utf-8')
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/academy-production-original.mjs src/main.jsx
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git commit -m "fix citizen applications access"
+          git push
