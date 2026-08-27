@@ -92,3 +92,38 @@
 @media(max-width:760px){.mobileBrand{display:flex;align-items:center;margin-left:0;margin-right:0;gap:0}.mobileBrand span{display:none!important}.mobileBrand img{width:38px;height:38px;object-fit:contain}header{gap:10px}.userHeader{flex:1;min-width:0;justify-content:flex-start}}
 .profileDiscordAction{display:flex;justify-content:flex-start;margin-top:12px;padding-top:12px;border-top:1px solid #203047}.discordProfileBtn{width:max-content}.hierEdit .danger{flex:0 0 auto}
 @media(max-width:760px){.hierEdit{flex-wrap:wrap}.hierEdit .preview{flex:0 0 70px}.hierEdit .editFields{width:100%;order:2}.hierEdit .danger{order:3;width:max-content}}
+
+
+/* FINAL SIDEBAR + HEADER LAYOUT — keep navigation on the right, user controls on the left */
+@media (min-width:761px){
+  .app{display:block!important}
+  .app>main{margin-right:245px!important;margin-left:0!important;min-height:100vh}
+  .app>.topNav{
+    position:fixed!important;right:0!important;left:auto!important;top:0!important;bottom:0!important;
+    width:245px!important;height:100vh!important;display:flex!important;flex-direction:column!important;
+    align-items:stretch!important;justify-content:flex-start!important;gap:4px!important;
+    padding:18px 12px!important;margin:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+    background:linear-gradient(180deg,#07101c 0%,#060e18 100%)!important;
+    border-left:1px solid #203047!important;border-right:0!important;border-radius:0!important;
+    box-shadow:-14px 0 45px #0005!important;z-index:100!important;
+  }
+  .app>.topNav .sideBrand{display:flex!important;position:relative!important;inset:auto!important;width:100%!important;height:62px!important;flex:0 0 62px!important;align-items:center!important;gap:10px!important;padding:0 8px 12px!important;margin:0 0 10px!important;border-bottom:1px solid #203047!important}
+  .app>.topNav .sideBrand img{display:block!important;width:48px!important;height:48px!important;object-fit:contain!important}
+  .app>.topNav .sideBrand div{display:flex!important;flex-direction:column!important;gap:2px!important}
+  .app>.topNav .sideBrand strong{font-size:12px!important;color:#edf1f6!important}
+  .app>.topNav .sideBrand small{font-size:7px!important;color:#6f7f91!important;letter-spacing:1.4px!important}
+  .app>.topNav .sideNav{display:flex!important;flex-direction:column!important;gap:5px!important;width:100%!important}
+  .app>.topNav .sideNav button{width:100%!important;display:flex!important;align-items:center!important;gap:9px!important;padding:12px 13px!important;margin:0!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#8997a8!important;font-size:11px!important;text-align:right!important}
+  .app>.topNav .sideNav button span{flex:1!important}
+  .app>.topNav .sideNav button svg:last-child{display:block!important;opacity:.8!important}
+  .app>.topNav .sideNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}
+  .app>main>header{position:sticky!important;top:0!important;display:flex!important;align-items:center!important;height:72px!important;padding:8px 24px!important;justify-content:flex-start!important}
+  .app>main>header .headerSpacer{flex:1 1 auto!important}
+  .app>main>header .userHeader{margin:0!important;order:3!important;display:flex!important;align-items:center!important}
+  .app>main>header .logoutBtn{margin:0!important}
+}
+@media (max-width:760px){
+  .app>main{margin-right:0!important;margin-left:0!important}
+  .app>main>header .headerSpacer{display:none!important}
+  .app>main>header .userHeader{margin-right:auto!important;margin-left:0!important}
+}
