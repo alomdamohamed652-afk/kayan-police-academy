@@ -144,7 +144,7 @@ function MembersAdmin({state,reload,setMsg}){
 
   const setUrl=async m=>{
     const url=String(urls[m.discordId]||'').trim();
-    if(!/^https?:\\/\\//i.test(url)) return setMsg('ضع رابط صورة مباشر يبدأ بـ https:// أو http://.');
+    let parsed; try{parsed=new URL(url)}catch{return setMsg('ضع رابط صورة صحيح يبدأ بـ https:// أو http://.')} if(!['http:','https:'].includes(parsed.protocol)) return setMsg('ضع رابط صورة مباشر يبدأ بـ https:// أو http://.');
     await saveImage(m,url);
   };
 
