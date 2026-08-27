@@ -87,3 +87,8 @@
 .memberStatus{display:inline-flex;align-items:center;justify-content:center;min-width:70px;padding:5px 9px;border-radius:20px;font-size:8px;font-weight:800;background:#202b38;color:#aeb9c7}.memberStatus.active{background:#123b29;color:#63d99b}.memberStatus.leave{background:#FFC8AA;color:#3c251d}.memberStatus.inactive{background:#4a1d26;color:#ff9ba6}
 .memberProfileModal{width:min(680px,96vw)}.profileHero{display:flex;align-items:center;gap:14px;padding:15px;margin:12px 0;background:#0b1726;border:1px solid #24364e;border-radius:12px}.profileAvatar{width:82px;height:82px}.profileHero strong{display:block;color:#fff;font-size:18px}.profileHero span{display:block;color:#d5b45e;font-size:10px;margin-top:4px}.profileGrid .memberStatus{display:inline-flex}
 @media(max-width:760px){.memberSelfCard{align-items:flex-start;flex-wrap:wrap}.memberSelfActions{width:100%;justify-content:flex-start}.profileBtn{width:max-content}.memberRow{gap:7px}.memberRow>div:last-of-type{grid-column:2}.memberStatus{width:max-content}}
+
+/* FINAL KAYAN UI PATCH — preserve sidebar, clean mobile header, profile Discord action */
+@media(max-width:760px){.mobileBrand{display:flex;align-items:center;margin-left:0;margin-right:0;gap:0}.mobileBrand span{display:none!important}.mobileBrand img{width:38px;height:38px;object-fit:contain}header{gap:10px}.userHeader{flex:1;min-width:0;justify-content:flex-start}}
+.profileDiscordAction{display:flex;justify-content:flex-start;margin-top:12px;padding-top:12px;border-top:1px solid #203047}.discordProfileBtn{width:max-content}.hierEdit .danger{flex:0 0 auto}
+@media(max-width:760px){.hierEdit{flex-wrap:wrap}.hierEdit .preview{flex:0 0 70px}.hierEdit .editFields{width:100%;order:2}.hierEdit .danger{order:3;width:max-content}}
