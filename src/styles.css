@@ -251,3 +251,28 @@
 /* Final academy footer */
 .siteFooter{margin:42px 24px 24px;border:1px solid #203047;border-radius:18px;background:linear-gradient(180deg,#0b1523 0%,#08111d 100%);overflow:hidden}.footerInner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px 24px}.footerBrand,.footerDeveloper,.footerActions{display:flex;align-items:center;gap:11px}.footerBrand img{width:44px;height:44px;object-fit:contain}.footerBrand div{display:flex;flex-direction:column;gap:3px}.footerBrand strong{font-size:13px;color:#edf1f6}.footerBrand span,.footerDeveloper span,.footerDeveloper small{font-size:10px;color:#718096}.footerDeveloper{padding:0 20px;border-right:1px solid #203047;border-left:1px solid #203047}.footerDeveloper{flex-direction:column;gap:2px}.footerDeveloper strong{font-size:17px;letter-spacing:1px;color:#d5b45e}.footerDeveloper small b{color:#edf1f6}.footerActions{gap:8px}.footerActions a{display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border-radius:10px;text-decoration:none;font-size:11px;font-weight:700}.footerDiscord{background:#142236;color:#edf1f6;border:1px solid #2a3b52}.footerStore{background:#d5b45e;color:#08111d}.footerBottom{display:flex;justify-content:space-between;gap:16px;padding:11px 24px;border-top:1px solid #203047;color:#5f7083;font-size:9px}
 @media(max-width:760px){.siteFooter{margin:30px 12px 16px}.footerInner{flex-direction:column;align-items:stretch;text-align:center;padding:20px 16px}.footerBrand,.footerDeveloper,.footerActions{justify-content:center}.footerDeveloper{border-right:0;border-left:0;border-top:1px solid #203047;border-bottom:1px solid #203047;padding:14px 0}.footerActions{flex-direction:column}.footerActions a{justify-content:center}.footerBottom{flex-direction:column;text-align:center}}
+
+/* Final admin and exam UX */
+.adminDash>.panel:last-child{max-height:430px;overflow-y:auto;scrollbar-width:thin;padding-right:6px}
+.loginLogRow{min-height:56px}
+.applicationRow{flex-wrap:wrap}
+.applicationRow>.answerDetail{flex-basis:100%;width:100%}
+.answerDetail{direction:rtl}
+.answerDetail .detailGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.answerCard{direction:rtl;text-align:right;padding:14px 16px;gap:10px}
+.answerCard strong{font-size:12px;line-height:1.8}
+.answerCard span{display:block;padding:10px 12px;background:#07111e;border:1px solid #20334b;border-radius:8px;color:#dbe4ee;font-size:11px;line-height:1.9;white-space:pre-wrap;word-break:break-word}
+.answerCard span b{color:#d5b45e}
+.examToolbar{display:flex;justify-content:flex-start;margin:0 30px 12px}
+.previousExams{margin:0 30px 18px}
+.previousExamRow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-top:1px solid #1a2939}
+.previousExamRow small{display:block;color:#738398;font-size:9px;margin-top:4px}
+.previousExamScore{display:flex;align-items:center;gap:10px}
+.previousExamScore b{font-size:18px;color:#d5b45e}
+@media(max-width:760px){
+ .adminDash>.panel:last-child{max-height:330px}
+ .detailGrid,.answerDetail .detailGrid{grid-template-columns:1fr}
+ .examToolbar,.previousExams{margin-left:16px;margin-right:16px}
+ .previousExamRow{align-items:flex-start}
+ .previousExamScore{flex-direction:column;align-items:flex-end}
+}
