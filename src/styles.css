@@ -185,3 +185,60 @@
   .app>aside.topNav{position:fixed!important;top:0!important;right:-280px!important;bottom:0!important;left:auto!important;width:280px!important;height:100vh!important;display:flex!important;flex-direction:column!important;transition:right .2s ease!important;z-index:1000!important}
   .app>aside.topNav.open{right:0!important}
 }
+
+
+/* FINAL UI CONTRACT: desktop sidebar + mobile drawer. Keep navigation out of the page header. */
+@media (min-width: 761px) {
+  .app { min-height: 100vh; }
+  .app main { margin-right: 245px !important; min-height: 100vh; }
+  .topNav {
+    position: fixed !important;
+    inset: 0 0 0 auto !important;
+    width: 245px !important;
+    height: 100vh !important;
+    z-index: 100 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding: 18px 12px !important;
+    gap: 4px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: linear-gradient(180deg,#07101c 0%,#060e18 100%) !important;
+    border-left: 1px solid #203047 !important;
+    box-shadow: -14px 0 45px #0005 !important;
+  }
+  .topNav::before, .topNav::after { display: none !important; content: none !important; }
+  .sideBrand { display: flex !important; }
+  .sideNav { display: flex !important; flex-direction: column !important; gap: 5px !important; }
+  .sideNav button { width: 100% !important; justify-content: flex-start !important; }
+  .topNav button svg:last-child { display: block !important; }
+  .menu, .mobileBrand { display: none !important; }
+}
+@media (max-width: 760px) {
+  .app main { margin-right: 0 !important; }
+  .topNav {
+    position: fixed !important;
+    inset: 0 0 0 auto !important;
+    width: 280px !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding: 18px 12px !important;
+    background: #07101c !important;
+    border-left: 1px solid #26374c !important;
+    box-shadow: -20px 0 60px #000b !important;
+    overflow-y: auto !important;
+    transform: translateX(100%);
+    transition: transform .2s ease !important;
+  }
+  .topNav.open { right: 0 !important; transform: translateX(0) !important; }
+  .topNav::before, .topNav::after { display: none !important; content: none !important; }
+  .sideBrand { display: flex !important; }
+  .sideNav { display: flex !important; flex-direction: column !important; gap: 5px !important; }
+  .sideNav button { width: 100% !important; justify-content: flex-start !important; }
+}
