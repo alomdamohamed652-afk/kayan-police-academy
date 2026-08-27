@@ -167,3 +167,21 @@
   aside.topNav .sideNav button{width:100%!important;display:flex!important}
   .menu,.mobileBrand{display:none!important}
 }
+
+
+/* DEPLOYMENT GUARD — canonical academy navigation layout */
+@media (min-width: 761px){
+  .app{display:block!important;position:relative!important;min-height:100vh!important}
+  .app>aside.topNav{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;width:245px!important;height:100vh!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;box-sizing:border-box!important;padding:18px 12px!important;margin:0!important;border-radius:0!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:1000!important}
+  .app>main{display:block!important;margin:0 245px 0 0!important;min-height:100vh!important;width:auto!important}
+  .app>aside.topNav .sideBrand,.app>aside.topNav .sideNav{width:100%!important;box-sizing:border-box!important}
+  .app>aside.topNav .sideNav{display:flex!important;flex-direction:column!important;gap:5px!important}
+  .app>aside.topNav .sideNav button{display:flex!important;width:100%!important;box-sizing:border-box!important}
+  .app>main>header{width:auto!important;display:flex!important;align-items:center!important;box-sizing:border-box!important}
+  .app>main>header .menu,.app>main>header .mobileBrand{display:none!important}
+}
+@media (max-width:760px){
+  .app>main{margin:0!important;width:100%!important}
+  .app>aside.topNav{position:fixed!important;top:0!important;right:-280px!important;bottom:0!important;left:auto!important;width:280px!important;height:100vh!important;display:flex!important;flex-direction:column!important;transition:right .2s ease!important;z-index:1000!important}
+  .app>aside.topNav.open{right:0!important}
+}
