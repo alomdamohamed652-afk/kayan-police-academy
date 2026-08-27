@@ -5,6 +5,18 @@
 // as Render Secret File GOOGLE_SERVICE_ACCOUNT_FILE. If the environment JSON
 // is malformed, prefer the valid secret file instead of preventing the Google
 // client from initializing. Do not override JSON.parse globally.
+import express from 'express';
+const nativeJson = express.response.json;
+const nativeSend = express.response.send;
+express.response.json = function(body) {
+  if (this.headersSent) return this;
+  return nativeJson.call(this, body);
+};
+express.response.send = function(body) {
+  if (this.headersSent) return this;
+  return nativeSend.call(this, body);
+};
+
 import fs from 'node:fs/promises';
 
 const serviceFile = process.env.GOOGLE_SERVICE_ACCOUNT_FILE || '/etc/secrets/google-service-account.json';
