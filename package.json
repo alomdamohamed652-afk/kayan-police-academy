@@ -12,12 +12,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest",
-    "concurrently": "latest",
+    "@vitejs/plugin-react": "6.0.5",
+    "vite": "8.2.2",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "lucide-react": "1.27.0",
+    "concurrently": "10.0.5",
     "express": "4.21.2",
     "cookie-parser": "latest",
     "jsonwebtoken": "latest",
