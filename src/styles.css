@@ -127,3 +127,31 @@
   .app>main>header .headerSpacer{display:none!important}
   .app>main>header .userHeader{margin-right:auto!important;margin-left:0!important}
 }
+
+
+/* FINAL DESKTOP SIDEBAR ENFORCEMENT
+   Navigation is ALWAYS a right sidebar on desktop. It must never render as a horizontal top nav. */
+@media (min-width: 761px){
+  .app{display:block!important;min-height:100vh!important}
+  .app>aside.topNav{position:fixed!important;display:flex!important;flex-direction:column!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;width:245px!important;height:100vh!important;margin:0!important;padding:18px 12px!important;z-index:1000!important;overflow-y:auto!important;overflow-x:hidden!important;align-items:stretch!important;justify-content:flex-start!important;background:linear-gradient(180deg,#07101c 0%,#060e18 100%)!important;border-left:1px solid #203047!important;border-right:0!important;border-radius:0!important;box-shadow:-14px 0 45px rgba(0,0,0,.35)!important}
+  .app>main{margin-right:245px!important;margin-left:0!important;min-height:100vh!important}
+  .app>aside.topNav .sideBrand{display:flex!important;width:100%!important;height:62px!important;flex:0 0 62px!important;align-items:center!important;gap:10px!important;padding:0 8px 12px!important;margin:0 0 10px!important;border-bottom:1px solid #203047!important}
+  .app>aside.topNav .sideBrand img{width:48px!important;height:48px!important;object-fit:contain!important}
+  .app>aside.topNav .sideBrand div{display:flex!important;flex-direction:column!important;gap:2px!important}
+  .app>aside.topNav .sideBrand strong{font-size:12px!important;color:#edf1f6!important}
+  .app>aside.topNav .sideBrand small{font-size:7px!important;color:#6f7f91!important;letter-spacing:1.4px!important}
+  .app>aside.topNav .sideNav{display:flex!important;flex-direction:column!important;gap:5px!important;width:100%!important;flex:0 0 auto!important}
+  .app>aside.topNav .sideNav button{display:flex!important;width:100%!important;align-items:center!important;gap:9px!important;padding:12px 13px!important;margin:0!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#8997a8!important;font-size:11px!important;text-align:right!important}
+  .app>aside.topNav .sideNav button span{flex:1!important}
+  .app>aside.topNav .sideNav button.active{background:#142236!important;color:#fff!important;border-color:#263950!important;box-shadow:inset -3px 0 #d5b45e!important}
+  .app>aside.topNav .sideNav button:hover{background:#101d2d!important;color:#fff!important}
+  .app>main>header{display:flex!important;align-items:center!important;height:72px!important;padding:8px 24px!important;justify-content:flex-start!important}
+  .app>main>header .headerSpacer{display:block!important;flex:1 1 auto!important}
+  .app>main>header .userHeader{display:flex!important;align-items:center!important;margin:0!important;order:3!important}
+  .app>main>header .logoutBtn{margin:0!important}
+}
+@media (max-width:760px){
+  .app>main{margin-right:0!important;margin-left:0!important}
+  .app>aside.topNav{position:fixed!important;right:-280px!important;left:auto!important;top:0!important;bottom:0!important;width:280px!important;height:100vh!important;z-index:1000!important;transition:right .2s ease!important}
+  .app>aside.topNav.open{right:0!important}
+}
