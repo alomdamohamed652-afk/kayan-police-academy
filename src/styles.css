@@ -155,3 +155,15 @@
   .app>aside.topNav{position:fixed!important;right:-280px!important;left:auto!important;top:0!important;bottom:0!important;width:280px!important;height:100vh!important;z-index:1000!important;transition:right .2s ease!important}
   .app>aside.topNav.open{right:0!important}
 }
+
+
+/* HARD LOCK: established academy sidebar — never render desktop navigation as a horizontal toolbar */
+@media(min-width:761px){
+  .app{position:relative}
+  .app main{margin-right:245px!important}
+  aside.topNav{position:fixed!important;right:0!important;left:auto!important;top:0!important;bottom:0!important;width:245px!important;height:100vh!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;padding:18px 12px!important;overflow-y:auto!important;overflow-x:hidden!important}
+  aside.topNav .sideBrand{display:flex!important}
+  aside.topNav .sideNav{display:flex!important;flex-direction:column!important;gap:5px!important}
+  aside.topNav .sideNav button{width:100%!important;display:flex!important}
+  .menu,.mobileBrand{display:none!important}
+}
