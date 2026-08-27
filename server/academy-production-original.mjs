@@ -41,7 +41,9 @@ const norm=v=>String(v??'').trim().toLowerCase().replace(/[\s_\-#]+/g,'');
 const now=()=>Date.now();
 const iso=v=>v?new Date(v).toISOString():'';
 function validDate(v){return Boolean(v)&&Number.isFinite(new Date(v).getTime())}
-function timeState(startAt,endAt){const t=now(),s=validDate(startAt)?new Date(startAt).getTime():null,e=validDate(endAt)?new Date(endAt).getTime():null;if(s&&t<s)return'upcoming';if(e&&t>=e)return'ended';return'open'}\nfunction batchState(b){if(!b||b.status==='closed')return'closed';return timeState(b.startAt,b.endAt)}\nfunction expireBatches(){const expired=[];for(const b of Array.isArray(data.batches)?data.batches:[]){if(b&&b.status==='open'&&timeState(b.startAt,b.endAt)==='ended'){b.status='closed';b.closedAt=b.closedAt||new Date().toISOString();expired.push(b)}}return expired}
+function timeState(startAt,endAt){const t=now(),s=validDate(startAt)?new Date(startAt).getTime():null,e=validDate(endAt)?new Date(endAt).getTime():null;if(s&&t<s)return'upcoming';if(e&&t>=e)return'ended';return'open'}
+function batchState(b){if(!b||b.status==='closed')return'closed';return timeState(b.startAt,b.endAt)}
+function expireBatches(){const expired=[];for(const b of Array.isArray(data.batches)?data.batches:[]){if(b&&b.status==='open'&&timeState(b.startAt,b.endAt)==='ended'){b.status='closed';b.closedAt=b.closedAt||new Date().toISOString();expired.push(b)}}return expired}
 async function creds(){if(credentials)return credentials;const raw=String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON||'').trim()||await fs.readFile(SERVICE_FILE,'utf8');credentials=JSON.parse(raw);return credentials}
 async function service(){if(sheets)return sheets;const auth=new google.auth.GoogleAuth({credentials:await creds(),scopes:['https://www.googleapis.com/auth/spreadsheets']});sheets=google.sheets({version:'v4',auth});return sheets}
 function hidx(h,cs,f){const a=h.map(norm);for(const c0 of cs){const c=norm(c0),i=a.findIndex(x=>x===c||x.includes(c)||c.includes(x));if(i>=0)return i}return f}
