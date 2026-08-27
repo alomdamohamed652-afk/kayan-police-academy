@@ -78,3 +78,12 @@
   .userHeader{margin-right:auto}
   .logoutBtn{margin-right:0}
 }
+
+/* FINAL MEMBER DIRECTORY + PROFILE UI */
+.memberSelfCard{display:flex;align-items:center;gap:12px;margin:12px 0;padding:12px;background:#0b1726;border:1px solid #24364e;border-radius:12px}
+.memberSelfInfo{flex:1;display:grid;gap:3px}.memberSelfInfo strong{color:#fff;font-size:11px}.memberSelfInfo small{color:#7e8ca0;font-size:8px}
+.memberSelfActions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.profileSetting{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#101d2d;border:1px solid #263950;border-radius:8px;color:#aeb9c7;font-size:8px}.profileSetting input{accent-color:#d5b45e}
+.profileBtn{padding:7px 9px!important;font-size:8px!important;background:#101d2d!important;color:#dce4ed!important;border:1px solid #2a3d55!important}.profileBtn:hover{background:#17283d!important;border-color:#d5b45e!important}
+.memberStatus{display:inline-flex;align-items:center;justify-content:center;min-width:70px;padding:5px 9px;border-radius:20px;font-size:8px;font-weight:800;background:#202b38;color:#aeb9c7}.memberStatus.active{background:#123b29;color:#63d99b}.memberStatus.leave{background:#FFC8AA;color:#3c251d}.memberStatus.inactive{background:#4a1d26;color:#ff9ba6}
+.memberProfileModal{width:min(680px,96vw)}.profileHero{display:flex;align-items:center;gap:14px;padding:15px;margin:12px 0;background:#0b1726;border:1px solid #24364e;border-radius:12px}.profileAvatar{width:82px;height:82px}.profileHero strong{display:block;color:#fff;font-size:18px}.profileHero span{display:block;color:#d5b45e;font-size:10px;margin-top:4px}.profileGrid .memberStatus{display:inline-flex}
+@media(max-width:760px){.memberSelfCard{align-items:flex-start;flex-wrap:wrap}.memberSelfActions{width:100%;justify-content:flex-start}.profileBtn{width:max-content}.memberRow{gap:7px}.memberRow>div:last-of-type{grid-column:2}.memberStatus{width:max-content}}
