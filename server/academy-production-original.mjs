@@ -66,11 +66,83 @@ if(previousVersion<17){
 const bankByFingerprint=new Map((data.questionBank||[]).map(q=>[JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]),q]));
 for(const exam of data.exams||[]){if(!Array.isArray(exam.questions))continue;exam.questions=exam.questions.map(q=>{if(q?.questionBankId)return q;const master=(data.questionBank||[]).find(b=>String(b.id)===String(q?.id))||bankByFingerprint.get(JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]));return master?{...q,questionBankId:String(master.id)}:q})}
 const separate=await loadExamStorage(s);if(separate.hasSeparate){if(separate.exams)data.exams=separate.exams;if(separate.results)data.examResults=separate.results;if(separate.attempts)data.examAttempts=separate.attempts}else{await saveExamStorage()}storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await save();console.log(`Google DATA storage ready (${DATA_SHEET})`)}catch(e){storageReady=false;lastStorageError=e.message;console.error('Google DATA storage unavailable:',e.message)}}
-let saveQueue=Promise.resolve();const DATA_CHUNK_SIZE=45000;
-async function readJsonSheet(s,name,fallback){await ensureSheets(s,[name]);const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A10000'});const raw=(r.data.values||[]).map(x=>String(x?.[0]??'')).join('');if(!raw)return fallback;try{return JSON.parse(raw)}catch(e){console.error('Invalid JSON in '+name+' sheet:',e.message);return fallback}}
-async function writeJsonSheet(s,name,value){await ensureSheets(s,[name]);const raw=JSON.stringify(value);const chunks=[];for(let i=0;i<raw.length;i+=DATA_CHUNK_SIZE)chunks.push(raw.slice(i,i+DATA_CHUNK_SIZE));const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A10000'});const oldCount=(old.data.values||[]).filter(r=>String(r?.[0]??'')!=='').length;await s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A'+Math.max(1,chunks.length),valueInputOption:'RAW',requestBody:{values:(chunks.length?chunks:['']).map(x=>[x])}});if(oldCount>chunks.length)await s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:name+'!A'+(chunks.length+1)+':A'+oldCount})}
-async function saveExamStorage(which=['exams','results','attempts']){const s=await service();if(which.includes('exams'))await writeJsonSheet(s,EXAMS_SHEET,data.exams||[]);if(which.includes('results'))await writeJsonSheet(s,EXAM_RESULTS_SHEET,data.examResults||[]);if(which.includes('attempts'))await writeJsonSheet(s,EXAM_ATTEMPTS_SHEET,data.examAttempts||[]);storageReady=true;lastStorageError=''}
-async function loadExamStorage(s){const exams=await readJsonSheet(s,EXAMS_SHEET,null);const results=await readJsonSheet(s,EXAM_RESULTS_SHEET,null);const attempts=await readJsonSheet(s,EXAM_ATTEMPTS_SHEET,null);return{hasSeparate:Boolean(exams||results||attempts),exams:Array.isArray(exams)?exams:null,results:Array.isArray(results)?results:null,attempts:Array.isArray(attempts)?attempts:null}}
+let saveQueue=Promise.resolve();const DATA_CHUNK_SIZE=30000;
+const SHEET_WRITE_RETRIES=3;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function sheetsWrite(fn){
+  let last;
+  for(let attempt=0;attempt<SHEET_WRITE_RETRIES;attempt++){
+    try{return await fn()}catch(e){
+      last=e;
+      const status=Number(e?.code||e?.response?.status||0);
+      if(attempt>=SHEET_WRITE_RETRIES-1||![429,500,502,503,504].includes(status))throw e;
+      await sleep(500*(2**attempt));
+    }
+  }
+  throw last;
+}
+async function readJsonSheet(s,name,fallback){
+  await ensureSheets(s,[name]);
+  const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A10000'});
+  const raw=(r.data.values||[]).map(x=>String(x?.[0]??'')).join('');
+  if(!raw)return fallback;
+  try{return JSON.parse(raw)}catch(e){console.error('Invalid JSON in '+name+' sheet:',e.message);return fallback}
+}
+async function writeJsonSheet(s,name,value){
+  await ensureSheets(s,[name]);
+  const raw=JSON.stringify(value);
+  const chunks=[];for(let i=0;i<raw.length;i+=DATA_CHUNK_SIZE)chunks.push(raw.slice(i,i+DATA_CHUNK_SIZE));
+  const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A10000'});
+  const oldCount=(old.data.values||[]).filter(r=>String(r?.[0]??'')!=='').length;
+  await sheetsWrite(()=>s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:A'+Math.max(1,chunks.length),valueInputOption:'RAW',requestBody:{values:(chunks.length?chunks:['']).map(x=>[x])}}));
+  if(oldCount>chunks.length)await sheetsWrite(()=>s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:name+'!A'+(chunks.length+1)+':A'+oldCount}));
+}
+const EXAM_STORAGE_V2='KAYAN_EXAM_STORAGE_V2';
+async function writeExamCollection(s,name,items){
+  await ensureSheets(s,[name]);
+  const rows=[[EXAM_STORAGE_V2,'id','chunk','total','data']];
+  for(const item of Array.isArray(items)?items:[]){
+    const raw=JSON.stringify(item),total=Math.max(1,Math.ceil(raw.length/DATA_CHUNK_SIZE)),itemId=String(item?.id||'');
+    for(let i=0;i<total;i++)rows.push([EXAM_STORAGE_V2,itemId,i,total,raw.slice(i*DATA_CHUNK_SIZE,(i+1)*DATA_CHUNK_SIZE)]);
+  }
+  const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:E10000'});
+  const oldRows=old.data.values||[];
+  await sheetsWrite(()=>s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:E'+Math.max(1,rows.length),valueInputOption:'RAW',requestBody:{values:rows}}));
+  if(oldRows.length>rows.length)await sheetsWrite(()=>s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:name+'!A'+(rows.length+1)+':E'+oldRows.length}));
+}
+async function readExamCollection(s,name){
+  await ensureSheets(s,[name]);
+  const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:name+'!A1:E10000'});
+  const rows=r.data.values||[];
+  if(!rows.length)return null;
+  if(String(rows[0]?.[0]||'')!==EXAM_STORAGE_V2)return readJsonSheet(s,name,null);
+  const grouped=new Map();
+  for(const row of rows.slice(1)){
+    if(row?.[0]!==EXAM_STORAGE_V2)continue;
+    const idv=String(row?.[1]||''),idx=Number(row?.[2]||0);
+    if(!grouped.has(idv))grouped.set(idv,[]);
+    grouped.get(idv)[idx]=String(row?.[4]||'');
+  }
+  const out=[];
+  for(const parts of grouped.values()){
+    const raw=parts.filter(v=>v!==undefined).join('');
+    try{out.push(JSON.parse(raw))}catch(e){console.error('Invalid V2 exam storage row:',e.message)}
+  }
+  return out;
+}
+async function saveExamStorage(which=['exams','results','attempts']){
+  const s=await service();
+  if(which.includes('exams'))await writeExamCollection(s,EXAMS_SHEET,data.exams||[]);
+  if(which.includes('results'))await writeExamCollection(s,EXAM_RESULTS_SHEET,data.examResults||[]);
+  if(which.includes('attempts'))await writeExamCollection(s,EXAM_ATTEMPTS_SHEET,data.examAttempts||[]);
+  storageReady=true;lastStorageError='';
+}
+async function loadExamStorage(s){
+  const exams=await readExamCollection(s,EXAMS_SHEET);
+  const results=await readExamCollection(s,EXAM_RESULTS_SHEET);
+  const attempts=await readExamCollection(s,EXAM_ATTEMPTS_SHEET);
+  return{hasSeparate:Boolean(exams||results||attempts),exams:Array.isArray(exams)?exams:null,results:Array.isArray(results)?results:null,attempts:Array.isArray(attempts)?attempts:null}
+}
 async function saveToSheet(){const s=await service();await ensureData(s);const core={...data,exams:[],examResults:[],examAttempts:[]};const raw=JSON.stringify(core);const chunks=[];for(let i=0;i<raw.length;i+=DATA_CHUNK_SIZE)chunks.push(raw.slice(i,i+DATA_CHUNK_SIZE));const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`});const oldCount=(old.data.values||[]).filter(r=>String(r?.[0]??'')!=='').length;await s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A${Math.max(1,chunks.length)}`,valueInputOption:'RAW',requestBody:{values:(chunks.length?chunks:['']).map(x=>[x])}});if(oldCount>chunks.length)await s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A${chunks.length+1}:A${oldCount}`});storageReady=true;lastStorageError=''}async function save(){const job=saveQueue.catch(()=>{}).then(saveToSheet);saveQueue=job.catch(e=>{console.error('Google DATA save failed:',e.message);lastStorageError=String(e?.message||e);storageReady=false;throw e});return job}
 function role(r){if(!r)return'citizen';const t=`${r.rank} ${r.responsibility}`.toLowerCase();if(t.includes('مساعد نائب'))return'academy_assistant_vice';if(t.includes('نائب رئيس الأكاديمية'))return'academy_vice_president';if(t.includes('رئيس الأكاديمية'))return'academy_president';if(t.includes('قائد الشرطة'))return'police_commander';if(t.includes('شؤون'))return'affairs';if(isTrainerRank(r))return'trainer';return'officer'}
 function isTrainerRank(r){const t=norm(r?.rank||''),senior=['رقيب','رقيبأول','مساعد','ملازم','ملازماول','ملازمتاني','نقيب','رائد','مقدم','عقيد','عميد','لواء','فريق'];return senior.some(x=>t.includes(norm(x)))||String(r?.responsibility||'').includes('مدرب')}
