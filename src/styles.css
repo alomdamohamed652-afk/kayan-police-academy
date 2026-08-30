@@ -445,3 +445,85 @@
 .applicationStatusPending .statusGroupHead{border-color:#6c5a28}.applicationStatusWaitlist .statusGroupHead{border-color:#806c2e}.applicationStatusAccepted .statusGroupHead{border-color:#286244}.applicationStatusRejected .statusGroupHead{border-color:#71343d}
 .applicationStatusAccepted{border-right:3px solid #35b878}.applicationStatusRejected{border-right:3px solid #e45d68}.applicationStatusWaitlist{border-right:3px solid #d5b45e}.applicationStatusPending{border-right:3px solid #d5b45e}
 .question>label{font-size:15px!important;font-weight:700!important;line-height:1.9!important}.options label{font-size:13px!important;line-height:1.8!important;padding:11px 14px!important}.question textarea{font-size:13px!important;line-height:1.9!important}.examQuestionNumbered .questionNumber{font-size:12px!important;font-weight:800!important}.examTimerHero{position:sticky;top:74px;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 30px 15px;padding:14px 18px;background:#0b1726ee;border:1px solid #3b4e68;border-radius:14px;backdrop-filter:blur(12px)}.examTimerHero strong{display:block;font-size:28px;letter-spacing:1px;color:#fff}.examTimerMeta{font-size:12px;color:#aeb9c7}.examTimerMeta b{font-size:17px;color:#d5b45e}.evaluationForm{margin:0 30px 20px}.evaluationForm>label,.evaluationForm .formGrid label{display:block;color:#c2cbd6;font-size:12px}.evaluationForm select,.evaluationForm input,.evaluationForm textarea{width:100%;margin-top:6px;padding:11px;background:#07111e;color:#eef3f8;border:1px solid #26374c;border-radius:9px}.complaintBox{margin:14px 0;padding:12px;border:1px solid #5a4930;border-radius:11px;background:#16130c}.complaintAdmin{margin:10px 0;padding:11px;border:1px solid #65443c;background:#241817;color:#ffb0a9;border-radius:9px;font-size:11px;line-height:1.9}.evaluationAdminCard{margin-top:12px;padding:14px;border:1px solid #263950;border-radius:12px;background:#091421}.evalRankSettings{display:grid;grid-template-columns:1fr 1fr;gap:15px}.evalRankSettings>div{padding:12px;border:1px solid #23364c;border-radius:11px;background:#091421}.evalRankSettings .checkItem{margin:5px 0;font-size:11px}.muted{font-size:12px!important}.panel h2{font-size:18px}.panel h3{font-size:16px}.applicationRow strong,.examAdminRow strong,.participantRow strong,.bankRow strong{font-size:13px}.applicationRow small,.examAdminRow small,.participantRow small,.bankRow small{font-size:10px}@media(max-width:760px){.applicationStatusGroups{gap:12px!important}.examTimerHero{margin:0 16px 12px;top:64px;padding:11px 13px}.examTimerHero strong{font-size:23px}.examTimerMeta{font-size:10px}.evaluationForm{margin:0 16px 16px}.evalRankSettings{grid-template-columns:1fr}.question>label{font-size:14px!important}}
+
+
+/* Evaluation & administration UX polish */
+.evaluationForm{max-width:980px;margin:0 auto}
+.evaluationHeader{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.09)}
+.evaluationHeader h2{margin:8px 0 6px;font-size:28px;font-weight:800}
+.evaluationHeader>svg{flex:0 0 auto;opacity:.9}
+.evaluationRoleSwitch{margin:20px 0;padding:16px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(255,255,255,.025)}
+.evaluationRoleSwitch>span{display:block;font-weight:800;margin-bottom:10px}
+.evaluationRoleSwitch>div{display:flex;gap:10px;flex-wrap:wrap}
+.evaluationRoleSwitch button{border:1px solid rgba(255,255,255,.12);background:#0c1727;color:#dfe6f2;border-radius:12px;padding:11px 18px;font-weight:700;cursor:pointer}
+.evaluationRoleSwitch button.active{background:#d8b45b;color:#101722;border-color:#d8b45b}
+.evaluationSection{margin-top:22px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
+.evaluationSection h3{font-size:19px;margin:0 0 7px;font-weight:800}
+.evaluationSection>.muted,.evaluationSection>p.muted{line-height:1.8}
+.evaluationRatingGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.evaluationRating{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:#091525}
+.evaluationRating span{font-weight:700;line-height:1.6}
+.evaluationRating select{min-width:115px}
+.sameTrainerCheck{margin-top:14px;padding:14px;border:1px solid rgba(216,180,91,.2);border-radius:13px;background:rgba(216,180,91,.04)}
+.evaluationComplaint{margin-top:22px!important;border:1px solid rgba(216,180,91,.28)!important;background:rgba(216,180,91,.045)!important;border-radius:15px!important;padding:16px!important}
+.evaluationComplaint .checkItem{font-size:15px;font-weight:800}
+.evaluationComplaint textarea{margin-top:13px}
+.evaluationSubmit{margin-top:18px;min-height:48px}
+.dashboardCards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.dashboardQuick{margin-bottom:18px}
+.quickActions{display:flex;gap:10px;flex-wrap:wrap}
+.activityPage .panel{max-width:1100px;margin:0 auto}
+.activitySwitch{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.activityRow{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.07)}
+.activityIcon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#0d1a2d;border:1px solid rgba(255,255,255,.1)}
+.activityBody{min-width:0}
+.activityBody strong,.activityBody small{display:block}
+.activityBody strong{font-size:15px;font-weight:800}
+.activityBody small{margin-top:4px;color:#aeb9ca;line-height:1.6}
+.activityRow time{font-size:12px;color:#9da9bb;white-space:nowrap}
+.evaluationsAdminPanel{max-width:1100px;margin:0 auto}
+.evaluationFilters{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0 20px}
+.evaluationReportSection{margin-top:22px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.018)}
+.evaluationReportSectionHead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.evaluationReportSectionHead>div{display:flex;align-items:flex-start;gap:10px}
+.evaluationReportSectionHead h3{margin:0 0 4px;font-size:20px}
+.evaluationReportSectionHead p{margin:0;color:#9eabbc;line-height:1.6}
+.evaluationReportSectionHead>span{min-width:34px;height:34px;padding:0 10px;border-radius:999px;display:grid;place-items:center;background:#0e1c2e;font-weight:800}
+.evaluationAdminCard{margin-top:15px;padding:18px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:#091525}
+.evaluationAdminHead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.evaluationTypeBadge{display:inline-flex;padding:5px 9px;border-radius:999px;background:rgba(216,180,91,.12);color:#e5c675;font-size:12px;font-weight:800}
+.evaluationAdminHead h3{margin:8px 0 3px;font-size:20px}
+.evaluationAdminHead p{margin:0 0 5px;color:#c0cada;font-weight:700}
+.evaluationAdminHead small{color:#8997aa}
+.evaluationAdminScore{text-align:left;display:flex;align-items:flex-end;flex-direction:column;gap:7px}
+.evaluationAdminScore b{font-size:25px;color:#e5c675}
+.evaluationSummaryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.evaluationSummaryGrid>div{padding:11px 13px;border:1px solid rgba(255,255,255,.08);border-radius:12px}
+.evaluationSummaryGrid strong,.evaluationSummaryGrid span{display:block}
+.evaluationSummaryGrid strong{font-size:12px;color:#8f9bae;margin-bottom:4px}
+.evaluationSummaryGrid span{font-weight:800}
+.evaluationRatingsReadOnly{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.evaluationRatingsReadOnly>div{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:#0b1829;border:1px solid rgba(255,255,255,.07)}
+.evaluationRatingsReadOnly span{color:#aab6c7}
+.evaluationRatingsReadOnly b{color:#e4c16b}
+.evaluationAdminActions{margin-top:15px}
+.evaluationAdminActions button,.evaluationAdminActions .secondary,.evaluationAdminActions .primary{min-height:42px}
+.complaintAdmin{margin-top:12px;padding:13px 15px;border:1px solid rgba(226,111,111,.35);background:rgba(130,35,45,.16);border-radius:12px;color:#f1b4b9}
+.complaintAdmin strong{display:block;margin-bottom:5px}
+.complaintAdmin p{margin:0;line-height:1.8}
+@media(max-width:900px){
+ .dashboardCards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .evaluationRatingGrid,.evaluationRatingsReadOnly,.evaluationSummaryGrid{grid-template-columns:1fr}
+ .evaluationAdminHead{flex-direction:column}
+ .evaluationAdminScore{align-items:flex-start;flex-direction:row}
+}
+@media(max-width:560px){
+ .dashboardCards{grid-template-columns:1fr 1fr}
+ .evaluationForm{padding:16px}
+ .evaluationHeader h2{font-size:23px}
+ .evaluationRating{align-items:flex-start;flex-direction:column}
+ .evaluationRating select{width:100%}
+ .activityRow{grid-template-columns:38px 1fr}
+ .activityRow time{grid-column:2}
+ .quickActions>*{width:100%}
+}
