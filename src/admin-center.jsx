@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState}from'react';
-import{LayoutDashboard,Users,ClipboardCheck,FileText,Star,Settings,Network,UserCog,Upload,Save,Search,Plus,Trash2,RefreshCw,Eye,Check,Power,ArrowRight,LockKeyhole,BookOpen,Copy,UserRound}from'lucide-react';
+import{LayoutDashboard,Users,ClipboardCheck,FileText,Star,Settings,Network,UserCog,Upload,Save,Search,Plus,Trash2,RefreshCw,Eye,Check,Power,ArrowRight,LockKeyhole,BookOpen,Copy,UserRound,Clock}from'lucide-react';
 import'./styles.css';
 const fmt=v=>{if(!v)return'غير محدد';const d=new Date(v);return Number.isFinite(d.getTime())?d.toLocaleString('ar-EG',{dateStyle:'short',timeStyle:'short'}):'غير محدد'};
 const localDateTimeInput=v=>{if(!v)return'';const d=new Date(v);const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d).reduce((a,x)=>(a[x.type]=x.value,a),{});return `${p.year}-${p.month}-${p.day}T${p.hour==='24'?'00':p.hour}:${p.minute}`};
