@@ -90,132 +90,61 @@ function MembersAdmin({state,reload,setMsg}){
   const [q,setQ]=useState('');
   const [saving,setSaving]=useState('');
   const [urls,setUrls]=useState({});
-  const list=(state.members||[]).filter(m=>`${m.name} ${m.rank} ${m.discordId} ${m.badge}`.toLowerCase().includes(q.toLowerCase()));
+  const [view,setView]=useState('cards');
+  const list=(state.members||[]).filter(m=>`${m.name} ${m.rank} ${m.discordId} ${m.badge} ${m.responsibility||''}`.toLowerCase().includes(q.toLowerCase()));
 
   const fileToDataUrl=async file=>{
     if(!/^image\/(png|jpeg|webp)$/i.test(file.type)) throw Error('PNG أو JPG/JPEG أو WebP فقط.');
     const src=URL.createObjectURL(file);
     try{
       const img=new Image();
-      await new Promise((ok,no)=>{
-        img.onload=ok;
-        img.onerror=()=>no(Error('تعذر قراءة الصورة.'));
-        img.src=src;
-      });
-      let w=img.naturalWidth,h=img.naturalHeight;
-      const max=1200;
-      if(w>max||h>max){
-        const scale=Math.min(max/w,max/h);
-        w=Math.max(1,Math.round(w*scale));
-        h=Math.max(1,Math.round(h*scale));
-      }
-      const canvas=document.createElement('canvas');
-      let quality=.86,out='';
-      for(let n=0;n<8;n++){
-        canvas.width=w;
-        canvas.height=h;
-        const ctx=canvas.getContext('2d');
-        if(!ctx) throw Error('تعذر تجهيز الصورة.');
-        ctx.clearRect(0,0,w,h);
-        ctx.drawImage(img,0,0,w,h);
-        out=canvas.toDataURL('image/webp',quality);
-        if(out.length<=170000) break;
-        quality*=.82;
-        w=Math.max(320,Math.round(w*.9));
-        h=Math.max(320,Math.round(h*.9));
-      }
+      await new Promise((ok,no)=>{img.onload=ok;img.onerror=()=>no(Error('تعذر قراءة الصورة.'));img.src=src});
+      let w=img.naturalWidth,h=img.naturalHeight,max=1200;
+      if(w>max||h>max){const scale=Math.min(max/w,max/h);w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale))}
+      const canvas=document.createElement('canvas');let quality=.86,out='';
+      for(let n=0;n<8;n++){canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');if(!ctx)throw Error('تعذر تجهيز الصورة.');ctx.clearRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);out=canvas.toDataURL('image/webp',quality);if(out.length<=170000)break;quality*=.82;w=Math.max(320,Math.round(w*.9));h=Math.max(320,Math.round(h*.9))}
       return out;
-    }finally{
-      URL.revokeObjectURL(src);
-    }
+    }finally{URL.revokeObjectURL(src)}
   };
-
-  const saveImage=async(m,image)=>{
-    setSaving(m.discordId);
-    try{
-      await api('/api/admin/member-image',{method:'POST',body:JSON.stringify({discordId:m.discordId,image})});
-      setMsg('تم حفظ الصورة.');
-      setUrls(v=>({...v,[m.discordId]:''}));
-      reload();
-    }catch(x){
-      setMsg(errText(x));
-    }finally{
-      setSaving('');
-    }
-  };
-
-  const upload=async(m,file)=>{
-    if(!file) return;
-    try{
-      setMsg('جارٍ تجهيز الصورة...');
-      await saveImage(m,await fileToDataUrl(file));
-    }catch(x){
-      setMsg(x.message||String(x));
-    }
-  };
-
-  const setUrl=async m=>{
-    const url=String(urls[m.discordId]||'').trim();
-    let parsed; try{parsed=new URL(url)}catch{return setMsg('ضع رابط صورة صحيح يبدأ بـ https:// أو http://.')} if(!['http:','https:'].includes(parsed.protocol)) return setMsg('ضع رابط صورة مباشر يبدأ بـ https:// أو http://.');
-    await saveImage(m,url);
-  };
-
-  const removeImage=async m=>{
-    if(!m.image) return;
-    if(!confirm(`حذف صورة «${m.name||m.discordId}» من الموقع؟`)) return;
-    setSaving(m.discordId);
-    try{
-      await api('/api/admin/member-image',{method:'DELETE',body:JSON.stringify({discordId:m.discordId})});
-      setMsg('تم حذف الصورة.');
-      reload();
-    }catch(x){
-      setMsg(errText(x));
-    }finally{
-      setSaving('');
-    }
-  };
-
-  const drop=(m,e)=>{
-    e.preventDefault();
-    const f=e.dataTransfer?.files?.[0];
-    if(f) upload(m,f);
-  };
-
-  return <div className="panel">
-    <div className="search">
-      <Search size={17}/>
-      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالاسم أو Discord ID أو Badge"/>
+  const saveImage=async(m,image)=>{setSaving(m.discordId);try{await api('/api/admin/member-image',{method:'POST',body:JSON.stringify({discordId:m.discordId,image})});setMsg('تم حفظ الصورة.');setUrls(v=>({...v,[m.discordId]:''}));reload()}catch(x){setMsg(errText(x))}finally{setSaving('')}};
+  const upload=async(m,file)=>{if(!file)return;try{setMsg('جارٍ تجهيز الصورة...');await saveImage(m,await fileToDataUrl(file))}catch(x){setMsg(x.message||String(x))}};
+  const setUrl=async m=>{const url=String(urls[m.discordId]||'').trim();let parsed;try{parsed=new URL(url)}catch{return setMsg('ضع رابط صورة صحيح يبدأ بـ https:// أو http://.')}if(!['http:','https:'].includes(parsed.protocol))return setMsg('ضع رابط صورة مباشر يبدأ بـ https:// أو http://.');await saveImage(m,url)};
+  const removeImage=async m=>{if(!m.image)return;if(!confirm(`حذف صورة «${m.name||m.discordId}» من الموقع؟`))return;setSaving(m.discordId);try{await api('/api/admin/member-image',{method:'DELETE',body:JSON.stringify({discordId:m.discordId})});setMsg('تم حذف الصورة.');reload()}catch(x){setMsg(errText(x))}finally{setSaving('')}};
+  const drop=(m,e)=>{e.preventDefault();const file=e.dataTransfer?.files?.[0];if(file)upload(m,file)};
+  return <div className="panel membersAdminPanel">
+    <div className="membersToolbar">
+      <div><span className="eyebrow">ACADEMY PERSONNEL</span><h2>الأفراد</h2><p className="muted">بيانات الأفراد الأساسية والرتب تُسحب من سجل الشرطة، ويمكن للإدارة إدارة صورة الملف فقط.</p></div>
+      <div className="membersCount"><b>{list.length}</b><span>فرد ظاهر</span></div>
     </div>
-
-    {list.map(m=><div className="adminMemberRow" key={m.discordId}>
-      <div className="memberAvatar">
-        {m.image?<img src={m.image} alt=""/>:<Users size={19}/>}
-      </div>
-
-      <div className="person">
-        <strong>{m.name}</strong>
-        <small>{m.badge||'—'} · {m.rank||'—'} · Discord ID: {m.discordId}</small>
-      </div>
-
-      {m.responsibility&&<span>{m.responsibility}</span>}
-
-      <div className="rowActions memberImageActions">
-        <label className="upload memberDrop" onDragOver={e=>e.preventDefault()} onDrop={e=>drop(m,e)}>
-          <Upload size={14}/>
-          {saving===m.discordId?'جارٍ الحفظ...':'رفع / سحب الصورة'}
-          <input type="file" accept="image/png,image/jpeg,image/webp" disabled={saving===m.discordId} onChange={e=>upload(m,e.target.files?.[0])}/>
-        </label>
-
-        <div className="imageUrlRow">
-          <input value={urls[m.discordId]||''} onChange={e=>setUrls(v=>({...v,[m.discordId]:e.target.value}))} placeholder="أو الصق رابط الصورة المباشر"/>
-          <button className="secondary" disabled={saving===m.discordId} onClick={()=>setUrl(m)}>إضافة الرابط</button>
+    <div className="membersControls">
+      <div className="search membersSearch"><Search size={17}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالاسم أو الرتبة أو Badge أو Discord ID"/></div>
+      <div className="membersViewSwitch"><button type="button" className={view==='cards'?'active':''} onClick={()=>setView('cards')}><Users size={15}/> بطاقات</button><button type="button" className={view==='compact'?'active':''} onClick={()=>setView('compact')}><FileText size={15}/> قائمة مختصرة</button></div>
+    </div>
+    <div className={view==='cards'?'adminMembersGrid adminMembersCards':'adminMembersGrid adminMembersCompact'}>
+      {list.map(m=><article className="adminMemberCard" key={m.discordId}>
+        <div className="adminMemberIdentity">
+          <div className="memberAvatar adminMemberAvatar">{m.image?<img src={m.image} alt=""/>:<Users size={22}/>}</div>
+          <div className="adminMemberMain">
+            <div className="adminMemberNameRow"><strong>{m.name||'بدون اسم'}</strong><span className="memberPresenceDot" title="مسجل في النظام"/></div>
+            <div className="adminMemberBadges"><span className="memberChip memberChipRank">{m.rank||'بدون رتبة'}</span><span className="memberChip">{m.badge||'بدون Badge'}</span></div>
+            <small className="adminMemberDiscord">Discord ID: {m.discordId}</small>
+          </div>
         </div>
-
-        {m.image&&<button className="danger" disabled={saving===m.discordId} onClick={()=>removeImage(m)}>
-          <Trash2 size={14}/> حذف الصورة
-        </button>}
-      </div>
-    </div>)}
+        <div className="adminMemberMeta">
+          <div><span>المسؤولية</span><strong>{m.responsibility||'غير محددة'}</strong></div>
+          <div><span>مصدر البيانات</span><strong>سجل الشرطة</strong></div>
+        </div>
+        <div className="memberImagePanel">
+          <div className="memberImagePanelTitle"><Upload size={15}/> إدارة صورة الفرد</div>
+          <div className="memberImageActions">
+            <label className="upload memberDrop" onDragOver={e=>e.preventDefault()} onDrop={e=>drop(m,e)}><Upload size={14}/>{saving===m.discordId?'جارٍ الحفظ...':'رفع / سحب الصورة'}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={saving===m.discordId} onChange={e=>upload(m,e.target.files?.[0])}/></label>
+            <div className="imageUrlRow"><input value={urls[m.discordId]||''} onChange={e=>setUrls(v=>({...v,[m.discordId]:e.target.value}))} placeholder="الصق رابط الصورة المباشر"/><button className="secondary" disabled={saving===m.discordId} onClick={()=>setUrl(m)}>حفظ الرابط</button></div>
+            {m.image&&<button className="danger memberDeleteImage" disabled={saving===m.discordId} onClick={()=>removeImage(m)}><Trash2 size={14}/> حذف الصورة</button>}
+          </div>
+        </div>
+      </article>)}
+    </div>
+    {!list.length&&<div className="emptyMini membersEmpty">لا توجد نتائج مطابقة للبحث.</div>}
   </div>;
 }
 function AdminsAdmin({state,reload,setMsg}){const blank={discordId:'',name:'',permissions:['view_dashboard'],enabled:true};const[form,setForm]=useState(blank),[editing,setEditing]=useState(null);const all=[['view_dashboard','لوحة الإدارة'],['view_activity_logs','الاطلاع على سجل النشاط وتسجيل الدخول'],['manage_members','إدارة الأفراد'],['manage_roles','إدارة الرتب'],['manage_admins','إدارة الأدمن'],['manage_applications','إدارة التقديمات'],['manage_exams','إدارة الاختبارات'],['manage_hierarchy','إدارة الهيكل'],['view_evaluations','الاطلاع على التقييمات'],['manage_evaluations','إدارة التقييمات'],['manage_settings','الإعدادات']];const save=async()=>{try{await api('/api/admin/admins',{method:'POST',body:JSON.stringify(form)});setMsg(editing?'تم تحديث الأدمن.':'تمت إضافة الأدمن.');setForm(blank);setEditing(null);reload()}catch(e){setMsg(errText(e))}};return <div className="adminSection"><div className="panel"><h2>{editing?'تعديل أدمن':'إضافة أدمن'}</h2><div className="formGrid"><input value={form.discordId} disabled={Boolean(editing)} onChange={e=>setForm({...form,discordId:e.target.value})} placeholder="Discord ID"/><input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="اسم الأدمن"/></div><div className="permissionGrid">{all.map(([p,l])=><label className="checkItem" key={p}><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>setForm({...form,permissions:form.permissions.includes(p)?form.permissions.filter(x=>x!==p):[...form.permissions,p]})}/>{l}</label>)}</div><div className="rowActions"><Btn className="primary" onClick={save}><Save size={16}/> {editing?'حفظ التعديلات':'إضافة أدمن'}</Btn>{editing&&<Btn onClick={()=>{setEditing(null);setForm(blank)}}>إلغاء</Btn>}</div></div>{(state.admins||[]).map(a=><div className="panel" key={a.discordId}><div className="panelHead"><div><b>{a.name||'بدون اسم'}</b><small>Discord ID: {a.discordId}</small></div>{a.source!=='environment'&&<div className="rowActions"><Btn onClick={()=>{setEditing(a);setForm({discordId:a.discordId,name:a.name||'',permissions:a.permissions||[],enabled:a.enabled!==false})}}>تعديل</Btn><Btn onClick={async()=>{await api(`/api/admin/admins/${a.discordId}`,{method:'PATCH',body:JSON.stringify({enabled:!a.enabled})});reload()}}><Power size={14}/> {a.enabled===false?'تفعيل':'تعطيل'}</Btn><button className="danger" onClick={async()=>{if(confirm('حذف الأدمن؟')){await api(`/api/admin/admins/${a.discordId}`,{method:'DELETE'});reload()}}}><Trash2 size={14}/></button></div>}</div><small>{(a.permissions||[]).join(' · ')||'بدون صلاحيات'}</small></div>)}</div>}
