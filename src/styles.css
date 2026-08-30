@@ -374,3 +374,38 @@
  .adminSection .panelHead h2{font-size:18px}
  .adminSection .sectionTitle{font-size:14px!important}
 }
+
+
+/* === APPLICATIONS ADMIN — HIGH READABILITY FINAL PASS === */
+.adminSection{font-family:Cairo,Arial,sans-serif}
+.adminSection .panelHead h2{font-size:22px!important;font-weight:800!important;line-height:1.75!important;color:#fff!important}
+.adminSection .panelHead p.muted{font-size:14px!important;font-weight:500!important;line-height:2!important;color:#aeb9c7!important}
+.adminSection .sectionTitle{font-size:18px!important;font-weight:800!important;line-height:1.9!important;color:#f4f6f9!important}
+.adminSection .applicationRow{padding:18px 16px!important;gap:16px!important}
+.adminSection .applicationRow>div:first-child strong{font-size:18px!important;font-weight:800!important;line-height:1.9!important;color:#fff!important}
+.adminSection .applicationRow>div:first-child small{font-size:13px!important;font-weight:500!important;line-height:2!important;color:#aeb9c7!important}
+.adminSection .applicationRow>div:first-child .searchMatch{font-size:12px!important;font-weight:600!important;color:#e0c16c!important}
+.adminSection .applicationRow .rowActions button,.adminSection .applicationRow .rowActions .primary,.adminSection .applicationRow .rowActions .secondary,.adminSection .applicationRow .rowActions .danger{font-size:13px!important;font-weight:700!important;line-height:1.7!important;padding:10px 14px!important}
+.adminSection .applicationRow .status,.adminSection .applicationRow .openBadge,.adminSection .applicationRow .pendingBadge,.adminSection .applicationRow .closedBadge{font-size:12px!important;font-weight:700!important}
+.adminSection .adminInlineSearch input,.adminSection .search input{font-size:14px!important;font-weight:500!important;line-height:1.8!important}
+.adminSection .adminInlineSearch input::placeholder,.adminSection .search input::placeholder{font-size:13px!important;color:#8795a7!important}
+.adminSection .emptyMini{font-size:14px!important;font-weight:500!important;line-height:2!important;color:#9eabba!important;padding:16px 8px}
+.adminSection .answerDetail{font-family:Cairo,Arial,sans-serif!important;padding:20px!important}
+.adminSection .answerDetail h4{font-size:17px!important;font-weight:800!important;line-height:2!important;color:#fff!important}
+.adminSection .answerDetail .detailGrid p{font-size:13px!important;font-weight:500!important;line-height:2!important;color:#aeb9c7!important}
+.adminSection .answerCard{padding:16px!important}
+.adminSection .answerCard strong{font-size:15px!important;font-weight:800!important;line-height:2!important;color:#fff!important}
+.adminSection .answerCard span{font-size:14px!important;font-weight:500!important;line-height:2!important;color:#e5ebf2!important}
+.adminSection .formGrid input,.adminSection .formGrid select,.adminSection .formGrid textarea{font-size:14px!important;line-height:1.8!important}
+.adminSection .formGrid input::placeholder{font-size:13px!important}
+.adminSection .panel .panelHead .rowActions button{font-size:13px!important;font-weight:700!important}
+@media(max-width:760px){
+ .adminSection .panelHead h2{font-size:19px!important}
+ .adminSection .panelHead p.muted{font-size:13px!important}
+ .adminSection .sectionTitle{font-size:16px!important}
+ .adminSection .applicationRow>div:first-child strong{font-size:16px!important}
+ .adminSection .applicationRow>div:first-child small{font-size:12px!important}
+ .adminSection .applicationRow .rowActions button{font-size:12px!important;padding:9px 11px!important}
+ .adminSection .answerCard strong{font-size:14px!important}
+ .adminSection .answerCard span{font-size:13px!important}
+}
