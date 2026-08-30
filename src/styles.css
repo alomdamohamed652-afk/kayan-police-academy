@@ -527,3 +527,80 @@
  .activityRow time{grid-column:2}
  .quickActions>*{width:100%}
 }
+
+/* === FINAL ADMIN / EVALUATION UX POLISH === */
+.adminWrap{max-width:1500px;margin:0 auto;padding-bottom:30px}
+.adminTabs{gap:10px!important;margin:0 30px 20px!important}
+.adminTabs button{font-size:13px!important;font-weight:800!important;padding:11px 15px!important;min-height:44px;transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease}
+.adminTabs button:hover{transform:translateY(-1px);border-color:rgba(216,180,91,.45);box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.adminTabs button.active{box-shadow:0 8px 24px rgba(216,180,91,.12)}
+.adminSection{gap:18px!important}
+.panelHead h2{font-size:22px!important;font-weight:800!important}
+.panelHead .muted,.muted{font-size:13px!important;line-height:1.8!important}
+.dashboardCards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+.metricCard{min-height:94px;padding:15px 16px!important;border:1px solid #22354c!important;border-radius:16px!important;background:linear-gradient(145deg,#0d1a2a,#091523)!important;display:flex!important;align-items:center;gap:12px;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.metricCard:hover{transform:translateY(-2px);border-color:rgba(216,180,91,.35)!important;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.metricIcon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:rgba(216,180,91,.1);color:#e4c16b;border:1px solid rgba(216,180,91,.18)}
+.metricCard strong{display:block;font-size:24px!important;line-height:1.1}
+.metricCard span{display:block;margin-top:5px;color:#aeb9c8;font-size:12px!important;font-weight:700}
+.dashboardQuick{margin-top:2px}
+.activityPage{max-width:1180px;margin:0 auto;padding:0 30px 25px}
+.activityHero{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px;padding:22px 24px;border:1px solid #22354c;border-radius:20px;background:linear-gradient(145deg,#0c1828,#08121f);box-shadow:0 16px 40px rgba(0,0,0,.14)}
+.activityHero h2{margin:7px 0 5px;font-size:27px;font-weight:900}
+.activityHero p{margin:0;color:#9eacbe;font-size:13px;line-height:1.8}
+.activityStats{display:flex;gap:10px}
+.activityStats>div{min-width:120px;padding:13px 16px;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#091525}
+.activityStats b{display:block;font-size:25px;color:#e4c16b}
+.activityStats span{font-size:11px;color:#aab6c7}
+.activityPanel{overflow:hidden}
+.activityToolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}
+.activitySwitch{display:flex;gap:8px;flex-wrap:wrap;margin:0}
+.activitySearch{display:flex;align-items:center;gap:8px;min-width:min(520px,100%);padding:5px 6px 5px 12px;border:1px solid #263a52;border-radius:13px;background:#07111e}
+.activitySearch input{flex:1;min-width:120px;border:0!important;background:transparent!important;margin:0!important;padding:8px!important;outline:none}
+.activityList{max-height:720px;overflow:auto;padding-right:3px}
+.activityRow{display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.07);transition:background .18s ease,transform .18s ease}
+.activityRow:hover{background:rgba(255,255,255,.018);transform:translateX(-2px)}
+.activityIcon,.loginAvatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#0d1a2d;border:1px solid rgba(255,255,255,.1);color:#d8b45b;overflow:hidden}
+.loginAvatar img{width:100%;height:100%;object-fit:cover}
+.activityBody strong{display:block;font-size:16px;font-weight:900;color:#f1f4f8}
+.activityBody b{display:block;margin-top:3px;font-size:14px;color:#e4c16b}
+.activityBody span{display:block;margin-top:3px;font-size:12px;color:#b3bfce}
+.activityBody small{display:block;margin-top:5px;font-size:12px;color:#8e9cad;line-height:1.7}
+.activityRow time{font-size:12px;color:#9da9bb;white-space:nowrap}
+.evaluationAdminCard{padding:22px!important;border-radius:20px!important;background:linear-gradient(145deg,#0a1727,#081321)!important;box-shadow:0 10px 30px rgba(0,0,0,.12);transition:transform .2s ease,border-color .2s ease}
+.evaluationAdminCard:hover{transform:translateY(-1px);border-color:rgba(216,180,91,.28)!important}
+.evaluationPeople{min-width:0;flex:1}
+.evaluationAdminHead h3{font-size:24px!important;margin:9px 0 12px!important}
+.evaluationTypeBadge{font-size:12px!important;padding:6px 10px!important}
+.evaluationRelation{display:grid;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);gap:10px;align-items:stretch}
+.evaluationRelation>div{padding:13px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0b1829}
+.evaluationRelation small{display:block;color:#8e9cad;font-size:11px;margin-bottom:4px}
+.evaluationRelation strong{display:block;font-size:16px;color:#f0f4f8}
+.evaluationRelation span{display:block;margin-top:4px;color:#9eabbc;font-size:11px}
+.evaluationRelation>b{display:grid;place-items:center;color:#d8b45b;font-size:20px}
+.evaluationAdminScore b{font-size:31px!important}
+.evaluationAdminScore small{color:#8e9cad;font-size:11px}
+.evaluationSummaryGrid>div{min-height:66px;padding:13px 15px!important}
+.evaluationSummaryGrid strong{font-size:11px!important}
+.evaluationSummaryGrid span{font-size:14px}
+.evaluationRatingsReadOnly>div{padding:12px 14px!important}
+.evaluationRatingsReadOnly span{font-size:13px}
+.evaluationRatingsReadOnly b{font-size:14px}
+.evaluationNotes,.evaluationReviewNote{margin-top:12px;padding:13px 15px;border-radius:13px;background:#0b1829;border:1px solid rgba(255,255,255,.07);font-size:13px}
+.evaluationNotes p,.evaluationReviewNote p{margin:6px 0 0;line-height:1.8;color:#c1cbd7}
+.complaintAdmin{padding:15px 17px!important;border-radius:14px!important}
+.complaintAdmin strong{font-size:14px}
+.complaintAdmin p{font-size:13px;line-height:1.9}
+.complaintAdmin small{display:block;margin-top:6px;color:#d49499;font-size:11px}
+.evaluationComplaint{box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.complaintToggle{display:flex;align-items:flex-start;gap:12px;padding:14px 15px;border:1px solid rgba(216,180,91,.22);border-radius:13px;background:rgba(216,180,91,.045);cursor:pointer}
+.complaintToggle input{width:19px!important;height:19px;margin:2px 0 0!important;accent-color:#d8b45b;flex:0 0 auto}
+.complaintToggle span{display:block}
+.complaintToggle strong{display:block;font-size:15px;color:#f0f3f7}
+.complaintToggle small{display:block;margin-top:4px;color:#9eabbc;font-size:11px;line-height:1.7}
+.evaluationSection h3{font-size:20px!important}
+.evaluationRating span{font-size:14px}
+.evaluationRating select{font-size:13px!important}
+@media(max-width:1000px){.dashboardCards{grid-template-columns:repeat(3,minmax(0,1fr))!important}.activityToolbar{flex-direction:column;align-items:stretch}.activitySearch{min-width:0}.activityHero{align-items:flex-start;flex-direction:column}.activityStats{width:100%}.activityStats>div{flex:1}}
+@media(max-width:700px){.dashboardCards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.activityPage{padding:0 16px 20px}.activityHero{padding:18px}.activityHero h2{font-size:23px}.activityStats>div{min-width:0}.activityRow{grid-template-columns:42px 1fr}.activityRow time{grid-column:2}.evaluationRelation{grid-template-columns:1fr}.evaluationRelation>b{transform:rotate(90deg)}.evaluationAdminHead{flex-direction:column}.evaluationAdminScore{align-items:flex-start!important;flex-direction:row!important;flex-wrap:wrap}.adminTabs{margin:0 16px 16px!important}.adminSection,.adminDash{margin-left:16px!important;margin-right:16px!important}}
+@media(max-width:480px){.dashboardCards{grid-template-columns:1fr 1fr!important}.metricCard{min-height:82px;padding:12px!important}.metricCard strong{font-size:20px!important}.metricCard span{font-size:10px!important}.activityStats b{font-size:21px}.evaluationAdminCard{padding:16px!important}.evaluationAdminHead h3{font-size:21px!important}.evaluationSummaryGrid{grid-template-columns:1fr!important}}
