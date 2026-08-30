@@ -412,7 +412,7 @@
 
 
 /* === APPLICATION STATUS GROUPS === */
-.applicationStatusGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.applicationStatusGroups{display:flex;flex-direction:column;gap:18px;margin-top:18px;width:100%}
 .applicationStatusGroup{border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.025)}
 .statusGroupHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .statusGroupHead h3{margin:0;font-size:17px!important;font-weight:800!important;line-height:1.8!important}
