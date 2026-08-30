@@ -341,3 +341,14 @@
 @media(max-width:700px){.examRankRow{grid-template-columns:38px 1fr auto}.examRankRow small{font-size:8px}.examReviewStats{display:grid;grid-template-columns:1fr 1fr}.collapsibleHead h3{font-size:14px}.resumeWizard{width:calc(100vw - 28px);padding:16px}.wizardStep h3{font-size:18px}}
 
 .publishedAnswers{grid-column:1/-1;display:grid;gap:7px;margin-top:10px;padding:12px;border-top:1px solid #203047}.publishedAnswers>div{padding:10px 11px;border:1px solid #203047;border-radius:9px;background:#07111e}.publishedAnswers>div strong{display:block;color:#e9eef4;font-size:10px;line-height:1.8}.publishedAnswers>div span,.publishedAnswers>div small{display:block;margin-top:4px;color:#9aa8b8;font-size:9px;line-height:1.7}.publishedAnswers .publishedCorrect{border-color:#28744f;background:#0a2119}.publishedAnswers .publishedCorrect small{color:#75d6a5}.publishedAnswers .publishedWrong{border-color:#74303b;background:#281116}.publishedAnswers .publishedWrong small{color:#ff9aa6}
+
+/* Readability pass for application/exam questions */
+.examForm .question>label,.formPanel .question>label{font-size:16px;font-weight:700;line-height:1.9;letter-spacing:0;color:#f5f7fa}
+.examForm .question textarea,.formPanel .question textarea{font-size:14px;line-height:1.8;min-height:110px}
+.examForm .options label,.formPanel .options label{font-size:14px;line-height:1.7;min-height:44px}
+.examForm .question{padding:20px 0}
+.examForm .questionNumber{font-size:13px;padding:7px 12px}
+.examTimerHero{min-height:58px}
+.examTimerHero strong{font-size:30px}
+.examTimerMeta b{font-size:18px}
+.examForm .muted,.formPanel .muted{font-size:12px}
