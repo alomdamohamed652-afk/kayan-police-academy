@@ -293,3 +293,12 @@
  .imageUrlRow input,.imageUrlRow button{width:100%}
  .memberDrop{width:100%}
 }
+/* Scoped admin refresh + search controls */
+.adminInlineSearch{margin:0;min-width:240px;padding:7px 9px}
+.adminInlineSearch input{font-size:10px;min-width:120px}
+.searchMatch{display:block!important;color:#d5b45e!important;margin-top:3px}
+@media(max-width:760px){
+  .adminInlineSearch{min-width:0;width:100%;flex:1 1 100%}
+  .panelHead .rowActions{width:100%}
+  .panelHead .rowActions>.adminInlineSearch{width:100%}
+}
