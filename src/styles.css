@@ -409,3 +409,30 @@
  .adminSection .answerCard strong{font-size:14px!important}
  .adminSection .answerCard span{font-size:13px!important}
 }
+
+
+/* === APPLICATION STATUS GROUPS === */
+.applicationStatusGroups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.applicationStatusGroup{border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.025)}
+.statusGroupHead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.statusGroupHead h3{margin:0;font-size:17px!important;font-weight:800!important;line-height:1.8!important}
+.statusGroupHead span{min-width:32px;height:28px;padding:0 9px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.applicationStatusGroup .applicationRow{border:0;border-bottom:1px solid rgba(255,255,255,.06);border-radius:0}
+.applicationStatusGroup .applicationRow:last-child{border-bottom:0}
+.applicationStatusPending{border-color:rgba(234,179,8,.28)}
+.applicationStatusPending .statusGroupHead{background:rgba(234,179,8,.10)}
+.applicationStatusPending .statusGroupHead h3{color:#f3c94d!important}
+.applicationStatusPending .statusGroupHead span{background:rgba(234,179,8,.18);color:#f3c94d}
+.applicationStatusWaitlist{border-color:rgba(234,179,8,.28)}
+.applicationStatusWaitlist .statusGroupHead{background:rgba(234,179,8,.08)}
+.applicationStatusWaitlist .statusGroupHead h3{color:#f0c44a!important}
+.applicationStatusWaitlist .statusGroupHead span{background:rgba(234,179,8,.16);color:#f0c44a}
+.applicationStatusAccepted{border-color:rgba(34,197,94,.28)}
+.applicationStatusAccepted .statusGroupHead{background:rgba(34,197,94,.10)}
+.applicationStatusAccepted .statusGroupHead h3{color:#55d981!important}
+.applicationStatusAccepted .statusGroupHead span{background:rgba(34,197,94,.17);color:#55d981}
+.applicationStatusRejected{border-color:rgba(239,68,68,.28)}
+.applicationStatusRejected .statusGroupHead{background:rgba(239,68,68,.10)}
+.applicationStatusRejected .statusGroupHead h3{color:#ff7373!important}
+.applicationStatusRejected .statusGroupHead span{background:rgba(239,68,68,.17);color:#ff7373}
+@media(max-width:900px){.applicationStatusGroups{grid-template-columns:1fr}}
