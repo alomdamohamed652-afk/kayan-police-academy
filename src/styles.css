@@ -352,3 +352,25 @@
 .examTimerHero strong{font-size:30px}
 .examTimerMeta b{font-size:18px}
 .examForm .muted,.formPanel .muted{font-size:12px}
+
+/* Applications review readability */
+.adminSection .applicationRow{padding:16px 12px;gap:14px;border-top:1px solid #24364d}
+.adminSection .applicationRow>div:first-child strong{display:block;color:#f7f9fc;font-size:15px;line-height:1.8;font-weight:800}
+.adminSection .applicationRow>div:first-child small{color:#9aa8b8;font-size:11px;line-height:1.8;margin-top:4px}
+.adminSection .panelHead h2{font-size:21px;line-height:1.7}
+.adminSection .panelHead .muted{font-size:12px;line-height:1.9}
+.adminSection .sectionTitle{font-size:15px!important;line-height:1.8;margin:20px 0 9px!important}
+.adminSection .rowActions .secondary,.adminSection .rowActions .primary,.adminSection .rowActions .danger{font-size:11px;padding:9px 12px}
+.adminSection .answerDetail{padding:18px;margin-top:12px}
+.adminSection .answerDetail h4{font-size:15px;line-height:1.8;color:#f3f6fa;margin:18px 0 9px}
+.adminSection .detailGrid p{font-size:11px;line-height:1.8}
+.adminSection .answerCard strong{font-size:13px;line-height:1.9}
+.adminSection .answerCard span{font-size:12px;line-height:2}
+.adminSection .historyList{font-size:11px;line-height:1.9}
+.adminSection .search input{font-size:12px;line-height:1.8}
+@media(max-width:760px){
+ .adminSection .applicationRow>div:first-child strong{font-size:14px}
+ .adminSection .applicationRow>div:first-child small{font-size:11px}
+ .adminSection .panelHead h2{font-size:18px}
+ .adminSection .sectionTitle{font-size:14px!important}
+}
