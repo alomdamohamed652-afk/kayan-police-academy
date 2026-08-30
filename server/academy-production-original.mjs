@@ -274,7 +274,7 @@ await load();
 const expiredOnBoot=expireBatches();
 if(expiredOnBoot.length)await save().catch(e=>console.error('Auto-close on boot save failed:',e.message));
 setInterval(()=>{const expired=expireBatches();if(expired.length)save().catch(e=>console.error('Auto-close interval save failed:',e.message))},60000).unref?.();
-app.use(express.static(DIST,{index:'index.html'}));
+app.use(express.static(DIST,{index:'index.html',setHeaders:(res,filePath)=>{if(filePath.endsWith('.html')){res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, proxy-revalidate');res.setHeader('Pragma','no-cache');res.setHeader('Expires','0')}else if(filePath.includes(`${path.sep}assets${path.sep}`)){res.setHeader('Cache-Control','public, max-age=31536000, immutable')}}}));
 app.use((req,res,next)=>{if(req.method!=='GET'||req.path.startsWith('/api/')||req.path.startsWith('/auth/'))return next();res.sendFile(path.join(DIST,'index.html'))});
 setInterval(()=>finalizeExpiredAttempts().catch(e=>console.error('Exam expiry job failed:',e.message)),15000).unref?.();
 app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
