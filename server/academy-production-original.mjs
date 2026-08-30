@@ -204,24 +204,27 @@ app.get('/api/evaluations/config',async(req,res)=>{
   const traineeRanks=Array.isArray(settings.evaluationTraineeRanks)?settings.evaluationTraineeRanks:[];
   const isTrainer=Boolean(me&&trainerRanks.includes(me.rank));
   const isTrainee=Boolean(me&&traineeRanks.includes(me.rank));
-  res.json({enabled:Boolean(me&&(isTrainer||isTrainee)),role:isTrainer?'trainer':isTrainee?'trainee':null,trainerRanks,traineeRanks,members});
+  const roles=[]; if(isTrainer)roles.push({value:'trainer',label:'تقييم متدرب'}); if(isTrainee)roles.push({value:'trainee',label:'تقييم مدرب'});
+  res.json({enabled:roles.length>0,role:roles.length===1?roles[0].value:null,roles,trainerRanks,traineeRanks,members});
 });
 app.post('/api/evaluations',async(req,res)=>{
   const c=await current(req); if(!c.x)return res.status(401).json({error:'UNAUTHENTICATED'});
   if(!c.police)return res.status(403).json({error:'OFFICER_ONLY'});
   const settings=data.settings||{},trainerRanks=Array.isArray(settings.evaluationTrainerRanks)?settings.evaluationTrainerRanks:[],traineeRanks=Array.isArray(settings.evaluationTraineeRanks)?settings.evaluationTraineeRanks:[];
-  const fromRank=String(c.police.rank||''),type=trainerRanks.includes(fromRank)?'trainer_to_trainee':traineeRanks.includes(fromRank)?'trainee_to_trainer':'';
-  if(!type)return res.status(403).json({error:'EVALUATION_NOT_ALLOWED'});
-  const targetId=id(req.body?.targetDiscordId),target=targetId?(await police()).find(x=>id(x.discordId)===targetId):null;
+  const fromRank=String(c.police.rank||''),requestedRole=String(req.body?.evaluationRole||'');
+  const type=requestedRole==='trainer'?'trainer_to_trainee':requestedRole==='trainee'?'trainee_to_trainer':trainerRanks.includes(fromRank)?'trainer_to_trainee':traineeRanks.includes(fromRank)?'trainee_to_trainer':'';
+  if((type==='trainer_to_trainee'&&!trainerRanks.includes(fromRank))||(type==='trainee_to_trainer'&&!traineeRanks.includes(fromRank)))return res.status(403).json({error:'EVALUATION_NOT_ALLOWED'});
+  const targetId=id(req.body?.targetDiscordId),targetIdStr=String(targetId),target=targetId?(await police()).find(x=>id(x.discordId)===targetId):null;
   if(!target)return res.status(400).json({error:'EVALUATION_TARGET_REQUIRED'});
   if(type==='trainer_to_trainee'&&!traineeRanks.includes(target.rank))return res.status(400).json({error:'INVALID_TRAINEE_TARGET'});
   if(type==='trainee_to_trainer'&&!trainerRanks.includes(target.rank))return res.status(400).json({error:'INVALID_TRAINER_TARGET'});
-  if(targetId===id(c.x.id))return res.status(400).json({error:'EVALUATION_SELF_FORBIDDEN'});
-  const nums=['driving','citizens','devices','calls','weapons'].map(k=>Number(req.body?.ratings?.[k]||0));
-  if(nums.some(n=>n<1||n>10))return res.status(400).json({error:'EVALUATION_RATINGS_REQUIRED'});
+  if(targetIdStr===id(c.x.id))return res.status(400).json({error:'EVALUATION_SELF_FORBIDDEN'});
+  const ratingKeys=type==='trainer_to_trainee'?['driving','citizens','devices','calls','weapons']:['trainingQuality','explanation','communication','fairness','knowledge','professionalism'];
+  const ratings={}; for(const k of ratingKeys){const n=Number(req.body?.ratings?.[k]||0);if(n<1||n>10)return res.status(400).json({error:'EVALUATION_RATINGS_REQUIRED'});ratings[k]=n}
+  const overall=type==='trainer_to_trainee'?Number(req.body?.overallRating||0):Math.round(ratingKeys.reduce((a,k)=>a+ratings[k],0)/ratingKeys.length*10)/10;
+  if(type==='trainer_to_trainee'&&(overall<1||overall>10))return res.status(400).json({error:'EVALUATION_RATINGS_REQUIRED'});
   const complaint=String(req.body?.complaint||'').trim().slice(0,5000);
-  const e={id:'eval-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),type,fromDiscordId:String(c.x.id),fromName:c.police.name,fromRank:c.police.rank,targetDiscordId:target.discordId,targetName:target.name,targetRank:target.rank,trainerName:type==='trainer_to_trainee'?c.police.name:target.name,traineeName:type==='trainer_to_trainee'?target.name:c.police.name,ratings:{driving:nums[0],citizens:nums[1],devices:nums[2],calls:nums[3],weapons:nums[4]},hours:Number(req.body?.hours||0),notes:String(req.body?.notes||'').trim().slice(0,5000),sameTrainer:Boolean(req.body?.sameTrainer),complaint:complaint||'',hasComplaint:Boolean(complaint),status:'pending',createdAt:new Date().toISOString(),review:null};
-  e.rating=Math.round(nums.reduce((a,n)=>a+n,0)/nums.length*10)/10;
+  const e={id:'eval-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),type,fromDiscordId:String(c.x.id),fromName:c.police.name,fromRank:c.police.rank,targetDiscordId:target.discordId,targetName:target.name,targetRank:target.rank,trainerName:type==='trainer_to_trainee'?c.police.name:target.name,traineeName:type==='trainer_to_trainee'?target.name:c.police.name,ratings,overallRating:overall,rating:overall,hours:type==='trainer_to_trainee'?Math.max(0,Number(req.body?.hours||0)):0,notes:String(req.body?.notes||'').trim().slice(0,5000),sameTrainer:type==='trainee_to_trainer'?Boolean(req.body?.sameTrainer):false,complaint:complaint||'',hasComplaint:Boolean(complaint),status:'pending',createdAt:new Date().toISOString(),review:null};
   data.evaluations.unshift(e);audit(c,'SUBMIT_EVALUATION',e.id,type+(complaint?' · complaint':''));
   try{await save();}catch(err){data.evaluations=data.evaluations.filter(x=>x.id!==e.id);return res.status(503).json({error:'STORAGE_ERROR'})}
   res.json({ok:true,evaluation:e});
@@ -231,7 +234,7 @@ app.patch('/api/admin/evaluations/:id/review',(req,res)=>saved(async()=>{
   const e=data.evaluations.find(x=>x.id===req.params.id); if(!e)return res.status(404).json({error:'EVALUATION_NOT_FOUND'});
   const status=String(req.body?.status||''); if(!['pending','approved','rejected','investigation'].includes(status))return res.status(400).json({error:'INVALID_EVALUATION_STATUS'});
   e.status=status;e.review={at:new Date().toISOString(),by:String(c.x.id),byName:c.police?.name||c.x.global_name||c.x.username,note:String(req.body?.note||'').slice(0,5000)};
-  const investigationTarget=e.type==='trainer_to_trainee'?e.targetDiscordId:e.fromDiscordId;
+  const investigationTarget=e.targetDiscordId;
   e.investigationTarget=status==='investigation'?investigationTarget:null;
   audit(c,'REVIEW_EVALUATION',e.id,status+(e.investigationTarget?':'+e.investigationTarget:''));
   await save();res.json({ok:true,evaluation:e});
