@@ -1,1 +1,1 @@
-<REPLACED_BY_SAFE_PATCH>
+import './academy-production-original-base.mjs';
