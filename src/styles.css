@@ -985,3 +985,39 @@
   .metricCard strong{font-size:23px !important}
   .metricCard span{font-size:11px !important}
 }
+
+
+/* Application batches: make the currently active batch unmistakable */
+.batchRow{
+  position:relative;
+  border-radius:16px !important;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.batchRow:hover{transform:translateY(-2px)}
+.batchOpenRow{
+  border:1px solid rgba(63,190,125,.48) !important;
+  background:linear-gradient(90deg,rgba(30,92,68,.18),rgba(9,22,36,.72)) !important;
+  box-shadow:0 8px 28px rgba(20,110,76,.10);
+}
+.batchOpenRow::before{
+  content:"التقديم الحالي";
+  position:absolute;
+  top:12px;
+  right:18px;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+  color:#9af0c0;
+  background:rgba(39,145,91,.18);
+  border:1px solid rgba(72,197,129,.32);
+}
+.batchUpcomingRow{
+  border:1px solid rgba(217,185,87,.30) !important;
+  background:linear-gradient(90deg,rgba(100,81,28,.10),rgba(9,22,36,.72)) !important;
+}
+.batchClosedRow{opacity:.88}
+.batchRow .rowActions{flex-wrap:wrap}
+@media(max-width:760px){
+  .batchOpenRow::before{position:static;display:inline-block;margin-bottom:8px}
+}
