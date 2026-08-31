@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useState,useRef}from'react';
 import{createRoot}from'react-dom/client';
 import{LayoutDashboard,Users,ClipboardCheck,FileText,Shield,LogIn,Menu,X,ChevronLeft,LockKeyhole,ArrowLeft,UserRound,Settings,Network,Upload,Search,Plus,Trash2,ExternalLink,RefreshCw,Eye,Check,BookOpen,Star,Clock}from'lucide-react';
-import'./styles.css';
+import'./styles.css';import'./motion.css';
 import{AdminCenter}from'./admin-center.jsx';
 const logo='/police-logo.png';
 const normalizeUser=u=>({...u,permissions:{isCitizen:Boolean(u?.permissions?.isCitizen)||u?.role==='citizen',isOfficer:Boolean(u?.permissions?.isOfficer),isAdmin:Boolean(u?.permissions?.isAdmin),adminPermissions:Array.isArray(u?.permissions?.adminPermissions)?u.permissions.adminPermissions:[],canViewEvaluations:Boolean(u?.permissions?.canViewEvaluations)}});
