@@ -5,8 +5,10 @@ const str=v=>v==null?'':String(v);
 const num=v=>Number.isFinite(Number(v))?Number(v):null;
 const json=v=>v&&typeof v==='object'?v:{};
 
-async function all(table,order='created_at'){
-  const {data,error}=await supabase.from(table).select('*').order(order,{ascending:true});
+async function all(table,order=null){
+  let query=supabase.from(table).select('*');
+  if(order) query=query.order(order,{ascending:true});
+  const {data,error}=await query;
   if(error) throw error;
   return data||[];
 }
