@@ -22,7 +22,8 @@
     "cookie-parser": "latest",
     "jsonwebtoken": "latest",
     "dotenv": "latest",
-    "googleapis": "latest"
+    "googleapis": "latest",
+    "@supabase/supabase-js": "^2.57.0"
   },
   "devDependencies": {}
 }
