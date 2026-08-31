@@ -7,7 +7,7 @@
     "dev": "concurrently \"vite\" \"node server/index-production.mjs\"",
     "dev:web": "vite",
     "dev:api": "node server/index-production.mjs",
-    "build": "node scripts/prepare-build.mjs && node scripts/final-stability.mjs && vite build",
+    "build": "node scripts/prepare-build.mjs && node scripts/final-stability.mjs && node scripts/stability-v2.mjs && vite build",
     "start": "node server/index-production.mjs",
     "preview": "vite preview"
   },
