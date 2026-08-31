@@ -42,4 +42,9 @@ await replace(
 "status:x.submittedAt?'submitted':(['submitted','expired','cancelled'].includes(String(x.status||'').toLowerCase())?String(x.status).toLowerCase():'in_progress'),",
 'exam-attempt-status');
 
+await replace('server/academy-production-original.mjs',
+"function audit(c,a,t,d=''){data.audit.unshift({id:\`audit-\${Date.now()}\`,",
+"function audit(c,a,t,d=''){data.audit.unshift({id:\`audit-\${Date.now()}-\${crypto.randomBytes(4).toString('hex')}\`,",
+'audit-unique-id');
+
 console.log('Runtime stability patch applied.');
