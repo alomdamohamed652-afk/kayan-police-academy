@@ -2271,3 +2271,9 @@ input,textarea,select{max-width:100%;min-width:0}
   .sideNav button{min-height:48px;font-size:12px}
   .sideNav button svg:first-child{width:19px;height:19px}
 }
+
+
+/* Loading screen: larger, clearer academy crest */
+.boot::before{width:86px;height:86px;margin-bottom:20px;filter:drop-shadow(0 0 22px rgba(217,185,87,.24));}
+.boot{font-size:16px;letter-spacing:.2px;}
+.academyLoader img{width:78px;height:78px;filter:drop-shadow(0 0 20px rgba(217,185,87,.24));}
