@@ -37,7 +37,7 @@ const arranged=useMemo(()=>{
   });
   return [...rows.entries()].sort((a,b)=>a[0]-b[0]).map(([level,items])=>({
     level,
-    items:items.sort((a,b)=>a.position-b.position)
+    items:[...items].sort((a,b)=>a.position-b.position)
   }));
 },[data]);
 return <Page title="هيكل الأكاديمية" sub="ترتيب بسيط وواضح: كل مستوى في صف مستقل، والمناصب داخل المستوى بجانب بعضها حسب ترتيبها.">
