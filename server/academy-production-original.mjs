@@ -225,15 +225,13 @@ async function saveExamStorage(which=['exams','results','attempts'],source=data)
   if(which.includes('attempts'))await writeExamCollection(s,EXAM_ATTEMPTS_SHEET,source.examAttempts||[]);
   storageReady=true;lastStorageError='';
 }
-async function persistExamStorage(which=['exams','results','attempts']){
-  if(supabaseActive){
-    // Exam autosave/submit/start requests can arrive concurrently. Route them
-    // through the same persistence queue used by normal mutations so Supabase
-    // writes cannot race each other.
-    await save();
-    return;
-  }
-  await saveExamStorage(which);
+let examSaveQueue=Promise.resolve();
+function persistExamStorage(which=['exams','results','attempts']){
+  // Keep exam mutations responsive; Google Sheets persistence runs in the background.
+  if(supabaseActive)return save();
+  const job=examSaveQueue.catch(()=>{}).then(()=>saveExamStorage(which));
+  examSaveQueue=job.catch(e=>{console.error('Exam storage queue failed:',e.message);lastStorageError=String(e?.message||e)});
+  return Promise.resolve({queued:true});
 }
 async function loadExamStorage(s){
   const exams=await readExamCollection(s,EXAMS_SHEET);
@@ -292,7 +290,7 @@ function sess(req){try{return jwt.verify(req.cookies.kayan_session,SESSION_SECRE
 function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function perms(uid){return ADMINS.has(id(uid))?ALL:(admin(uid)?.enabled?(admin(uid).permissions||[]):[])}
 const withTimeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('POLICE_SHEET_TIMEOUT')),ms))]);
-async function current(req){const x=sess(req);if(!x)return{x:null,police:null,role:'citizen',admin:false,permissions:[]};const a=admin(x.id),isAdmin=ADMINS.has(id(x.id))||Boolean(a?.enabled);try{const rows=await withTimeout(police(),9000),p=rows.find(r=>id(r.discordId)===id(x.id))||null;return{x,police:p,role:role(p),admin:isAdmin,permissions:perms(x.id),sheet:true}}catch(e){return{x,police:null,role:'unknown',admin:isAdmin,permissions:perms(x.id),sheet:false,error:e.message}}}
+async function current(req){const x=sess(req);if(!x)return{x:null,police:null,role:'citizen',admin:false,permissions:[]};const a=admin(x.id),isAdmin=ADMINS.has(id(x.id))||Boolean(a?.enabled);try{const rows=await withTimeout(police(),4000),p=rows.find(r=>id(r.discordId)===id(x.id))||null;return{x,police:p,role:role(p),admin:isAdmin,permissions:perms(x.id),sheet:true}}catch(e){return{x,police:null,role:'unknown',admin:isAdmin,permissions:perms(x.id),sheet:false,error:e.message}}}
 async function requireAdmin(req,res,p='view_dashboard'){const c=await current(req);if(!c.x){res.status(401).json({error:'UNAUTHENTICATED'});return null}if(!c.sheet){res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});return null}if(!storageReady){res.status(503).json({error:'ACADEMY_STORAGE_UNAVAILABLE',retryable:true});return null}if(!c.admin){res.status(403).json({error:'FORBIDDEN'});return null}if(p&&!c.permissions.includes(p)){res.status(403).json({error:'INSUFFICIENT_PERMISSION',permission:p});return null}return c}
 function audit(c,a,t,d=''){data.audit.unshift({id:`audit-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,at:new Date().toISOString(),actorId:String(c.x.id),actorName:c.police?.name||c.x.global_name||c.x.username,actorDepartment:c.police?.department||c.police?.responsibility||'',action:a,target:t,details:d});data.audit=data.audit.slice(0,1000)}
 function member(r){return{...r,role:role(r),image:data.memberImages?.[r.discordId]||'',profileButtonVisible:data.memberSettings?.[r.discordId]?.showProfileButton!==false}}
@@ -326,7 +324,7 @@ app.get('/api/health',async(_q,res)=>{
     academyDataSheetId:DATA_SHEET_ID,
     academyDataSheetName:DATA_SHEET
   })
-});app.get('/api/me',async(req,res)=>{const c=await current(req);if(!c.x)return res.json({authenticated:false,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:false,adminPermissions:[],canViewEvaluations:false}});if(!c.sheet)return res.json({authenticated:true,identityPending:false,discord:c.x,police:null,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:false}});const officer=Boolean(c.police);res.json({authenticated:true,identityPending:false,discord:c.x,police:c.police?{name:c.police.name,rank:c.police.rank,code:c.police.code,badge:c.police.badge,status:c.police.status,responsibility:c.police.responsibility,department:c.police.department||c.police.responsibility||'',leave:c.police.leave,discordId:c.police.discordId,image:data.memberImages?.[c.police.discordId]||''}:null,role:officer?c.role:'citizen',permissions:{isCitizen:!officer,isOfficer:officer,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:c.admin&&c.permissions.includes('view_evaluations')}})});
+});app.get('/api/me',async(req,res)=>{const c=await current(req);if(!c.x)return res.json({authenticated:false,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:false,adminPermissions:[],canViewEvaluations:false}});if(!c.sheet)return res.json({authenticated:true,identityPending:true,discord:c.x,police:null,role:'unknown',permissions:{isCitizen:false,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:false}});const officer=Boolean(c.police);res.json({authenticated:true,identityPending:false,discord:c.x,police:c.police?{name:c.police.name,rank:c.police.rank,code:c.police.code,badge:c.police.badge,status:c.police.status,responsibility:c.police.responsibility,department:c.police.department||c.police.responsibility||'',leave:c.police.leave,discordId:c.police.discordId,image:data.memberImages?.[c.police.discordId]||''}:null,role:officer?c.role:'citizen',permissions:{isCitizen:!officer,isOfficer:officer,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:c.admin&&c.permissions.includes('view_evaluations')}})});
 app.get('/api/public/hierarchy',(_q,res)=>res.json({hierarchy:data.hierarchy||DEFAULT_HIERARCHY}));
 app.get('/api/public/academy',async(_q,res)=>{const expired=expireBatches();if(expired.length)await save().catch(e=>console.error('Auto-close save failed:',e.message));const batches=Array.isArray(data.batches)?data.batches:[];
 // Public applications must always follow the currently open batch, never simply the newest/first batch.
