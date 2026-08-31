@@ -27,6 +27,7 @@ const EXAM_RESULTS_SHEET=process.env.ACADEMY_EXAM_RESULTS_SHEET_NAME||'EXAM_RESU
 const EXAM_ATTEMPTS_SHEET=process.env.ACADEMY_EXAM_ATTEMPTS_SHEET_NAME||'EXAM_ATTEMPTS';
 const API_KEY=process.env.GOOGLE_SHEETS_API_KEY||'';
 const SERVICE_FILE=process.env.GOOGLE_SERVICE_ACCOUNT_FILE||'/etc/secrets/google-service-account.json';
+const GOOGLE_SERVICE_ACCOUNT_JSON_OR_FILE_CONFIGURED=Boolean(String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON||'').trim()||String(process.env.GOOGLE_SERVICE_ACCOUNT_FILE||'').trim());
 const CLIENT_ID=process.env.DISCORD_CLIENT_ID||'';
 const CLIENT_SECRET=process.env.DISCORD_CLIENT_SECRET||'';
 const REDIRECT=process.env.DISCORD_REDIRECT_URI||'http://localhost:3001/auth/discord/callback';
@@ -134,7 +135,13 @@ if(previousVersion<17){
 const bankByFingerprint=new Map((data.questionBank||[]).map(q=>[JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]),q]));
 for(const exam of data.exams||[]){if(!Array.isArray(exam.questions))continue;exam.questions=exam.questions.map(q=>{if(q?.questionBankId)return q;const master=(data.questionBank||[]).find(b=>String(b.id)===String(q?.id))||bankByFingerprint.get(JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]));return master?{...q,questionBankId:String(master.id)}:q})}
 const separate=await loadExamStorage(s);if(separate.hasSeparate){if(separate.exams)data.exams=separate.exams;if(separate.results)data.examResults=separate.results;if(separate.attempts)data.examAttempts=separate.attempts}else{await saveExamStorage()}storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await save();console.log(`Google DATA storage ready (${DATA_SHEET})`)}catch(e){storageReady=false;lastStorageError=e.message;supabaseMigrationPending=false;console.error('Google DATA storage unavailable:',e.message)}if(supabaseMigrationPending){await saveAcademyData(data);supabaseActive=true;supabaseMigrationPending=false;storageReady=true;lastStorageError='';console.log('Academy data migrated from legacy Google DATA storage to Supabase.');}}
-let saveQueue=Promise.resolve();const DATA_CHUNK_SIZE=30000;
+let saveQueue=Promise.resolve();
+let mirrorQueue=Promise.resolve();
+let lastMirrorAt=0;
+let lastMirrorError='';
+let mirrorRunning=false;
+const DATA_CHUNK_SIZE=30000;
+const MIRROR_INTERVAL_MS=Math.max(300000,Number(process.env.GOOGLE_MIRROR_INTERVAL_MS||900000));
 const SHEET_WRITE_RETRIES=3;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function sheetsWrite(fn){
@@ -211,11 +218,11 @@ async function writeExamItem(s,name,item){
   await sheetsWrite(()=>s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:name+'!A'+start+':E'+(start+values.length-1),valueInputOption:'RAW',requestBody:{values}}));
   if(indexes.length>values.length)await sheetsWrite(()=>s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:name+'!A'+(start+values.length)+':E'+(start+indexes.length-1)}));
 }
-async function saveExamStorage(which=['exams','results','attempts']){
+async function saveExamStorage(which=['exams','results','attempts'],source=data){
   const s=await service();
-  if(which.includes('exams'))await writeExamCollection(s,EXAMS_SHEET,data.exams||[]);
-  if(which.includes('results'))await writeExamCollection(s,EXAM_RESULTS_SHEET,data.examResults||[]);
-  if(which.includes('attempts'))await writeExamCollection(s,EXAM_ATTEMPTS_SHEET,data.examAttempts||[]);
+  if(which.includes('exams'))await writeExamCollection(s,EXAMS_SHEET,source.exams||[]);
+  if(which.includes('results'))await writeExamCollection(s,EXAM_RESULTS_SHEET,source.examResults||[]);
+  if(which.includes('attempts'))await writeExamCollection(s,EXAM_ATTEMPTS_SHEET,source.examAttempts||[]);
   storageReady=true;lastStorageError='';
 }
 async function loadExamStorage(s){
@@ -224,7 +231,47 @@ async function loadExamStorage(s){
   const attempts=await readExamCollection(s,EXAM_ATTEMPTS_SHEET);
   return{hasSeparate:Boolean(exams||results||attempts),exams:Array.isArray(exams)?exams:null,results:Array.isArray(results)?results:null,attempts:Array.isArray(attempts)?attempts:null}
 }
-async function saveToSheet(){const s=await service();await ensureData(s);const core={...data,exams:[],examResults:[],examAttempts:[]};const raw=JSON.stringify(core);const chunks=[];for(let i=0;i<raw.length;i+=DATA_CHUNK_SIZE)chunks.push(raw.slice(i,i+DATA_CHUNK_SIZE));const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`});const oldCount=(old.data.values||[]).filter(r=>String(r?.[0]??'')!=='').length;await s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A${Math.max(1,chunks.length)}`,valueInputOption:'RAW',requestBody:{values:(chunks.length?chunks:['']).map(x=>[x])}});if(oldCount>chunks.length)await s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A${chunks.length+1}:A${oldCount}`});storageReady=true;lastStorageError=''}async function save(){const job=saveQueue.catch(()=>{}).then(()=>supabaseActive?saveAcademyData(data):saveToSheet());saveQueue=job.catch(e=>{console.error(supabaseActive?'Supabase academy save failed:':'Google DATA save failed:',e.message);lastStorageError=String(e?.message||e);storageReady=false;throw e});return job}
+async function saveToSheet(source=data){const s=await service();await ensureData(s);const core={...source,exams:[],examResults:[],examAttempts:[]};const raw=JSON.stringify(core);const chunks=[];for(let i=0;i<raw.length;i+=DATA_CHUNK_SIZE)chunks.push(raw.slice(i,i+DATA_CHUNK_SIZE));const old=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`});const oldCount=(old.data.values||[]).filter(r=>String(r?.[0]??'')!=='').length;await s.spreadsheets.values.update({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A${Math.max(1,chunks.length)}`,valueInputOption:'RAW',requestBody:{values:(chunks.length?chunks:['']).map(x=>[x])}});if(oldCount>chunks.length)await s.spreadsheets.values.clear({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A${chunks.length+1}:A${oldCount}`});storageReady=true;lastStorageError=''}async function mirrorSupabaseToGoogle(reason='periodic'){
+  if(!supabaseActive||!DATA_SHEET_ID||mirrorRunning)return false;
+  mirrorRunning=true;
+  const snapshot=structuredClone(data);
+  try{
+    await saveToSheet(snapshot);
+    await saveExamStorage(['exams','results','attempts'],snapshot);
+    lastMirrorAt=Date.now();
+    lastMirrorError='';
+    console.log('Google third-party mirror synced:',reason);
+    return true;
+  }catch(e){
+    lastMirrorError=String(e?.message||e);
+    console.error('Google third-party mirror failed:',lastMirrorError);
+    return false;
+  }finally{mirrorRunning=false}
+}
+function queueGoogleMirror(reason='mutation'){
+  if(!supabaseActive||!DATA_SHEET_ID)return;
+  mirrorQueue=mirrorQueue.catch(()=>{}).then(()=>mirrorSupabaseToGoogle(reason));
+}
+async function save(){
+  const job=saveQueue.catch(()=>{}).then(async()=>{
+    if(supabaseActive){
+      await saveAcademyData(data);
+      queueGoogleMirror('data-save');
+    }else{
+      await saveToSheet();
+    }
+  });
+  saveQueue=job.catch(e=>{
+    console.error(supabaseActive?'Supabase academy save failed:':'Google DATA save failed:',e.message);
+    lastStorageError=String(e?.message||e);
+    storageReady=false;
+    throw e
+  });
+  return job
+}
+if(MIRROR_INTERVAL_MS>0){
+  setInterval(()=>queueGoogleMirror('scheduled'),MIRROR_INTERVAL_MS).unref?.();
+}
 function role(r){if(!r)return'citizen';const t=`${r.rank} ${r.responsibility}`.toLowerCase();if(t.includes('مساعد نائب'))return'academy_assistant_vice';if(t.includes('نائب رئيس الأكاديمية'))return'academy_vice_president';if(t.includes('رئيس الأكاديمية'))return'academy_president';if(t.includes('قائد الشرطة'))return'police_commander';if(t.includes('شؤون'))return'affairs';if(isTrainerRank(r))return'trainer';return'officer'}
 function isTrainerRank(r){const t=norm(r?.rank||''),senior=['رقيب','رقيبأول','مساعد','ملازم','ملازماول','ملازمتاني','نقيب','رائد','مقدم','عقيد','عميد','لواء','فريق'];return senior.some(x=>t.includes(norm(x)))||String(r?.responsibility||'').includes('مدرب')}
 function sess(req){try{return jwt.verify(req.cookies.kayan_session,SESSION_SECRET)}catch{return null}}
@@ -246,8 +293,25 @@ async function finalizeExpiredAttempts(){if(expiryJobRunning)return;expiryJobRun
 function examAllowed(e,c,token=''){if(!c?.x)return false;if(e.accessType==='all')return true;if(e.accessType==='police')return Boolean(c.police);if(e.accessType==='specific')return e.allowedDiscordIds?.includes(id(c.x.id));if(e.accessType==='link')return Boolean(token&&String(token)===String(e.accessToken));return false}
 function publicExam(e){const questions=(Array.isArray(e?.questions)?e.questions:[]).map(cleanQuestion).filter(q=>q.text).map(q=>({id:q.id,text:q.text,type:q.type,options:q.options||[],required:q.required!==false,points:q.points}));return{...e,state:timeState(e?.startAt,e?.endAt),accessToken:undefined,allowedDiscordIds:undefined,questions}}
 function cloneQuestion(q){return cleanQuestion({...q,id:`q-${Date.now()}-${Math.random().toString(36).slice(2,8)}`})}
-app.get('/api/health',async(_q,res)=>{let p=false;try{await police();p=true}catch{}res.json({ok:true,sheetConfigured:Boolean(POLICE_SHEET_ID),policeSheetConfigured:p,discordConfigured:Boolean(CLIENT_ID&&CLIENT_SECRET),sessionConfigured:true,persistentAcademyConfigured:storageReady,storageMode:storageReady?'google':'unavailable',storageError:storageReady?'':lastStorageError,adminConfigured:ADMINS.size>0||data.admins.some(a=>a.enabled),academyDataSheetId:DATA_SHEET_ID,academyDataSheetName:DATA_SHEET})});
-app.get('/api/me',async(req,res)=>{const c=await current(req);if(!c.x)return res.json({authenticated:false,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:false,adminPermissions:[],canViewEvaluations:false}});if(!c.sheet)return res.json({authenticated:true,identityPending:false,discord:c.x,police:null,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:false}});const officer=Boolean(c.police);res.json({authenticated:true,identityPending:false,discord:c.x,police:c.police?{name:c.police.name,rank:c.police.rank,code:c.police.code,badge:c.police.badge,status:c.police.status,responsibility:c.police.responsibility,leave:c.police.leave,discordId:c.police.discordId,image:data.memberImages?.[c.police.discordId]||''}:null,role:officer?c.role:'citizen',permissions:{isCitizen:!officer,isOfficer:officer,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:c.admin&&c.permissions.includes('view_evaluations')}})});
+app.get('/api/health',async(_q,res)=>{
+  let p=false;try{await police();p=true}catch{}
+  res.json({
+    ok:true,
+    sheetConfigured:Boolean(POLICE_SHEET_ID),
+    policeSheetConfigured:p,
+    discordConfigured:Boolean(CLIENT_ID&&CLIENT_SECRET),
+    sessionConfigured:true,
+    persistentAcademyConfigured:storageReady,
+    storageMode:supabaseActive?'supabase':(storageReady?'google':'unavailable'),
+    storageError:storageReady?'':lastStorageError,
+    googleMirrorConfigured:Boolean(DATA_SHEET_ID&&GOOGLE_SERVICE_ACCOUNT_JSON_OR_FILE_CONFIGURED),
+    googleMirrorLastSync:lastMirrorAt?new Date(lastMirrorAt).toISOString():null,
+    googleMirrorError:lastMirrorError||null,
+    adminConfigured:ADMINS.size>0||data.admins.some(a=>a.enabled),
+    academyDataSheetId:DATA_SHEET_ID,
+    academyDataSheetName:DATA_SHEET
+  })
+});app.get('/api/me',async(req,res)=>{const c=await current(req);if(!c.x)return res.json({authenticated:false,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:false,adminPermissions:[],canViewEvaluations:false}});if(!c.sheet)return res.json({authenticated:true,identityPending:false,discord:c.x,police:null,role:'citizen',permissions:{isCitizen:true,isOfficer:false,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:false}});const officer=Boolean(c.police);res.json({authenticated:true,identityPending:false,discord:c.x,police:c.police?{name:c.police.name,rank:c.police.rank,code:c.police.code,badge:c.police.badge,status:c.police.status,responsibility:c.police.responsibility,leave:c.police.leave,discordId:c.police.discordId,image:data.memberImages?.[c.police.discordId]||''}:null,role:officer?c.role:'citizen',permissions:{isCitizen:!officer,isOfficer:officer,isAdmin:c.admin,adminPermissions:c.permissions,canViewEvaluations:c.admin&&c.permissions.includes('view_evaluations')}})});
 app.get('/api/public/hierarchy',(_q,res)=>res.json({hierarchy:data.hierarchy||DEFAULT_HIERARCHY}));
 app.get('/api/public/academy',async(_q,res)=>{const expired=expireBatches();if(expired.length)await save().catch(e=>console.error('Auto-close save failed:',e.message));const batches=Array.isArray(data.batches)?data.batches:[];
 // Public applications must always follow the currently open batch, never simply the newest/first batch.
