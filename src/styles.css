@@ -1245,3 +1245,25 @@ button:not(:disabled):hover{transform:translateY(-1px)}
   .hierarchyLevelLabel::before,.hierarchyLevelLabel::after{width:18%;min-width:35px}
   .hierarchyLevelLabel span{font-size:14px}
 }
+
+/* Minimal hierarchy separators — no level/position headings */
+.hierarchyCanvas{gap:0}
+.hierarchyLevel{padding:28px 0 30px}
+.hierarchyLevel+.hierarchyLevel{
+  border-top:1px solid rgba(217,185,87,.16);
+  position:relative;
+}
+.hierarchyLevel+.hierarchyLevel::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:50%;
+  width:64px;
+  height:2px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(217,185,87,.65),transparent);
+  box-shadow:0 0 14px rgba(217,185,87,.12);
+}
+.hierarchyLevelLabel{display:none!important}
+.hierarchyPosition{display:none}
+.hierInfo span:empty{display:none}
