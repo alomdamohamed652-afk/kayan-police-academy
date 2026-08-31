@@ -87,11 +87,11 @@ function QuestionEditor({question,onChange,onDelete}) {
 }
 function QuestionBankAdmin({state,reload,setMsg}){const[questions,setQuestions]=useState((state.questionBank||[]).map(normalizeQuestion)),[search,setSearch]=useState(''),[editing,setEditing]=useState(null);useEffect(()=>setQuestions((state.questionBank||[]).map(normalizeQuestion)),[state.questionBank]);const save=async()=>{try{await api('/api/admin/question-bank',{method:'PUT',body:JSON.stringify({questions})});setEditing(null);setMsg('تم حفظ فهرس الأسئلة.');reload()}catch(e){setMsg(errText(e))}};const filtered=questions.filter(q=>q.text.toLowerCase().includes(search.toLowerCase()));return <div className="adminSection"><div className="panel"><div className="panelHead"><div><h2>فهرس الأسئلة</h2><p className="muted">مكتبة مركزية للأسئلة مع الاختيارات والإجابة الصحيحة. السؤال في الفهرس مستقل عن الاختبارات.</p></div><Btn className="primary" onClick={()=>setQuestions(a=>[...a,normalizeQuestion({text:'سؤال جديد',type:'choice',options:['اختيار 1','اختيار 2'],correct:'',required:true,points:1})])}><Plus size={16}/> إضافة سؤال للفهرس</Btn></div><div className="search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث في الفهرس"/></div>{filtered.map(q=><div className="bankRow" key={q.id}><div><strong>{q.text||'سؤال بدون نص'}</strong><small>{typeName(q.type)} · {q.points||1} درجة · الصحيحة: <b>{q.correct||'غير محددة'}</b></small>{q.type==='choice'&&<small>الاختيارات: {(q.options||[]).join(' · ')}</small>}</div><div className="rowActions"><Btn onClick={()=>setEditing(q)}>تعديل</Btn><button className="danger" onClick={()=>setQuestions(a=>a.filter(x=>x.id!==q.id))}><Trash2 size={14}/></button></div></div>)}{!filtered.length&&<div className="emptyMini">لا توجد أسئلة.</div>}<Btn className="primary" onClick={save}><Save size={16}/> حفظ الفهرس</Btn></div>{editing&&<div className="panel"><div className="panelHead"><h2>تعديل سؤال</h2><Btn onClick={()=>setEditing(null)}>إلغاء</Btn></div><QuestionEditor question={editing} onChange={v=>{const n=normalizeQuestion(v);setEditing(n);setQuestions(a=>a.map(q=>q.id===n.id?n:q))}}/><Btn className="primary" onClick={save}><Save size={16}/> حفظ</Btn></div>}</div>}
 function MembersAdmin({state,reload,setMsg}){
-  const [q,setQ]=useState('');
-  const [saving,setSaving]=useState('');
-  const [urls,setUrls]=useState({});
-  const [view,setView]=useState('cards');
-  const list=(state.members||[]).filter(m=>`${m.name} ${m.rank} ${m.discordId} ${m.badge} ${m.responsibility||''}`.toLowerCase().includes(q.toLowerCase()));
+  const[q,setQ]=useState('');
+  const[saving,setSaving]=useState('');
+  const[urls,setUrls]=useState({});
+  const[view,setView]=useState('cards');
+  const list=(state.members||[]).filter(m=>`${m.name||''} ${m.rank||''} ${m.discordId||''} ${m.badge||''} ${m.responsibility||''}`.toLowerCase().includes(q.trim().toLowerCase()));
 
   const fileToDataUrl=async file=>{
     if(!/^image\/(png|jpeg|webp)$/i.test(file.type)) throw Error('PNG أو JPG/JPEG أو WebP فقط.');
@@ -106,48 +106,82 @@ function MembersAdmin({state,reload,setMsg}){
       return out;
     }finally{URL.revokeObjectURL(src)}
   };
-  const saveImage=async(m,image)=>{setSaving(m.discordId);try{await api('/api/admin/member-image',{method:'POST',body:JSON.stringify({discordId:m.discordId,image})});setMsg('تم حفظ الصورة.');setUrls(v=>({...v,[m.discordId]:''}));reload()}catch(x){setMsg(errText(x))}finally{setSaving('')}};
+  const saveImage=async(m,image)=>{setSaving(m.discordId);try{await api('/api/admin/member-image',{method:'POST',body:JSON.stringify({discordId:m.discordId,image})});setMsg('تم حفظ صورة الفرد.');setUrls(v=>({...v,[m.discordId]:''}));reload()}catch(x){setMsg(errText(x))}finally{setSaving('')}};
   const upload=async(m,file)=>{if(!file)return;try{setMsg('جارٍ تجهيز الصورة...');await saveImage(m,await fileToDataUrl(file))}catch(x){setMsg(x.message||String(x))}};
   const setUrl=async m=>{const url=String(urls[m.discordId]||'').trim();let parsed;try{parsed=new URL(url)}catch{return setMsg('ضع رابط صورة صحيح يبدأ بـ https:// أو http://.')}if(!['http:','https:'].includes(parsed.protocol))return setMsg('ضع رابط صورة مباشر يبدأ بـ https:// أو http://.');await saveImage(m,url)};
   const removeImage=async m=>{if(!m.image)return;if(!confirm(`حذف صورة «${m.name||m.discordId}» من الموقع؟`))return;setSaving(m.discordId);try{await api('/api/admin/member-image',{method:'DELETE',body:JSON.stringify({discordId:m.discordId})});setMsg('تم حذف الصورة.');reload()}catch(x){setMsg(errText(x))}finally{setSaving('')}};
   const drop=(m,e)=>{e.preventDefault();const file=e.dataTransfer?.files?.[0];if(file)upload(m,file)};
-  return <div className="panel membersAdminPanel">
-    <div className="membersToolbar">
-      <div><span className="eyebrow">ACADEMY PERSONNEL</span><h2>الأفراد</h2><p className="muted">بيانات الأفراد الأساسية والرتب تُسحب من سجل الشرطة، ويمكن للإدارة إدارة صورة الملف فقط.</p></div>
-      <div className="membersCount"><b>{list.length}</b><span>فرد ظاهر</span></div>
+  const imageControls=m=><div className="memberImagePanel">
+    <div className="memberImagePanelTitle"><Upload size={15}/> صورة الفرد</div>
+    <div className="memberImageActions">
+      <label className="upload memberDrop" onDragOver={e=>e.preventDefault()} onDrop={e=>drop(m,e)}><Upload size={14}/>{saving===m.discordId?'جارٍ الحفظ...':'رفع صورة'}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={saving===m.discordId} onChange={e=>upload(m,e.target.files?.[0])}/></label>
+      <div className="imageUrlRow"><input value={urls[m.discordId]||''} onChange={e=>setUrls(v=>({...v,[m.discordId]:e.target.value}))} placeholder="أو الصق رابط الصورة المباشر"/><button className="secondary" disabled={saving===m.discordId} onClick={()=>setUrl(m)}>حفظ الرابط</button></div>
+      {m.image&&<button className="danger memberDeleteImage" disabled={saving===m.discordId} onClick={()=>removeImage(m)}><Trash2 size={14}/> حذف</button>}
     </div>
+  </div>;
+  const identity=m=><div className="adminMemberIdentity">
+    <div className="memberAvatar adminMemberAvatar">{m.image?<img src={m.image} alt=""/>:<Users size={22}/>}</div>
+    <div className="adminMemberMain">
+      <div className="adminMemberNameRow"><strong>{m.name||'بدون اسم'}</strong><span className="memberPresenceDot" title="الفرد مسجل في سجل الشرطة"/></div>
+      <div className="adminMemberBadges"><span className="memberChip memberChipRank">{m.rank||'بدون رتبة'}</span><span className="memberChip">{m.badge||'بدون Badge'}</span></div>
+      <small className="adminMemberDiscord">Discord ID: {m.discordId}</small>
+    </div>
+  </div>;
+  return <div className="panel membersAdminPanel">
+    <div className="membersToolbar"><div><span className="eyebrow">ACADEMY PERSONNEL</span><h2>إدارة الأفراد</h2><p className="muted">بيانات الأفراد الأساسية والرتب تُسحب مباشرة من سجل الشرطة. الإدارة هنا مخصصة للعرض وإدارة صورة الملف.</p></div><div className="membersCount"><b>{list.length}</b><span>إجمالي النتائج</span></div></div>
     <div className="membersControls">
       <div className="search membersSearch"><Search size={17}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالاسم أو الرتبة أو Badge أو Discord ID"/></div>
-      <div className="membersViewSwitch"><button type="button" className={view==='cards'?'active':''} onClick={()=>setView('cards')}><Users size={15}/> بطاقات</button><button type="button" className={view==='compact'?'active':''} onClick={()=>setView('compact')}><FileText size={15}/> قائمة مختصرة</button></div>
+      <div className="membersViewSwitch" aria-label="طريقة عرض الأفراد">
+        <button type="button" className={view==='cards'?'active':''} onClick={()=>setView('cards')}><Users size={15}/> بطاقات</button>
+        <button type="button" className={view==='list'?'active':''} onClick={()=>setView('list')}><FileText size={15}/> قائمة</button>
+        <button type="button" className={view==='compact'?'active':''} onClick={()=>setView('compact')}><Network size={15}/> مختصرة</button>
+      </div>
     </div>
-    <div className={view==='cards'?'adminMembersGrid adminMembersCards':'adminMembersGrid adminMembersCompact'}>
+    <div className={view==='cards'?'adminMembersGrid adminMembersCards':view==='list'?'adminMembersGrid adminMembersList':'adminMembersGrid adminMembersCompact'}>
       {list.map(m=><article className="adminMemberCard" key={m.discordId}>
-        <div className="adminMemberIdentity">
-          <div className="memberAvatar adminMemberAvatar">{m.image?<img src={m.image} alt=""/>:<Users size={22}/>}</div>
-          <div className="adminMemberMain">
-            <div className="adminMemberNameRow"><strong>{m.name||'بدون اسم'}</strong><span className="memberPresenceDot" title="مسجل في النظام"/></div>
-            <div className="adminMemberBadges"><span className="memberChip memberChipRank">{m.rank||'بدون رتبة'}</span><span className="memberChip">{m.badge||'بدون Badge'}</span></div>
-            <small className="adminMemberDiscord">Discord ID: {m.discordId}</small>
-          </div>
-        </div>
-        <div className="adminMemberMeta">
-          <div><span>المسؤولية</span><strong>{m.responsibility||'غير محددة'}</strong></div>
-          <div><span>مصدر البيانات</span><strong>سجل الشرطة</strong></div>
-        </div>
-        <div className="memberImagePanel">
-          <div className="memberImagePanelTitle"><Upload size={15}/> إدارة صورة الفرد</div>
-          <div className="memberImageActions">
-            <label className="upload memberDrop" onDragOver={e=>e.preventDefault()} onDrop={e=>drop(m,e)}><Upload size={14}/>{saving===m.discordId?'جارٍ الحفظ...':'رفع / سحب الصورة'}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={saving===m.discordId} onChange={e=>upload(m,e.target.files?.[0])}/></label>
-            <div className="imageUrlRow"><input value={urls[m.discordId]||''} onChange={e=>setUrls(v=>({...v,[m.discordId]:e.target.value}))} placeholder="الصق رابط الصورة المباشر"/><button className="secondary" disabled={saving===m.discordId} onClick={()=>setUrl(m)}>حفظ الرابط</button></div>
-            {m.image&&<button className="danger memberDeleteImage" disabled={saving===m.discordId} onClick={()=>removeImage(m)}><Trash2 size={14}/> حذف الصورة</button>}
-          </div>
-        </div>
+        {identity(m)}
+        <div className="adminMemberMeta"><div><span>المسؤولية</span><strong>{m.responsibility||'غير محددة'}</strong></div><div><span>مصدر البيانات</span><strong>سجل الشرطة</strong></div></div>
+        {imageControls(m)}
       </article>)}
     </div>
     {!list.length&&<div className="emptyMini membersEmpty">لا توجد نتائج مطابقة للبحث.</div>}
   </div>;
 }
-function AdminsAdmin({state,reload,setMsg}){const blank={discordId:'',name:'',permissions:['view_dashboard'],enabled:true};const[form,setForm]=useState(blank),[editing,setEditing]=useState(null);const all=[['view_dashboard','لوحة الإدارة'],['view_activity_logs','الاطلاع على سجل النشاط وتسجيل الدخول'],['manage_members','إدارة الأفراد'],['manage_roles','إدارة الرتب'],['manage_admins','إدارة الأدمن'],['manage_applications','إدارة التقديمات'],['manage_exams','إدارة الاختبارات'],['manage_hierarchy','إدارة الهيكل'],['view_evaluations','الاطلاع على التقييمات'],['manage_evaluations','إدارة التقييمات'],['manage_settings','الإعدادات']];const save=async()=>{try{await api('/api/admin/admins',{method:'POST',body:JSON.stringify(form)});setMsg(editing?'تم تحديث الأدمن.':'تمت إضافة الأدمن.');setForm(blank);setEditing(null);reload()}catch(e){setMsg(errText(e))}};return <div className="adminSection"><div className="panel"><h2>{editing?'تعديل أدمن':'إضافة أدمن'}</h2><div className="formGrid"><input value={form.discordId} disabled={Boolean(editing)} onChange={e=>setForm({...form,discordId:e.target.value})} placeholder="Discord ID"/><input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="اسم الأدمن"/></div><div className="permissionGrid">{all.map(([p,l])=><label className="checkItem" key={p}><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>setForm({...form,permissions:form.permissions.includes(p)?form.permissions.filter(x=>x!==p):[...form.permissions,p]})}/>{l}</label>)}</div><div className="rowActions"><Btn className="primary" onClick={save}><Save size={16}/> {editing?'حفظ التعديلات':'إضافة أدمن'}</Btn>{editing&&<Btn onClick={()=>{setEditing(null);setForm(blank)}}>إلغاء</Btn>}</div></div>{(state.admins||[]).map(a=><div className="panel" key={a.discordId}><div className="panelHead"><div><b>{a.name||'بدون اسم'}</b><small>Discord ID: {a.discordId}</small></div>{a.source!=='environment'&&<div className="rowActions"><Btn onClick={()=>{setEditing(a);setForm({discordId:a.discordId,name:a.name||'',permissions:a.permissions||[],enabled:a.enabled!==false})}}>تعديل</Btn><Btn onClick={async()=>{await api(`/api/admin/admins/${a.discordId}`,{method:'PATCH',body:JSON.stringify({enabled:!a.enabled})});reload()}}><Power size={14}/> {a.enabled===false?'تفعيل':'تعطيل'}</Btn><button className="danger" onClick={async()=>{if(confirm('حذف الأدمن؟')){await api(`/api/admin/admins/${a.discordId}`,{method:'DELETE'});reload()}}}><Trash2 size={14}/></button></div>}</div><small>{(a.permissions||[]).join(' · ')||'بدون صلاحيات'}</small></div>)}</div>}
+function AdminsAdmin({state,reload,setMsg}){
+  const blank={discordId:'',name:'',permissions:['view_dashboard'],enabled:true};
+  const[form,setForm]=useState(blank),[editing,setEditing]=useState(null);
+  const all=[
+    ['view_dashboard','لوحة الإدارة','الوصول الأساسي للوحة الإدارة'],
+    ['view_activity_logs','السجلات الأمنية','سجل النشاط الإداري وتسجيلات الدخول'],
+    ['manage_members','إدارة الأفراد','الأفراد والصور وملفاتهم الإدارية'],
+    ['manage_roles','إدارة الرتب','إدارة الرتب والصلاحيات المرتبطة بها'],
+    ['manage_admins','إدارة الأدمن','إضافة وتعديل وتعطيل الأدمن'],
+    ['manage_applications','إدارة التقديمات','الدفعات والطلبات والمراجعات'],
+    ['manage_exams','إدارة الاختبارات','الاختبارات والمحاولات والنتائج'],
+    ['manage_hierarchy','إدارة الهيكل','هيكل الأكاديمية والمناصب'],
+    ['view_evaluations','الاطلاع على التقييمات','قراءة التقارير السرية فقط'],
+    ['manage_evaluations','إدارة التقييمات','مراجعة واعتماد ورفض وتحويل التقارير'],
+    ['manage_settings','الإعدادات','إعدادات النظام الحساسة']
+  ];
+  const allKeys=all.map(x=>x[0]);
+  const setPermissions=permissions=>setForm(f=>({...f,permissions}));
+  const togglePermission=p=>setPermissions(form.permissions.includes(p)?form.permissions.filter(x=>x!==p):[...form.permissions,p]);
+  const save=async()=>{if(!form.discordId.trim())return setMsg('أدخل Discord ID.');try{await api('/api/admin/admins',{method:'POST',body:JSON.stringify(form)});setMsg(editing?'تم تحديث صلاحيات الأدمن.':'تمت إضافة الأدمن.');setForm(blank);setEditing(null);reload()}catch(e){setMsg(errText(e))}};
+  const edit=a=>{setEditing(a);setForm({discordId:a.discordId,name:a.name||'',permissions:a.permissions||[],enabled:a.enabled!==false})};
+  const preset=(name)=>{if(name==='full')setPermissions(allKeys);else if(name==='none')setPermissions([]);else setPermissions(['view_dashboard','manage_applications','manage_exams','manage_members','view_evaluations'])};
+  const selected=form.permissions.length;
+  return <div className="adminSection">
+    <div className="panel adminPermissionsPanel">
+      <div className="panelHead adminPermissionsHead"><div><span className="eyebrow">ACCESS CONTROL</span><h2>{editing?'تعديل صلاحيات الأدمن':'إضافة أدمن'}</h2><p className="muted">الصلاحيات مستقلة. تفعيل صلاحية لا يمنح الأدمن تلقائيًا صلاحيات السجلات أو التقييمات السرية.</p></div><span className="permissionCounter">{selected}/{all.length} صلاحية</span></div>
+      <div className="permissionPresets"><button type="button" className="permissionPreset primary" onClick={()=>preset('full')}><Shield size={16}/> مدير كامل <small>كل الصلاحيات</small></button><button type="button" className="permissionPreset secondary" onClick={()=>preset('none')}><LockKeyhole size={16}/> بدون صلاحيات <small>اختيار يدوي</small></button><button type="button" className="permissionPreset secondary" onClick={()=>preset('standard')}><UserCog size={16}/> إدارة تشغيلية <small>الصلاحيات الأساسية</small></button></div>
+      <div className="permissionToolbar"><span>الصلاحيات المتاحة</span><div><button type="button" onClick={()=>setPermissions(allKeys)}>تحديد الكل</button><button type="button" onClick={()=>setPermissions([])}>إلغاء الكل</button></div></div>
+      <div className="formGrid adminIdentityFields"><input value={form.discordId} disabled={Boolean(editing)} onChange={e=>setForm({...form,discordId:e.target.value})} placeholder="Discord ID"/><input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="اسم الأدمن"/></div>
+      <div className="permissionGrid permissionGridEnhanced">{all.map(([p,l,d])=><label className={'permissionCard '+(form.permissions.includes(p)?'selected':'')} key={p}><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>togglePermission(p)}/><span><b>{l}</b><small>{d}</small></span><i>{form.permissions.includes(p)?'مفعلة':'غير مفعلة'}</i></label>)}</div>
+      <div className="rowActions"><Btn className="primary" onClick={save}><Save size={16}/> {editing?'حفظ التعديلات':'إضافة أدمن'}</Btn>{editing&&<Btn onClick={()=>{setEditing(null);setForm(blank)}}>إلغاء</Btn>}</div>
+    </div>
+    <div className="adminListGrid">{(state.admins||[]).map(a=><div className="panel adminAccountCard" key={a.discordId}><div className="panelHead"><div className="adminAccountIdentity"><div className="adminAccountAvatar"><UserRound size={20}/></div><div><b>{a.name||'بدون اسم'}</b><small>Discord ID: {a.discordId}</small></div></div><span className={a.enabled===false?'closedBadge':'ok'}>{a.enabled===false?'معطل':'مفعل'}</span></div><div className="adminAccountMeta"><span>{(a.permissions||[]).length} صلاحية مفعلة</span><span>{a.source==='environment'?'أدمن بيئي محمي':'أدمن قابل للتعديل'}</span></div>{a.source!=='environment'&&<div className="rowActions"><Btn onClick={()=>edit(a)}>تعديل الصلاحيات</Btn><Btn onClick={async()=>{await api(`/api/admin/admins/${a.discordId}`,{method:'PATCH',body:JSON.stringify({enabled:!a.enabled})});reload()}}><Power size={14}/> {a.enabled===false?'تفعيل':'تعطيل'}</Btn><button className="danger" onClick={async()=>{if(confirm('حذف الأدمن؟')){await api(`/api/admin/admins/${a.discordId}`,{method:'DELETE'});reload()}}}><Trash2 size={14}/> حذف</button></div>}</div>)}</div>
+  </div>;
+}
 function HierarchyAdmin({state,reload,setMsg}){const[items,setItems]=useState(state.hierarchy||[]);useEffect(()=>setItems(state.hierarchy||[]),[state.hierarchy]);const patch=(i,k,v)=>setItems(a=>a.map((x,j)=>j===i?{...x,[k]:v}:x));const add=()=>setItems(a=>[...a,{id:`node-${Date.now()}`,title:'منصب جديد',name:'غير محدد',discordId:'',image:''}]);const remove=i=>setItems(a=>a.filter((_,j)=>j!==i));const save=async()=>{try{await api('/api/admin/hierarchy',{method:'POST',body:JSON.stringify({items})});setMsg('تم حفظ هيكل الأكاديمية.');reload()}catch(e){setMsg(errText(e))}};return <div className="panel"><div className="panelHead"><div><h2>هيكل الأكاديمية</h2><p className="muted">أضف أو عدّل أو احذف أي منصب من الهيكل. التغييرات لا تُطبق إلا بعد الحفظ.</p></div><div className="rowActions"><Btn onClick={add}><Plus size={15}/> إضافة شخص</Btn><Btn className="primary" onClick={save}><Save size={15}/> حفظ</Btn></div></div>{items.map((x,i)=><div className="hierEdit" key={x.id||i}><div className="preview">{x.image?<img src={x.image} alt=""/>:<Network/>}</div><div className="editFields"><input value={x.title||''} onChange={e=>patch(i,'title',e.target.value)} placeholder="المنصب"/><input value={x.name||''} onChange={e=>patch(i,'name',e.target.value)} placeholder="الاسم"/><input value={x.discordId||''} onChange={e=>patch(i,'discordId',e.target.value)} placeholder="Discord ID"/><input value={x.image||''} onChange={e=>patch(i,'image',e.target.value)} placeholder="رابط الصورة"/></div><button className="danger" title="حذف من الهيكل" onClick={()=>remove(i)}><Trash2 size={15}/> حذف</button></div>)}{!items.length&&<div className="emptyMini">لا توجد مناصب حاليًا. أضف أول شخص إلى الهيكل.</div>}</div>}
 function EvaluationsAdmin({state,reload,setMsg}){const[status,setStatus]=useState('all');
 const remove=async id=>{if(!confirm('حذف التقييم؟'))return;try{await api('/api/admin/evaluations/'+id,{method:'DELETE'});reload()}catch(e){setMsg(errText(e))}};
