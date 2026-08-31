@@ -118,8 +118,7 @@ async function recoverMissingLegacyCollections(remote){
   }
 }
 async function load(){try{
-if(supabaseConfigured){const remote=await loadAcademyData();const base=structuredClone(DEFAULT);if(remote){data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};data.version=18;}else{data=base;console.log('Supabase academy storage is empty; initializing default academy data.');}data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};try{const recovered=await recoverMissingLegacyCollections(data);if(recovered)await saveAcademyData(data);}catch(e){console.error('Legacy recovery unavailable; continuing with Supabase:',e.message)}if(reconcileExamAttempts())await saveAcademyData(data);
-supabaseActive=true;storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await saveAcademyData(data);console.log(remote?'Supabase academy storage ready.':'Supabase academy storage initialized.');return;}await googleRetry(async()=>{const s=await service();await ensureData(s);return true},'Google DATA initialization');const s=await service();const r=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`})},'Google DATA read');const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
+if(supabaseConfigured){const remote=await loadAcademyData();const base=structuredClone(DEFAULT);if(remote){data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};data.version=18;}else{data=base;console.log('Supabase academy storage is empty; initializing default academy data.');}data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};try{const recovered=await recoverMissingLegacyCollections(data);if(recovered)await saveAcademyData(data);}catch(e){console.error('Legacy recovery unavailable; continuing with Supabase:',e.message)}supabaseActive=true;storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await saveAcademyData(data);console.log(remote?'Supabase academy storage ready.':'Supabase academy storage initialized.');return;}await googleRetry(async()=>{const s=await service();await ensureData(s);return true},'Google DATA initialization');const s=await service();const r=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`})},'Google DATA read');const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
 // Migrate legacy hierarchy entries that predate explicit level/position fields into the simple row layout.
 if(Array.isArray(data.hierarchy)&&data.hierarchy.length>1&&data.hierarchy.every(x=>x?.level==null&&x?.position==null&&x?.order==null)){
   let level=1,pos=1,count=0;
@@ -151,7 +150,6 @@ if(previousVersion<17){
 // Link legacy exam copies to matching master questions without changing their exam-local IDs.
 const bankByFingerprint=new Map((data.questionBank||[]).map(q=>[JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]),q]));
 for(const exam of data.exams||[]){if(!Array.isArray(exam.questions))continue;exam.questions=exam.questions.map(q=>{if(q?.questionBankId)return q;const master=(data.questionBank||[]).find(b=>String(b.id)===String(q?.id))||bankByFingerprint.get(JSON.stringify([q.text,q.type,q.options||[],q.correct,q.required!==false,Number(q.points||1)]));return master?{...q,questionBankId:String(master.id)}:q})}
-reconcileExamAttempts();
 const separate=await loadExamStorage(s);if(separate.hasSeparate){if(separate.exams)data.exams=separate.exams;if(separate.results)data.examResults=separate.results;if(separate.attempts)data.examAttempts=separate.attempts}else{await saveExamStorage()}storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await save();console.log(`Google DATA storage ready (${DATA_SHEET})`)}catch(e){storageReady=false;lastStorageError=e.message;supabaseMigrationPending=false;console.error('Google DATA storage unavailable:',e.message)}if(supabaseMigrationPending){await saveAcademyData(data);supabaseActive=true;supabaseMigrationPending=false;storageReady=true;lastStorageError='';console.log('Academy data migrated from legacy Google DATA storage to Supabase.');}}
 let saveQueue=Promise.resolve();
 let mirrorQueue=Promise.resolve();
@@ -318,38 +316,6 @@ const EXAM_ACCESS=['all','police','link','specific'];
 function cleanExam(e){const questions=Array.isArray(e?.questions)?e.questions.map(cleanQuestion):[],accessType=EXAM_ACCESS.includes(e?.accessType)?e.accessType:'police';const accessToken=accessType==='link'?(String(e?.accessToken||'').trim()||crypto.randomBytes(18).toString('base64url')):'';const allowedDiscordIds=accessType==='specific'?(Array.isArray(e?.allowedDiscordIds)?e.allowedDiscordIds.map(id).filter(Boolean):[]):[];return{id:String(e?.id||`exam-${Date.now()}`),title:String(e?.title||'اختبار جديد'),description:String(e?.description||''),stage:String(e?.stage||'عام'),accessType,accessToken,allowedDiscordIds,passingScore:Math.max(1,Math.min(100,Number(e?.passingScore||60))),durationMinutes:Math.max(1,Number(e?.durationMinutes||30)),attemptsAllowed:Math.max(1,Number(e?.attemptsAllowed||1)),startAt:validDate(e?.startAt)?iso(e.startAt):null,endAt:validDate(e?.endAt)?iso(e.endAt):null,active:e?.active!==false,resultPublished:e?.resultPublished===true,resultAnswersPublished:e?.resultAnswersPublished===true,createdAt:e?.createdAt||new Date().toISOString(),questions}}
 function shuffleQuestions(list){const a=[...(Array.isArray(list)?list:[])];for(let i=a.length-1;i>0;i--){const j=crypto.randomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
 function orderedExam(e,attempt){const ids=Array.isArray(attempt?.questionOrder)?attempt.questionOrder.map(String):[];const by=new Map((e.questions||[]).map(q=>[String(q.id),q]));const ordered=ids.length?ids.map(id=>by.get(id)).filter(Boolean):shuffleQuestions(e.questions||[]);return publicExam({...e,questions:ordered})}
-function reconcileExamAttempts(){
-  let changed=false;
-  const results=Array.isArray(data.examResults)?data.examResults:[];
-  const attempts=Array.isArray(data.examAttempts)?data.examAttempts:[];
-  for(const a of attempts){
-    const matches=results.filter(r=>String(r.examId)===String(a.examId)&&id(r.userId||r.discordId)===id(a.userId||a.discordId));
-    if(matches.length){
-      const latest=matches.slice().sort((x,y)=>new Date(y.submittedAt||0)-new Date(x.submittedAt||0))[0];
-      if(!a.submittedAt||a.status!=='submitted'){
-        a.submittedAt=latest.submittedAt||a.submittedAt||new Date().toISOString();
-        a.status='submitted';
-        a.superseded=String(a.id)!==String(latest.attemptId||a.id);
-        if(latest.score!=null)a.score=latest.score;
-        if(latest.passed!=null)a.passed=latest.passed;
-        changed=true;
-      }
-    }
-  }
-  for(const r of results){
-    const same=attempts.filter(a=>String(a.examId)===String(r.examId)&&id(a.userId||a.discordId)===id(r.userId||r.discordId));
-    if(same.length>1){
-      const winner=String(r.attemptId||'');
-      for(const a of same){
-        if(winner&&String(a.id)===winner)continue;
-        if(!a.submittedAt||a.status==='active'||a.status==='in_progress'){
-          a.status='superseded';a.superseded=true;changed=true;
-        }
-      }
-    }
-  }
-  return changed;
-}
 function scoreAttempt(e,answers){let earned=0,total=0;for(const q of e.questions||[]){const p=Number(q.points||1);total+=p;if((q.type==='choice'||q.type==='yesno')&&String(answers?.[q.id]??'')===String(q.correct??''))earned+=p}return total?Math.round(earned/total*100):0}
 let expiryJobRunning=false;
 async function finalizeExpiredAttempts(){if(expiryJobRunning)return;expiryJobRunning=true;try{const t=now(),changed=[];for(const a of data.examAttempts||[]){if(a?.submittedAt||a?.status==='submitted'||a?.status==='expired')continue;if(!a.expiresAt||t<new Date(a.expiresAt).getTime())continue;const e=data.exams.find(x=>x.id===a.examId);if(!e)continue;const answers=a.answers&&typeof a.answers==='object'?a.answers:{};const submittedAt=new Date(a.expiresAt).toISOString();const score=scoreAttempt(e,answers);const activeBase=Math.max(0,Number(a.activeDurationSeconds||0));const activeStart=a.activeStartedAt?new Date(a.activeStartedAt).getTime():new Date(a.startedAt).getTime();const activeEnd=Math.min(new Date(submittedAt).getTime(),new Date(a.expiresAt).getTime());const activeDurationSeconds=activeBase+Math.max(0,Math.round((activeEnd-activeStart)/1000));a.activeDurationSeconds=activeDurationSeconds;const r={id:'result-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),examId:e.id,userId:String(a.userId),name:String(a.name||'متقدم'),score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:true};a.submittedAt=submittedAt;a.status='expired';a.expired=true;a.score=score;data.examResults.unshift(r);changed.push(a)}if(changed.length)await persistExamStorage(['results','attempts'])}finally{expiryJobRunning=false}}
