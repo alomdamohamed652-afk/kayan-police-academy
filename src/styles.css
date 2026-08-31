@@ -1097,3 +1097,100 @@ button:not(:disabled):hover{transform:translateY(-1px)}
 @media(max-width:850px){.hierarchyEditCard{grid-template-columns:58px minmax(0,1fr)}.hierarchyEditCard>.danger{grid-column:2;justify-self:start}.hierarchyEditFields{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){.hierarchyLevelRow{gap:10px}.hierCard{min-width:min(100%,300px);flex-basis:100%;max-width:none}.hierarchyLevelRow::before{display:none}.hierarchyEditFields{grid-template-columns:1fr!important}.questionSortRow{grid-template-columns:28px 30px minmax(0,1fr);gap:5px}.questionDragHandle{font-size:15px}.questionAdminHeader{align-items:flex-start;flex-direction:column}.questionAdminHeader>button{align-self:flex-end}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ===== HIERARCHY — SIMPLE VISUAL ORGANIZATION ===== */
+.hierarchyCanvas{display:flex;flex-direction:column;gap:34px;padding:8px 0 40px}
+.hierarchyLevel{position:relative;animation:academyPanelIn .42s ease both}
+.hierarchyLevel:not(:first-child){padding-top:4px}
+.hierarchyLevelLabel{display:flex;justify-content:center;align-items:center;margin:0 0 16px}
+.hierarchyLevelLabel span{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:120px;padding:8px 18px;border-radius:999px;
+  border:1px solid rgba(217,185,87,.28);
+  background:linear-gradient(180deg,rgba(217,185,87,.10),rgba(217,185,87,.035));
+  color:#e7c96d;font-size:14px;font-weight:900;
+  box-shadow:0 8px 22px rgba(0,0,0,.10)
+}
+.hierarchyLevelRow{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,220px));
+  justify-content:center;
+  align-items:start;
+  gap:18px;
+  position:relative
+}
+.hierarchyLevelRow::before{display:none}
+.hierCard{
+  position:relative;
+  width:220px;
+  min-width:0;
+  max-width:220px;
+  min-height:286px;
+  padding:18px 16px 17px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:11px;
+  text-align:center;
+  border:1px solid rgba(92,125,166,.30);
+  border-radius:20px;
+  background:linear-gradient(155deg,#0e2034,#081523);
+  box-shadow:0 12px 30px rgba(0,0,0,.14);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease
+}
+.hierCard:hover{
+  transform:translateY(-5px);
+  border-color:rgba(217,185,87,.48);
+  box-shadow:0 20px 42px rgba(0,0,0,.24)
+}
+.hierCard img,.hierPlaceholder{
+  width:140px;
+  height:140px;
+  flex:0 0 140px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid rgba(217,185,87,.38);
+  background:#071321;
+  box-shadow:0 10px 24px rgba(0,0,0,.25)
+}
+.hierPlaceholder{display:grid;place-items:center;color:#d9b957}
+.hierInfo{width:100%;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+.hierInfo span{
+  font-size:11px;
+  color:#d9b957;
+  font-weight:800;
+  line-height:1.5
+}
+.hierInfo b{
+  max-width:100%;
+  font-size:17px;
+  color:#f4f6f8;
+  line-height:1.45;
+  white-space:normal;
+  overflow-wrap:anywhere
+}
+.discordLink{margin-top:2px}
+.hierarchyPosition{
+  position:absolute;
+  top:11px;
+  right:11px;
+  left:auto;
+  z-index:2;
+  padding:4px 7px;
+  border-radius:8px;
+  color:#8ea0b4;
+  background:rgba(4,13,23,.72);
+  border:1px solid rgba(92,125,166,.20);
+  font-size:9px;
+  font-weight:900;
+  direction:ltr
+}
+@media(max-width:900px){
+  .hierarchyLevelRow{grid-template-columns:repeat(2,minmax(180px,220px))}
+}
+@media(max-width:560px){
+  .hierarchyCanvas{gap:25px}
+  .hierarchyLevelRow{grid-template-columns:1fr;gap:12px}
+  .hierCard{width:min(100%,280px);max-width:280px;justify-self:center}
+}
