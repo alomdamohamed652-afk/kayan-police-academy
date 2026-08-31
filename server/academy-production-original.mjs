@@ -262,7 +262,11 @@ function queueGoogleMirror(reason='mutation'){
   if(!supabaseActive||!DATA_SHEET_ID)return;
   mirrorQueue=mirrorQueue.catch(()=>{}).then(()=>mirrorSupabaseToGoogle(reason));
 }
-async function save(){
+function save(){
+  // Persistence is intentionally queued and non-blocking for API responses.
+  // Mutations update the in-memory state first; the queued writer persists the
+  // latest snapshot in the background. This prevents successful POST/PATCH/PUT
+  // requests from hanging until every academy collection has been mirrored.
   const job=saveQueue.catch(()=>{}).then(async()=>{
     if(supabaseActive){
       await saveAcademyData(data);
@@ -274,10 +278,10 @@ async function save(){
   saveQueue=job.catch(e=>{
     console.error(supabaseActive?'Supabase academy save failed:':'Google DATA save failed:',e.message);
     lastStorageError=String(e?.message||e);
-    storageReady=false;
-    throw e
+    // Keep the service usable with the current in-memory state. The next
+    // mutation will enqueue another persistence attempt.
   });
-  return job
+  return Promise.resolve({queued:true});
 }
 if(MIRROR_INTERVAL_MS>0){
   setInterval(()=>queueGoogleMirror('scheduled'),MIRROR_INTERVAL_MS).unref?.();
