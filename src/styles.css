@@ -771,7 +771,7 @@
   background:#d9b957;color:#071321;font-weight:800;
   box-shadow:0 6px 18px rgba(217,185,87,.14)
 }
-.publicMembersGrid{
+.profileBtnSlot{display:flex;align-items:center;justify-content:center;min-width:118px;flex:0 0 118px}.profileBtnPlaceholder{visibility:hidden;pointer-events:none;user-select:none}.publicMemberCard>.profileBtnSlot{grid-column:4;justify-self:stretch}.publicMemberListRow>.profileBtnSlot{grid-column:4;justify-self:stretch}.publicMembersCompact>article>.profileBtnSlot{grid-column:5;justify-self:stretch;min-width:112px;flex-basis:112px}@media(max-width:900px){.profileBtnSlot{min-width:108px;flex-basis:108px}.publicMembersCompact>article>.profileBtnSlot{min-width:104px;flex-basis:104px}}.publicMembersGrid{
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px
 }
 .publicMemberCard{
