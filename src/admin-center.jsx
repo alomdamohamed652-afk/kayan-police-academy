@@ -131,8 +131,49 @@ function AdminsAdmin({state,reload,setMsg}){
     <div className="adminListGrid">{(state.admins||[]).map(a=><div className="panel adminAccountCard" key={a.discordId}><div className="panelHead"><div className="adminAccountIdentity"><div className="adminAccountAvatar"><UserRound size={20}/></div><div><b>{a.name||'بدون اسم'}</b><small>Discord ID: {a.discordId}</small></div></div><span className={a.enabled===false?'closedBadge':'ok'}>{a.enabled===false?'معطل':'مفعل'}</span></div><div className="adminAccountMeta"><span>{(a.permissions||[]).length} صلاحية مفعلة</span><span>{a.source==='environment'?'أدمن بيئي محمي':'أدمن قابل للتعديل'}</span></div>{a.source!=='environment'&&<div className="rowActions"><Btn onClick={()=>edit(a)}>تعديل الصلاحيات</Btn><Btn onClick={async()=>{await api(`/api/admin/admins/${a.discordId}`,{method:'PATCH',body:JSON.stringify({enabled:!a.enabled})});reload()}}><Power size={14}/> {a.enabled===false?'تفعيل':'تعطيل'}</Btn><button className="danger" onClick={async()=>{if(confirm('حذف الأدمن؟')){await api(`/api/admin/admins/${a.discordId}`,{method:'DELETE'});reload()}}}><Trash2 size={14}/> حذف</button></div>}</div>)}</div>
   </div>;
 }
-function HierarchyAdmin({state,reload,setMsg}){const seed=(state.hierarchy||[]).map((x,i)=>({...x,level:Number(x.level)||Math.max(1,Math.ceil((Math.sqrt(8*(i+1)+1)-1)/2)),position:Number(x.position||x.order)||i+1}));const[items,setItems]=useState(seed);useEffect(()=>setItems((state.hierarchy||[]).map((x,i)=>({...x,level:Number(x.level)||Math.max(1,Math.ceil((Math.sqrt(8*(i+1)+1)-1)/2)),position:Number(x.position||x.order)||i+1}))),[state.hierarchy]);const patch=(idv,k,v)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,[k]:k==='level'||k==='position'?Math.max(1,Number(v)||1):v}:x));const add=()=>setItems(a=>[...a,{id:`node-${Date.now()}`,title:'منصب جديد',name:'غير محدد',discordId:'',image:'',level:1,position:1}]);const remove=idv=>setItems(a=>a.filter(x=>String(x.id)!==String(idv)));const sortedItems=[...items].sort((a,b)=>Number(a.level)-Number(b.level)||Number(a.position)-Number(b.position));const normalize=()=>{const sorted=[...items].sort((a,b)=>Number(a.level)-Number(b.level)||Number(a.position)-Number(b.position));const counts={};return sorted.map(x=>{const level=Math.max(1,Number(x.level)||1);counts[level]=(counts[level]||0)+1;return {...x,level,position:counts[level]}})};const save=async()=>{try{const normalized=normalize();setItems(normalized);await api('/api/admin/hierarchy',{method:'POST',body:JSON.stringify({items:normalized})});setMsg('تم حفظ الهيكل. المستوى يحدد الصف والموقع يحدد ترتيب البطاقة داخله.');reload()}catch(e){setMsg(errText(e))}};return <div className="panel hierarchyAdminPanel"><div className="panelHead"><div><span className="eyebrow">ACADEMY ORGANIZATION</span><h2>هيكل الأكاديمية</h2><p className="muted">التنظيم بسيط: <b>المستوى = الصف</b> و<b>الموقع = ترتيب الشخص داخل الصف</b>. مثال: 1-1 في الصف الأول، و2-1 و2-2 في الصف الثاني.</p></div><div className="rowActions"><Btn onClick={add}><Plus size={15}/> إضافة منصب</Btn><Btn className="primary" onClick={save}><Save size={15}/> حفظ الهيكل</Btn></div></div><div className="hierarchyAdminLegend"><span><b>المستوى</b> = الصف</span><span><b>الموقع</b> = ترتيب البطاقة</span><span>مثال: <b>3-2</b> = الصف 3، البطاقة 2</span></div>{sortedItems.map((x)=><div className="hierEdit hierarchyEditCard" key={x.id}><div className="preview">{x.image?<img src={x.image} alt=""/>:<Network/>}<small>{x.level}-{x.position}</small></div><div className="editFields hierarchyEditFields"><label>المنصب<input value={x.title||''} onChange={e=>patch(x.id,'title',e.target.value)} placeholder="المنصب"/></label><label>الاسم<input value={x.name||''} onChange={e=>patch(x.id,'name',e.target.value)} placeholder="الاسم"/></label><label>Discord ID<input value={x.discordId||''} onChange={e=>patch(x.id,'discordId',e.target.value)} placeholder="Discord ID"/></label><label>رابط الصورة<input value={x.image||''} onChange={e=>patch(x.id,'image',e.target.value)} placeholder="رابط الصورة"/></label><label>المستوى<input type="number" min="1" value={x.level||1} onChange={e=>patch(x.id,'level',e.target.value)}/></label><label>الموقع<input type="number" min="1" value={x.position||1} onChange={e=>patch(x.id,'position',e.target.value)}/></label></div><button className="danger" title="حذف من الهيكل" onClick={()=>remove(x.id)}><Trash2 size={15}/> حذف</button></div>)}{!items.length&&<div className="emptyMini">لا توجد مناصب حاليًا. أضف أول منصب إلى الهيكل.</div>}</div>}
-function EvaluationsAdmin({state,reload,setMsg}){const[status,setStatus]=useState('all');
+function HierarchyAdmin({state,reload,setMsg}){
+ const normalize=(arr)=>{
+   const groups={};
+   const ordered=[...arr].sort((a,b)=>Number(a.level||1)-Number(b.level||1)||Number(a.position||999)-Number(b.position||999));
+   return ordered.map(x=>{
+     const level=Math.max(1,Number(x.level)||1);
+     groups[level]=(groups[level]||0)+1;
+     return {...x,level,position:groups[level]};
+   });
+ };
+ const seed=normalize((state.hierarchy||[]).map((x,i)=>({...x,level:Math.max(1,Number(x.level)||1),position:Math.max(1,Number(x.position)||i+1)})));
+ const[items,setItems]=useState(seed);
+ useEffect(()=>setItems(normalize((state.hierarchy||[]).map((x,i)=>({...x,level:Math.max(1,Number(x.level)||1),position:Math.max(1,Number(x.position)||i+1)})))),[state.hierarchy]);
+ const patch=(idv,k,v)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,[k]:k==='level'?Math.max(1,Number(v)||1):k==='position'?Math.max(1,Number(v)||1):v:x));
+ const moveLevel=(idv,delta)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,level:Math.max(1,Number(x.level||1)+delta)}:x));
+ const add=()=>{const max=Math.max(0,...items.map(x=>Number(x.level)||1));setItems(a=>[...a,{id:`node-${Date.now()}`,title:'منصب جديد',name:'غير محدد',discordId:'',image:'',level:max+1,position:1}])};
+ const remove=idv=>setItems(a=>a.filter(x=>String(x.id)!==String(idv)));
+ const save=async()=>{try{const normalized=normalize(items);setItems(normalized);await api('/api/admin/hierarchy',{method:'POST',body:JSON.stringify({items:normalized})});setMsg('تم حفظ الهيكل. كل مستوى أصبح صفًا مستقلًا، والموقع داخل الصف يُرتب تلقائيًا.');reload()}catch(e){setMsg(errText(e))}};
+ const grouped=useMemo(()=>{const m=new Map();normalize(items).forEach(x=>{if(!m.has(x.level))m.set(x.level,[]);m.get(x.level).push(x)});return [...m.entries()].sort((a,b)=>a[0]-b[0])},[items]);
+ return <div className="panel hierarchyAdminPanel">
+  <div className="panelHead"><div><span className="eyebrow">ACADEMY ORGANIZATION</span><h2>هيكل الأكاديمية</h2><p className="muted">بدل ما تحسب <b>1-1 و2-2</b> بنفسك: اختَر فقط <b>الصف</b> لكل منصب. الترتيب داخل الصف يتحدد تلقائيًا.</p></div><div className="rowActions"><Btn onClick={add}><Plus size={15}/> إضافة منصب</Btn><Btn className="primary" onClick={save}><Save size={15}/> حفظ الهيكل</Btn></div></div>
+  <div className="hierarchyAdminGuide"><div><b>الصف 1</b><span>منصب واحد في المنتصف</span></div><div><b>الصف 2</b><span>منصبان في نفس الصف</span></div><div><b>الصف 3</b><span>3 مناصب في نفس الصف</span></div><div><b>وهكذا...</b><span>أضف أي عدد بسهولة</span></div></div>
+  <div className="hierarchyAdminRows">
+   {grouped.map(([level,group])=><section className="hierarchyAdminRow" key={level}>
+    <header><strong>الصف {level}</strong><span>{group.length} {group.length===1?'منصب':'مناصب'}</span></header>
+    <div className="hierarchyAdminRowCards">
+     {group.map(x=><article className="hierEdit hierarchyEditCard" key={x.id}>
+       <div className="preview">{x.image?<img src={x.image} alt=""/>:<Network/>}<small>{x.level}-{x.position}</small></div>
+       <div className="editFields hierarchyEditFields">
+        <label>المنصب<input value={x.title||''} onChange={e=>patch(x.id,'title',e.target.value)} placeholder="المنصب"/></label>
+        <label>الاسم<input value={x.name||''} onChange={e=>patch(x.id,'name',e.target.value)} placeholder="الاسم"/></label>
+        <label>Discord ID<input value={x.discordId||''} onChange={e=>patch(x.id,'discordId',e.target.value)} placeholder="Discord ID"/></label>
+        <label>رابط الصورة<input value={x.image||''} onChange={e=>patch(x.id,'image',e.target.value)} placeholder="رابط الصورة"/></label>
+        <label>الصف<select value={x.level||1} onChange={e=>patch(x.id,'level',e.target.value)}>{Array.from({length:10},(_,i)=><option key={i+1} value={i+1}>الصف {i+1}</option>)}</select></label>
+       </div>
+       <div className="hierEditActions"><span>الموقع داخل الصف: <b>{x.position}</b></span><div><Btn onClick={()=>moveLevel(x.id,-1)} disabled={Number(x.level)<=1}>صف سابق</Btn><Btn onClick={()=>moveLevel(x.id,1)}>صف تالي</Btn><button className="danger" title="حذف من الهيكل" onClick={()=>remove(x.id)}><Trash2 size={15}/> حذف</button></div></div>
+     </article>)}
+    </div>
+   </section>)}
+  </div>
+  {!items.length&&<div className="emptyMini">لا توجد مناصب حاليًا. أضف أول منصب إلى الهيكل.</div>}
+ </div>
+}function EvaluationsAdmin({state,reload,setMsg}){const[status,setStatus]=useState('all');
 const remove=async id=>{if(!confirm('حذف التقييم؟'))return;try{await api('/api/admin/evaluations/'+id,{method:'DELETE'});reload()}catch(e){setMsg(errText(e))}};
 const review=async(e,nextStatus)=>{const note=window.prompt('ملاحظة المراجعة (اختياري):')??'';try{await api('/api/admin/evaluations/'+e.id+'/review',{method:'PATCH',body:JSON.stringify({status:nextStatus,note})});setMsg('تم تحديث حالة التقرير.');reload()}catch(x){setMsg(errText(x))}};
 const all=(state.evaluations||[]).filter(e=>status==='all'||e.status===status);const trainerReports=all.filter(e=>e.type==='trainer_to_trainee');const traineeReports=all.filter(e=>e.type==='trainee_to_trainer');
