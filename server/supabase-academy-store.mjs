@@ -108,7 +108,15 @@ async function saveAcademyData(data){
   await upsert('evaluations',evaluations.map(x=>({legacy_id:legacyOf(x),evaluator_discord_id:str(x.evaluatorDiscordId||x.userId||x.discordId),evaluator_role:x.evaluationRole==='trainer'?'trainer':'trainee',target_discord_id:str(x.targetDiscordId),target_name_snapshot:x.targetName||x.target?.name||null,target_rank_snapshot:x.targetRank||x.target?.rank||null,hours:x.hours==null?null:Number(x.hours),ratings:json(x.ratings),overall_rating:x.overallRating==null?null:Number(x.overallRating),same_trainer:x.sameTrainer==null?null:Boolean(x.sameTrainer),notes:x.notes||null,complaint:x.complaint||null,reviewed_at:x.reviewedAt||null,reviewed_by:x.reviewedBy||null,review_note:x.reviewNote||null,status:x.status||'pending',legacy_data:x})).filter(x=>x.evaluator_discord_id&&x.target_discord_id&&x.evaluator_discord_id!==x.target_discord_id),'legacy_id');
   await prune('evaluations',evaluations.map(legacyOf));
   const audit=cleanRows(data.audit);
-  await upsert('audit_logs',audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
+  // Audit records are append-only. A repeated queued save/mirror must never make
+  // an otherwise successful mutation fail just because the same legacy audit ID
+  // is already present in Supabase.
+  const auditRows=audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x}));
+  if(auditRows.length){
+    const uniqueAudit=Array.from(new Map(auditRows.map(x=>[String(x.legacy_id||''),x])).values()).filter(x=>x.legacy_id);
+    const {error}=await supabase.from('audit_logs').upsert(uniqueAudit,{onConflict:'legacy_id',ignoreDuplicates:true});
+    if(error) throw error;
+  }
   const logins=cleanRows(data.loginLogs);
   await upsert('login_logs',logins.map(x=>({legacy_id:legacyOf(x),discord_id:x.discordId||null,username:x.username||null,success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
   const drafts=Object.entries(data.applicationDrafts||{}).map(([discordId,draft])=>({discord_id:str(discordId),draft:json(draft),legacy_data:draft||{}}));
