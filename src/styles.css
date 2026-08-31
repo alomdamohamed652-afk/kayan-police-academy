@@ -1953,3 +1953,32 @@ html,body,#root,.app,main{width:100%;max-width:100%;overflow-x:hidden!important}
     animation:none!important;
   }
 }
+
+/* V5.1 — restore intentional academy copy while keeping the crest caption balanced */
+.welcomeCopy>p{
+  display:block!important;
+  width:min(680px,100%);
+  margin:10px auto 0!important;
+  color:#9aaabd;
+  font-size:clamp(11px,1.2vw,15px);
+  line-height:1.9;
+}
+.heroCrest span{
+  display:block!important;
+  position:relative;
+  margin-top:4px;
+  color:#d9bb69!important;
+  font-size:clamp(11px,1vw,14px)!important;
+  font-weight:700;
+  letter-spacing:.2px;
+  opacity:.9;
+  text-shadow:0 0 18px rgba(213,180,94,.12);
+}
+@media(max-width:900px){
+  .welcomeCopy>p{font-size:11px!important;line-height:1.8;margin-top:6px!important}
+  .heroCrest span{font-size:11px!important}
+}
+/* When the drawer is open, the content remains full-width; no layout squeeze. */
+@media(max-width:900px){
+  .app main{position:relative;left:0!important;right:0!important;transform:none!important}
+}
