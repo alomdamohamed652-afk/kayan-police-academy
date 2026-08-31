@@ -57,8 +57,49 @@ function row(headers,r){const b=hidx(headers,['Badge #','Badge','البادج','
 async function police(force=false){if(!POLICE_SHEET_ID)throw new Error('POLICE_SHEET_NOT_CONFIGURED');if(!force&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;let last=null;try{const s=await service(),r=await s.spreadsheets.values.get({spreadsheetId:POLICE_SHEET_ID,range:POLICE_RANGE});const v=r.data.values||[],headers=v[0]||[],rows=v.slice(1).map(x=>row(headers,x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}last=new Error('POLICE_SHEET_EMPTY')}catch(e){last=e}if(cache.rows.length)return cache.rows;if(API_KEY)try{const u=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${POLICE_SHEET_ID}/values/${encodeURIComponent(POLICE_RANGE)}`);u.searchParams.set('key',API_KEY);const r=await fetch(u,{signal:AbortSignal.timeout(10000)});if(r.ok){const v=(await r.json()).values||[],rows=v.slice(1).map(x=>row(v[0]||[],x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}}}catch(e){last=e}throw last||new Error('POLICE_SHEET_UNAVAILABLE')}
 async function ensureSheets(s,names=[DATA_SHEET]){if(!DATA_SHEET_ID)throw new Error('ACADEMY_GOOGLE_SHEET_ID_NOT_CONFIGURED');const m=await s.spreadsheets.get({spreadsheetId:DATA_SHEET_ID,fields:'sheets.properties'});const have=new Set((m.data.sheets||[]).map(x=>x.properties?.title));const requests=names.filter(n=>n&&!have.has(n)).map(n=>({addSheet:{properties:{title:n}}}));if(requests.length)try{await s.spreadsheets.batchUpdate({spreadsheetId:DATA_SHEET_ID,requestBody:{requests}})}catch(e){if(!/already exists|alreadyExists|duplicate/i.test(String(e?.message||e)))throw e}}
 async function ensureData(s){return ensureSheets(s,[DATA_SHEET])}
+async function recoverMissingLegacyCollections(remote){
+  if(!DATA_SHEET_ID)return false;
+  try{
+    const s=await service();
+    await ensureData(s);
+    const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A10000`});
+    const raw=(r.data.values||[]).map(x=>String(x?.[0]??'')).join('');
+    if(!raw)return false;
+    const legacy=JSON.parse(raw);
+    const base=structuredClone(DEFAULT);
+    let changed=false;
+    const arrayKeys=['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'];
+    for(const key of arrayKeys){
+      if((!Array.isArray(remote[key])||remote[key].length===0)&&Array.isArray(legacy[key])&&legacy[key].length){
+        remote[key]=legacy[key];
+        changed=true;
+      }
+    }
+    const objectKeys=['memberImages','memberSettings','applicationDrafts','roleOverrides'];
+    for(const key of objectKeys){
+      if((!remote[key]||typeof remote[key]!=='object'||Array.isArray(remote[key])||Object.keys(remote[key]).length===0)&&legacy[key]&&typeof legacy[key]==='object'&&!Array.isArray(legacy[key])){
+        remote[key]=legacy[key];
+        changed=true;
+      }
+    }
+    const separate=await loadExamStorage(s);
+    if((!Array.isArray(remote.exams)||remote.exams.length===0)&&separate.hasSeparate&&Array.isArray(separate.exams)&&separate.exams.length){
+      remote.exams=separate.exams; changed=true;
+    }
+    if((!Array.isArray(remote.examResults)||remote.examResults.length===0)&&separate.hasSeparate&&Array.isArray(separate.results)&&separate.results.length){
+      remote.examResults=separate.results; changed=true;
+    }
+    if((!Array.isArray(remote.examAttempts)||remote.examAttempts.length===0)&&separate.hasSeparate&&Array.isArray(separate.attempts)&&separate.attempts.length){
+      remote.examAttempts=separate.attempts; changed=true;
+    }
+    return changed;
+  }catch(e){
+    console.error('Legacy recovery skipped:',e.message);
+    return false;
+  }
+}
 async function load(){try{
-if(supabaseConfigured){const remote=await loadAcademyData();if(remote){const base=structuredClone(DEFAULT);data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};data.version=18;data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};supabaseActive=true;storageReady=true;lastStorageError='';for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid))data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});if(data.admins.some(a=>a.source==='environment'))await saveAcademyData(data);console.log('Supabase academy storage ready');return;}supabaseMigrationPending=Boolean(DATA_SHEET_ID);console.log(supabaseMigrationPending?'Supabase is configured but empty; legacy Google DATA storage will be migrated once loaded.':'Supabase is configured but legacy academy DATA storage is not configured.');}const s=await service();await ensureData(s);const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`});const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
+if(supabaseConfigured){const remote=await loadAcademyData();if(remote){const base=structuredClone(DEFAULT);data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};data.version=18;data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};const recovered=await recoverMissingLegacyCollections(data);supabaseActive=true;storageReady=true;lastStorageError='';for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid))data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});if(recovered||data.admins.some(a=>a.source==='environment'))await saveAcademyData(data);console.log(recovered?'Supabase academy storage ready; recovered missing legacy collections.':'Supabase academy storage ready');return;}supabaseMigrationPending=Boolean(DATA_SHEET_ID);console.log(supabaseMigrationPending?'Supabase is configured but empty; legacy Google DATA storage will be migrated once loaded.':'Supabase is configured but legacy academy DATA storage is not configured.');}const s=await service();await ensureData(s);const r=await s.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`});const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
 // Migrate legacy hierarchy entries that predate explicit level/position fields into the simple row layout.
 if(Array.isArray(data.hierarchy)&&data.hierarchy.length>1&&data.hierarchy.every(x=>x?.level==null&&x?.position==null&&x?.order==null)){
   let level=1,pos=1,count=0;
