@@ -83,7 +83,7 @@ async function saveAcademyData(data){
   await upsert('exam_questions',eq,'legacy_id');
   await prune('exam_questions',eq.map(x=>x.legacy_id));
   const attempts=cleanRows(data.examAttempts);
-  await upsert('exam_attempts',attempts.map(x=>({legacy_id:legacyOf(x),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),started_at:x.startedAt||new Date().toISOString(),expires_at:x.expiresAt||new Date().toISOString(),submitted_at:x.submittedAt||null,resume_at:x.resumeAt||null,resume_until:x.resumeUntil||null,resume_duration_minutes:x.resumeDurationMinutes?Number(x.resumeDurationMinutes):null,answers:json(x.answers),question_order:cleanRows(x.questionOrder).map(str).filter(Boolean),status:x.submittedAt?'submitted':(x.status||'in_progress'),auto_submitted:Boolean(x.autoSubmitted),legacy_data:x})),'legacy_id');
+  await upsert('exam_attempts',attempts.map(x=>({legacy_id:legacyOf(x),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),started_at:x.startedAt||new Date().toISOString(),expires_at:x.expiresAt||new Date().toISOString(),submitted_at:x.submittedAt||null,resume_at:x.resumeAt||null,resume_until:x.resumeUntil||null,resume_duration_minutes:x.resumeDurationMinutes?Number(x.resumeDurationMinutes):null,answers:json(x.answers),question_order:cleanRows(x.questionOrder).map(str).filter(Boolean),status:x.submittedAt?'submitted':(x.status||'in_progress'),auto_submitted:Boolean(x.autoSubmitted),legacy_data:x})).filter(x=>x.exam_id),'legacy_id');
   await prune('exam_attempts',attempts.map(legacyOf));
   const attemptRows=await all('exam_attempts');
   const attemptMap=new Map(attemptRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
