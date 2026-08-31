@@ -1,0 +1,103 @@
+/* KAYAN MOTION SYSTEM — lightweight, responsive, reduced-motion safe */
+:root{
+  --k-motion-fast:.18s;
+  --k-motion-base:.32s;
+  --k-motion-slow:.48s;
+  --k-ease:cubic-bezier(.22,1,.36,1);
+}
+@keyframes kayanPageEnter{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes kayanSoftScale{
+  from{opacity:0;transform:translateY(8px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes kayanGlow{
+  0%,100%{box-shadow:0 0 0 rgba(211,175,90,0)}
+  50%{box-shadow:0 0 24px rgba(211,175,90,.10)}
+}
+@keyframes kayanShimmer{
+  from{background-position:200% 0}
+  to{background-position:-200% 0}
+}
+
+/* Page entrance without affecting fixed/header layout */
+main{animation:kayanPageEnter var(--k-motion-slow) var(--k-ease) both}
+
+/* Hero/title hierarchy */
+.pageTitle{animation:kayanSoftScale .38s var(--k-ease) both}
+.pageTitle h1{animation:kayanPageEnter .42s var(--k-ease) .03s both}
+.pageTitle p{animation:kayanPageEnter .42s var(--k-ease) .08s both}
+
+/* Tabs feel like a real control, not a static row */
+.adminTabs button,.tabs button{
+  will-change:transform;
+  transition:transform var(--k-motion-fast) var(--k-ease),box-shadow var(--k-motion-fast) ease,
+    background-color var(--k-motion-fast) ease,border-color var(--k-motion-fast) ease;
+}
+.adminTabs button:hover,.tabs button:hover{transform:translateY(-2px)}
+.adminTabs button:active,.tabs button:active{transform:translateY(0) scale(.97)}
+
+/* Cards/panels enter softly; hover remains subtle on mobile */
+.panel,.examCard,.applicationRow,.examAdminRow,.participantRow,.bankRow,
+.metricCard,.resultBox,.settingsPanel,.hierarchyAdminRow,.hierCard{
+  transition:transform var(--k-motion-base) var(--k-ease),border-color var(--k-motion-base) ease,
+    box-shadow var(--k-motion-base) ease,background-color var(--k-motion-base) ease;
+}
+.panel:hover,.examCard:hover,.applicationRow:hover,.examAdminRow:hover,.participantRow:hover,
+.bankRow:hover,.metricCard:hover,.resultBox:hover,.settingsPanel:hover,.hierarchyAdminRow:hover{
+  transform:translateY(-2px);
+}
+
+/* Stagger only direct dashboard/admin content */
+.adminSection>.panel:nth-child(1){animation:kayanSoftScale .34s var(--k-ease) .02s both}
+.adminSection>.panel:nth-child(2){animation:kayanSoftScale .34s var(--k-ease) .06s both}
+.adminSection>.panel:nth-child(3){animation:kayanSoftScale .34s var(--k-ease) .10s both}
+.adminSection>.panel:nth-child(4){animation:kayanSoftScale .34s var(--k-ease) .14s both}
+
+/* Buttons get a small tactile lift, never a flashy effect */
+.primary,.secondary,.danger,.rowActions button{
+  will-change:transform;
+  transition:transform var(--k-motion-fast) var(--k-ease),box-shadow var(--k-motion-fast) ease,
+    filter var(--k-motion-fast) ease,background-color var(--k-motion-fast) ease;
+}
+.primary:hover,.secondary:hover,.danger:hover,.rowActions button:hover{
+  filter:brightness(1.035);
+}
+.primary:active,.secondary:active,.danger:active,.rowActions button:active{
+  transform:translateY(1px) scale(.975);
+}
+
+/* Gold focus ring is clearer for keyboard and touch accessibility */
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid rgba(226,195,111,.82);
+  outline-offset:3px;
+}
+
+/* Optional loading surface if the app uses these utility classes */
+.kayanSkeleton{
+  background:linear-gradient(90deg,rgba(255,255,255,.035) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.035) 75%);
+  background-size:200% 100%;
+  animation:kayanShimmer 1.35s linear infinite;
+  border-radius:12px;
+}
+
+/* Avoid motion on small screens beyond what helps orientation */
+@media(max-width:760px){
+  main{animation-duration:.34s}
+  .panel:hover,.examCard:hover,.applicationRow:hover,.examAdminRow:hover,.participantRow:hover,
+  .bankRow:hover,.metricCard:hover,.resultBox:hover,.settingsPanel:hover,.hierarchyAdminRow:hover{
+    transform:none;
+  }
+}
+
+/* Respect Android/iOS accessibility settings */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+    scroll-behavior:auto!important;
+  }
+}
