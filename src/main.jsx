@@ -45,13 +45,13 @@ return <Page title="هيكل الأكاديمية" sub="ترتيب بسيط وو
 !data?<div className="panel empty academyLoading"><div className="academyLoader"><img src={logo} alt=""/><span>جاري تحميل الهيكل</span></div></div>:
 <div className="hierarchyCanvas">
   {arranged.map(row=><section className="hierarchyLevel" key={row.level}>
-    <div className="hierarchyLevelLabel"><span>المستوى {row.level}</span></div>
+    
     <div className="hierarchyLevelRow">
       {row.items.map((x,i)=><article className="hierCard" key={x.id||i}>
         <small className="hierarchyPosition">{x.level}-{x.position}</small>
         {x.image?<img src={x.image} alt={x.name||''}/>:<div className="hierPlaceholder"><Shield size={42}/></div>}
         <div className="hierInfo">
-          <span>{x.title||'منصب'}</span>
+          <span>{x.title||''}</span>
           <b>{x.name||'غير محدد'}</b>
           {x.discordId&&<a className="discordLink" href={`https://discord.com/users/${x.discordId}`} target="_blank" rel="noreferrer"><ExternalLink size={14}/> Discord</a>}
         </div>
