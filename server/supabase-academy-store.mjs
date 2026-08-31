@@ -17,7 +17,14 @@ async function upsert(table,rows,onConflict){
   if(onConflict==='legacy_id'){
     const existing=await all(table);
     const byLegacy=new Map(existing.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
+    // A single mutation can touch the same legacy row more than once when
+    // requests overlap. Keep only the last copy before inserting/updating.
+    const unique=new Map();
     for(const raw of rows){
+      const legacy=raw?.legacy_id?String(raw.legacy_id):'';
+      if(legacy)unique.set(legacy,raw);
+    }
+    for(const raw of (unique.size?Array.from(unique.values()):rows)){
       const row={...raw};
       const legacy=row.legacy_id?String(row.legacy_id):'';
       if(legacy && byLegacy.has(legacy)){
@@ -26,6 +33,7 @@ async function upsert(table,rows,onConflict){
       }else{
         const {error}=await supabase.from(table).insert(row);
         if(error) throw error;
+        if(legacy)byLegacy.set(legacy,row.id);
       }
     }
     return;
