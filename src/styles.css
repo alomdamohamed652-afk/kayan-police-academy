@@ -1315,3 +1315,53 @@ button:not(:disabled):hover{transform:translateY(-1px)}
  .hierarchyEditCard .preview{display:flex;justify-content:center}
  .hierEditActions{flex-direction:column;align-items:stretch}
 }
+
+
+/* === MOBILE RESPONSIVE HARDENING — admin/exams === */
+html,body,#root{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+img,svg,video,canvas{max-width:100%}
+input,textarea,select,button{max-width:100%;min-width:0}
+.panel,.adminWrap,.adminSection,.adminDash,.examEditor,.examForm,.examGrid,.applicationHero,.activityPage,.membersAdminPanel,.evaluationsAdminPanel{min-width:0;max-width:100%}
+.adminSection>*,.panelHead>*, .rowActions>*, .examAdminRow>*, .applicationRow>*, .participantRow>*, .bankRow>*{min-width:0}
+.examAdminRow>div:first-child,.applicationRow>div:first-child,.participantRow>div:first-child,.bankRow>div:first-child{min-width:0;overflow-wrap:anywhere}
+.questionAdmin,.questionAdmin .formGrid,.questionChoices,.choiceEditor,.bankPicker,.bankPickRow{min-width:0;max-width:100%}
+.questionAdmin textarea,.questionAdmin input,.questionAdmin select,.questionChoices input,.bankPickRow strong{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:760px){
+  .pageTitle{width:100%;max-width:100%;box-sizing:border-box}
+  .adminWrap{width:100%;padding:0 0 24px;overflow-x:hidden}
+  .adminSection,.adminDash{width:calc(100% - 24px);margin-left:12px!important;margin-right:12px!important}
+  .adminSection .panel,.adminDash .panel{width:100%;max-width:100%;overflow:hidden}
+  .adminTabs{width:calc(100% - 24px);margin-left:12px!important;margin-right:12px!important;padding-bottom:2px}
+  .panelHead{flex-direction:column;align-items:stretch;gap:10px}
+  .panelHead>.rowActions{width:100%;display:flex;flex-wrap:wrap}
+  .panelHead>.rowActions>.adminInlineSearch{flex:1 1 100%;width:100%;min-width:0}
+  .panelHead>.rowActions>button{flex:0 1 auto}
+  .examAdminRow,.applicationRow,.participantRow,.bankRow{width:100%;flex-direction:column;align-items:stretch;overflow:hidden}
+  .examAdminRow>.rowActions,.applicationRow>.rowActions,.participantRow>.rowActions,.bankRow>.rowActions{width:100%;display:flex;flex-wrap:wrap}
+  .examAdminRow>.rowActions button,.applicationRow>.rowActions button,.participantRow>.rowActions button,.bankRow>.rowActions button{max-width:100%}
+  .examEditor{margin-left:12px!important;margin-right:12px!important;width:calc(100% - 24px);padding:14px}
+  .examEditor>.panel{margin-left:0;margin-right:0;width:100%;max-width:100%}
+  .examEditor .formGrid,.examEditor .questionAdmin .formGrid{grid-template-columns:1fr!important}
+  .examEditor .bankToolbar{flex-direction:column;align-items:stretch;gap:8px}
+  .bankPicker{max-height:none;overflow:visible}
+  .bankPickRow{flex-direction:column;align-items:stretch;gap:8px}
+  .bankPickRow .secondary{width:100%}
+  .questionAdmin{padding:10px!important}
+  .questionAdminHeader{flex-wrap:wrap;min-width:0}
+  .questionAdminTitle{min-width:0;flex:1 1 180px}
+  .questionAdminTitle span{display:block;overflow-wrap:anywhere}
+  .choiceEditor{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+  .choiceEditor input{width:100%}
+  .detailGrid,.answerDetail .detailGrid{grid-template-columns:1fr!important}
+  .examSummaryHead,.collapsibleHead{flex-wrap:wrap}
+  .examRankRow{min-width:0}
+  .examRankRow>div{min-width:0;overflow-wrap:anywhere}
+  .resumeWizard{width:calc(100% - 24px);max-width:none}
+}
+@media(max-width:420px){
+  .adminSection,.adminDash{width:calc(100% - 16px);margin-left:8px!important;margin-right:8px!important}
+  .adminTabs{width:calc(100% - 16px);margin-left:8px!important;margin-right:8px!important}
+  .examEditor{width:calc(100% - 16px);margin-left:8px!important;margin-right:8px!important}
+  .adminSection .rowActions button{flex:1 1 auto}
+  .metricCard{min-width:0!important}
+}
