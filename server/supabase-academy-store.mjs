@@ -137,14 +137,12 @@ async function saveAcademyData(data){
   await prune('evaluations',evaluations.map(legacyOf));
 
   const audit=cleanRows(data.audit);
-  await upsert('audit_logs',audit.map(x=>({id:Number.isFinite(Number(x.id))?Number(x.id):undefined,actor_discord_id:x.actorId||x.actorDiscordId||null,
-    actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),
-    created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})).map(({id,...x})=>id?{id,...x}:x),'created_at');
+  await upsert('audit_logs',audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,
+    actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
 
   const logins=cleanRows(data.loginLogs);
-  await upsert('login_logs',logins.map(x=>({id:Number.isFinite(Number(x.id))?Number(x.id):undefined,discord_id:x.discordId||null,username:x.username||null,
-    success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x}))
-    .map(({id,...x})=>id?{id,...x}:x),'created_at');
+  await upsert('login_logs',logins.map(x=>({legacy_id:legacyOf(x),discord_id:x.discordId||null,username:x.username||null,
+    success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
 
   const drafts=Object.entries(data.applicationDrafts||{}).map(([discordId,draft])=>({discord_id:str(discordId),draft:json(draft),legacy_data:draft||{}}));
   await upsert('application_drafts',drafts,'discord_id');
