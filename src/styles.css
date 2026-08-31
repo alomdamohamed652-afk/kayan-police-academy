@@ -2044,3 +2044,158 @@ input,textarea,select{max-width:100%;min-width:0}
   .actions{width:100%;justify-content:center}
   .actions .primary,.actions .secondary{flex:1 1 100%;min-height:44px}
 }
+
+
+/* ===== ACTIVITY LOG FILTERS / AUDIT CLARITY ===== */
+.activityFilters{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(220px,1.3fr) minmax(190px,1fr) minmax(160px,.8fr) auto auto auto;
+  gap:8px;
+  align-items:center;
+}
+.activityFilters .activitySearch{
+  min-width:0;
+}
+.activityFilters select,
+.activityFilters .activitySearch input{
+  min-height:42px;
+}
+.activityDateFilters{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:3px;
+  border:1px solid #26384f;
+  border-radius:11px;
+  background:#09121e;
+}
+.activityDateFilters button,
+.activityDateFilters label{
+  min-height:34px;
+  padding:0 10px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#91a0b3;
+  font:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.activityDateFilters button.active,
+.activityDateFilters label.active{
+  background:#17283d;
+  color:#e5c66d;
+}
+.activityDateFilters label{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.activityDateFilters input{
+  width:0;
+  min-width:0;
+  opacity:0;
+  position:absolute;
+  pointer-events:none;
+}
+.activityDateFilters label.active input{
+  width:34px;
+  opacity:1;
+  position:static;
+  pointer-events:auto;
+  accent-color:#d5b45e;
+}
+.activityFilterSummary{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:12px 0 2px;
+  color:#8291a5;
+  font-size:12px;
+}
+.activityFilterSummary b{
+  padding:4px 9px;
+  border:1px solid rgba(213,180,94,.2);
+  border-radius:999px;
+  color:#d5b45e;
+  background:rgba(213,180,94,.06);
+  font-weight:600;
+}
+.activityMainLine{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:9px;
+}
+.activityMainLine b{
+  color:#dbe3ed;
+  font-size:13px;
+}
+.activityTarget{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:6px;
+  color:#e8edf5;
+  font-size:13px;
+}
+.activityTarget em{
+  font-style:normal;
+  color:#d5b45e;
+  font-size:11px;
+  font-weight:800;
+}
+.activityDepartment{
+  display:inline-flex!important;
+  width:max-content;
+  margin-top:5px;
+  padding:3px 7px;
+  border-radius:6px;
+  background:rgba(76,130,207,.08);
+  border:1px solid rgba(76,130,207,.16);
+  color:#9eb8d8!important;
+  font-size:11px!important;
+}
+.activityRow time{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+@media(max-width:1100px){
+  .activityFilters{
+    grid-template-columns:1fr 1fr;
+  }
+  .activityDateFilters{justify-content:space-between}
+}
+@media(max-width:760px){
+  .activityToolbar{gap:10px}
+  .activitySwitch{width:100%}
+  .activitySwitch>*{flex:1}
+  .activityFilters{
+    grid-template-columns:1fr;
+  }
+  .activityDateFilters{
+    width:100%;
+    justify-content:stretch;
+  }
+  .activityDateFilters button,
+  .activityDateFilters label{
+    flex:1;
+    text-align:center;
+    justify-content:center;
+  }
+  .activityFilters .primary,
+  .activityFilters .secondary{
+    width:100%;
+  }
+  .activityRow{
+    grid-template-columns:36px minmax(0,1fr);
+  }
+  .activityRow time{
+    grid-column:2;
+    justify-self:start;
+    margin-top:2px;
+    font-size:10px;
+  }
+}
