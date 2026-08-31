@@ -1365,3 +1365,69 @@ input,textarea,select,button{max-width:100%;min-width:0}
   .adminSection .rowActions button{flex:1 1 auto}
   .metricCard{min-width:0!important}
 }
+
+
+/* === KAYAN UI POLISH v2 === */
+:root{--gold:#d3af5a;--gold2:#e2c36f;--navy:#07111e;--panel:#0c1624;--line:#233248}
+.adminTabs{scrollbar-width:none;align-items:stretch}
+.adminTabs::-webkit-scrollbar{display:none}
+.adminTabs button,.primary,.secondary,.danger,.rowActions button{transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease,opacity .18s ease}
+.adminTabs button:hover,.primary:hover,.secondary:hover,.rowActions button:hover{transform:translateY(-1px);box-shadow:0 7px 18px #0003}
+.adminTabs button:active,.primary:active,.secondary:active,.rowActions button:active{transform:translateY(0) scale(.98)}
+.primary:hover{background:var(--gold2)}
+.danger{border:1px solid #632b35}
+.danger:hover{background:#5a252f}
+.search{transition:border-color .2s ease,box-shadow .2s ease}
+.search:focus-within{border-color:#6f5b30;box-shadow:0 0 0 3px #d3af5a14}
+.panel{transition:border-color .2s ease,box-shadow .2s ease}
+.panel:hover{border-color:#29405d}
+.examAdminRow,.bankRow{transition:background .2s ease,padding .2s ease}
+.examAdminRow:hover,.bankRow:hover{background:#0a1624}
+.examAdminRow .rowActions,.bankRow .rowActions{justify-content:flex-end}
+.questionAdmin{transition:border-color .2s ease,box-shadow .2s ease}
+.questionAdmin:focus-within{border-color:#4b5870;box-shadow:0 8px 25px #0002}
+@keyframes kayanFadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes kayanPulse{0%,100%{opacity:.72}50%{opacity:1}}
+.adminSection>.panel,.examEditor,.adminDash>.metric{animation:kayanFadeUp .28s ease both}
+.adminSection>.panel:nth-child(2){animation-delay:.04s}
+.adminSection>.panel:nth-child(3){animation-delay:.08s}
+@media(max-width:760px){
+  .adminTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 2px 8px}
+  .adminTabs button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start;min-height:42px;padding:10px 13px;font-size:10px}
+  .adminSection{gap:12px}
+  .panel{padding:14px;border-radius:14px}
+  .panel h2{font-size:15px}
+  .panel h3{font-size:13px}
+  .panelHead{align-items:stretch}
+  .panelHead>div{min-width:0}
+  .panelHead .muted,.panelHead p{overflow-wrap:anywhere}
+  .rowActions{width:100%}
+  .rowActions button,.rowActions .primary,.rowActions .secondary,.rowActions .danger{min-height:42px}
+  .examAdminRow .rowActions,.bankRow .rowActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .examAdminRow .rowActions button,.bankRow .rowActions button{width:100%}
+  .examAdminRow .rowActions button:last-child,.bankRow .rowActions button:last-child{grid-column:auto}
+  .examAdminRow>div:first-child,.bankRow>div:first-child{width:100%}
+  .examAdminRow strong,.bankRow strong{font-size:12px;line-height:1.7}
+  .examAdminRow small,.bankRow small{font-size:9px;line-height:1.7}
+  .examEditor .primary{width:100%;margin-top:6px}
+  .bankToolbar{gap:9px;flex-wrap:wrap}
+  .bankToolbar h3{margin:10px 0}
+  .bankToolbar button{width:100%}
+  .questionAdminHeader{gap:8px}
+  .questionAdminTitle span{font-size:11px;line-height:1.7}
+  .choiceEditor{grid-template-columns:minmax(0,1fr) 42px}
+  .choiceEditor .danger{width:42px;padding:8px;justify-content:center}
+}
+@media(max-width:480px){
+  .adminTabs{margin-bottom:10px}
+  .adminSection,.adminDash{margin-left:8px!important;margin-right:8px!important;width:calc(100% - 16px)}
+  .adminSection>.panel{padding:12px}
+  .examAdminRow .rowActions,.bankRow .rowActions{grid-template-columns:1fr 1fr}
+  .examAdminRow .rowActions .danger,.bankRow .rowActions .danger{grid-column:2}
+  .examAdminRow .rowActions button:first-child,.bankRow .rowActions button:first-child{grid-column:1}
+  .examAdminRow .rowActions button:nth-child(2),.bankRow .rowActions button:nth-child(2){grid-column:1}
+  .search{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
