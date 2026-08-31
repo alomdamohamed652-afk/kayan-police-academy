@@ -15,13 +15,13 @@ await replace(
 await replace(
 'src/admin-center.jsx',
 "const save=async()=>{try{const isNew=!editing.id,payload={...editing,id:isNew?undefined:editing.id,questions:(editing.questions||[]).map(normalizeQuestion)};await api(isNew?'/api/admin/exams':\`/api/admin/exams/\${editing.id}\`,{method:isNew?'POST':'PUT',body:JSON.stringify(payload)});setEditing(null);setMsg(isNew?'تم إنشاء الاختبار.':'تم تعديل الاختبار نفسه بدون إنشاء نسخة جديدة.');reload()}catch(e){setMsg(errText(e))}};",
-"const save=async()=>{try{const isNew=!editing.id,payload={...editing,id:isNew?undefined:editing.id,questions:(editing.questions||[]).map(normalizeQuestion)};const result=await api(isNew?'/api/admin/exams':\`/api/admin/exams/\${editing.id}\`,{method:isNew?'POST':'PUT',body:JSON.stringify(payload)});if(result?.exam)setExamList(prev=>isNew?[result.exam,...prev]:prev.map(x=>String(x.id)===String(result.exam.id)?result.exam:x));setEditing(null);setMsg(isNew?'تم إنشاء الاختبار وحفظه فورًا.':'تم حفظ تعديلات الاختبار وإغلاق المحرر فورًا.');reload().catch(()=>{})}catch(e){setMsg(errText(e))}};",
+"const save=async()=>{try{const isNew=!editing.id,payload={...editing,id:isNew?undefined:editing.id,questions:(editing.questions||[]).map(normalizeQuestion)};const result=await api(isNew?'/api/admin/exams':\`/api/admin/exams/\${editing.id}\`,{method:isNew?'POST':'PUT',body:JSON.stringify(payload)});if(result?.exam){setExamList(prev=>isNew?[result.exam,...prev]:prev.map(x=>String(x.id)===String(result.exam.id)?result.exam:x));setState(prev=>({...prev,exams:isNew?[result.exam,...(prev.exams||[])]: (prev.exams||[]).map(x=>String(x.id)===String(result.exam.id)?result.exam:x)}));}setEditing(null);setMsg(isNew?'تم إنشاء الاختبار وحفظه فورًا.':'تم حفظ تعديلات الاختبار وإغلاق المحرر فورًا.');reload().catch(()=>{})}catch(e){setMsg(errText(e))}};",
 'exam-save');
 
 await replace(
 'src/admin-center.jsx',
 "const remove=async e=>{if(!confirm(\`حذف الاختبار «\${e.title}» بكل نتائجه ومحاولاته؟\`))return;try{await api(\`/api/admin/exams/\${e.id}\`,{method:'DELETE'});setDetail(null);setMsg('تم حذف الاختبار وبياناته المرتبطة.');reload()}catch(x){setMsg(errText(x))}};",
-"const remove=async e=>{if(!confirm(\`حذف الاختبار «\${e.title}» بكل نتائجه ومحاولاته؟\`))return;try{await api(\`/api/admin/exams/\${e.id}\`,{method:'DELETE'});setExamList(prev=>prev.filter(x=>String(x.id)!==String(e.id)));setDetail(null);setMsg('تم حذف الاختبار وبياناته المرتبطة.');reload().catch(()=>{})}catch(x){setMsg(errText(x))}};",
+"const remove=async e=>{if(!confirm(\`حذف الاختبار «\${e.title}» بكل نتائجه ومحاولاته؟\`))return;try{await api(\`/api/admin/exams/\${e.id}\`,{method:'DELETE'});setExamList(prev=>prev.filter(x=>String(x.id)!==String(e.id)));setState(prev=>({...prev,exams:(prev.exams||[]).filter(x=>String(x.id)!==String(e.id))}));setDetail(null);setMsg('تم حذف الاختبار وبياناته المرتبطة.');reload().catch(()=>{})}catch(x){setMsg(errText(x))}};",
 'exam-delete');
 
 await replace(
