@@ -1,0 +1,20 @@
+/* KAYAN DESKTOP LAYOUT FIX */
+@media (min-width:761px) and (max-width:1100px){
+  .app main{margin-right:245px!important;width:auto!important;min-width:0!important}
+  .welcome{margin:22px 24px!important;padding:34px 30px!important;min-height:520px!important;display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(270px,.92fr)!important;align-items:center!important;gap:18px!important;overflow:hidden!important}
+  .welcomeCopy{width:100%!important;max-width:none!important;min-width:0!important}
+  .welcomeCopy>.eyebrow{white-space:nowrap!important;font-size:9px!important}
+  .welcome h1{font-size:clamp(34px,4vw,44px)!important;line-height:1.35!important;margin:10px 0 17px!important;white-space:nowrap!important}
+  .welcome h1 strong{display:inline-block!important;white-space:nowrap!important}
+  .welcome p{font-size:12px!important}
+  .actions{justify-content:flex-start!important;gap:8px!important}
+  .actions .primary,.actions .secondary.dark{min-height:46px!important;padding:10px 13px!important;font-size:10px!important}
+  .crestCard{width:100%!important;min-width:0!important;max-width:330px!important;justify-self:center!important}
+  .crestCard img{width:min(315px,100%)!important;height:auto!important}
+  .topNav{width:245px!important}
+  .sideNav button{min-height:48px!important;padding:12px 14px!important;font-size:12px!important}
+  .sideNav button svg:first-child{width:19px!important;height:19px!important}
+}
+@media (min-width:1101px){
+  .app main{margin-right:245px!important;min-width:0!important}
+}
