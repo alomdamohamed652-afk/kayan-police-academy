@@ -25,40 +25,37 @@ function Hierarchy(){
 const[data,setData]=useState(null),[err,setErr]=useState('');
 const load=()=>api('/api/public/hierarchy').then(setData).catch(e=>setErr(errorText(e)));
 useEffect(()=>{load()},[]);
-const arranged=useMemo(()=>{
-  const source=Array.isArray(data?.hierarchy)?data.hierarchy:[];
-  const rows=new Map();
-  source.forEach((x,i)=>{
-    const fallbackLevel=Math.max(1,Math.ceil((Math.sqrt(8*(i+1)+1)-1)/2));
-    const level=Math.max(1,Number(x.level)||fallbackLevel);
-    const fallbackPosition=level===fallbackLevel?i-(fallbackLevel*(fallbackLevel-1)/2)+1:1;
-    const position=Math.max(1,Number(x.position)||Number(x.order)||fallbackPosition);
-    if(!rows.has(level))rows.set(level,[]);
-    rows.get(level).push({...x,level,position});
-  });
-  return [...rows.entries()].sort((a,b)=>a[0]-b[0]).map(([level,items])=>({
-    level,
-    items:[...items].sort((a,b)=>a.position-b.position)
-  }));
+const rows=useMemo(()=>{
+ const source=Array.isArray(data?.hierarchy)?data.hierarchy:[];
+ const groups=new Map();
+ source.forEach((x,i)=>{
+   const level=Math.max(1,Number(x.level)||1);
+   const position=Math.max(1,Number(x.position)||i+1);
+   if(!groups.has(level))groups.set(level,[]);
+   groups.get(level).push({...x,level,position});
+ });
+ return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([level,items])=>({
+   level,items:items.sort((a,b)=>a.position-b.position)
+ }));
 },[data]);
-return <Page title="هيكل الأكاديمية" sub="ترتيب بسيط وواضح: كل مستوى في صف مستقل، والمناصب داخل المستوى بجانب بعضها حسب ترتيبها.">
+return <Page title="هيكل الأكاديمية" sub="هيكل تنظيمي واضح: كل مستوى يمثل صفًا مستقلًا، والمناصب داخله مرتبة من اليمين إلى اليسار.">
 {err?<div className="panel empty"><p>{err}</p><Retry onClick={load}/></div>:
 !data?<div className="panel empty academyLoading"><div className="academyLoader"><img src={logo} alt=""/><span>جاري تحميل الهيكل</span></div></div>:
-<div className="hierarchyCanvas">
-  {arranged.map(row=><section className="hierarchyLevel" key={row.level}>
-    
-    <div className="hierarchyLevelRow">
-      {row.items.map((x,i)=><article className="hierCard" key={x.id||i}>
-        <small className="hierarchyPosition">{x.level}-{x.position}</small>
-        {x.image?<img src={x.image} alt={x.name||''}/>:<div className="hierPlaceholder"><Shield size={42}/></div>}
-        <div className="hierInfo">
-          <span>{x.title||''}</span>
-          <b>{x.name||'غير محدد'}</b>
-          {x.discordId&&<a className="discordLink" href={`https://discord.com/users/${x.discordId}`} target="_blank" rel="noreferrer"><ExternalLink size={14}/> Discord</a>}
-        </div>
-      </article>)}
-    </div>
-  </section>)}
+<div className="hierarchyOrg">
+ {rows.map((row,index)=><section className="hierarchyOrgRow" key={row.level}>
+   {index>0&&<div className="hierarchyConnector" aria-hidden="true"><span/></div>}
+   <div className="hierarchyRowCards">
+    {row.items.map((x,i)=><article className="hierCard" key={x.id||i}>
+      <small className="hierarchyPosition">{x.level}-{x.position}</small>
+      {x.image?<img src={x.image} alt={x.name||''}/>:<div className="hierPlaceholder"><Shield size={42}/></div>}
+      <div className="hierInfo">
+        <span>{x.title||'منصب'}</span>
+        <b>{x.name||'غير محدد'}</b>
+        {x.discordId&&<a className="discordLink" href={`https://discord.com/users/${x.discordId}`} target="_blank" rel="noreferrer"><ExternalLink size={14}/> Discord</a>}
+      </div>
+    </article>)}
+   </div>
+ </section>)}
 </div>}
 </Page>
 }function memberStatusClass(m){const s=String(m?.status||'').trim().toUpperCase();const leave=String(m?.leave||'').trim();if(s==='ACTIVE')return'memberStatus active';if(s==='INACTIVE')return'memberStatus inactive';if(leave||s==='LEAVE'||s==='إجازة'||s==='اجازة')return'memberStatus leave';return'memberStatus';}
