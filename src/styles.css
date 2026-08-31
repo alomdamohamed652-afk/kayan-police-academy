@@ -1982,3 +1982,162 @@ html,body,#root,.app,main{width:100%;max-width:100%;overflow-x:hidden!important}
 @media(max-width:900px){
   .app main{position:relative;left:0!important;right:0!important;transform:none!important}
 }
+
+
+/* V5.2 — unify landing hero with the established academy sidebar/navigation */
+.welcome{
+  position:relative!important;
+  isolation:isolate;
+  margin:24px!important;
+  min-height:calc(100vh - 129px)!important;
+  padding:42px 46px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(320px,46%)!important;
+  align-items:center!important;
+  gap:24px!important;
+  overflow:hidden!important;
+  border:1px solid #203047!important;
+  border-radius:22px!important;
+  background:
+    radial-gradient(circle at 68% 50%,rgba(213,180,94,.045),transparent 34%),
+    linear-gradient(145deg,#0a1523 0%,#081321 55%,#07101c 100%)!important;
+  box-shadow:0 20px 60px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025)!important;
+}
+.welcome:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background:
+    radial-gradient(ellipse at 72% 55%,rgba(213,180,94,.075),transparent 28%),
+    radial-gradient(ellipse at 24% 65%,rgba(67,117,180,.07),transparent 35%);
+  filter:blur(16px);
+  pointer-events:none;
+}
+.welcome:after{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;right:50%;
+  width:1px;
+  background:linear-gradient(transparent,#203047 25%,#203047 75%,transparent);
+  opacity:.55;
+  pointer-events:none;
+}
+.welcomeCopy{
+  width:auto!important;
+  max-width:620px!important;
+  justify-self:center;
+  text-align:right!important;
+}
+.welcomeCopy .eyebrow{font-size:10px!important;margin-bottom:10px!important}
+.welcome h1{
+  font-size:clamp(34px,3.6vw,52px)!important;
+  line-height:1.35!important;
+  margin:0!important;
+}
+.welcomeCopy>p{
+  max-width:590px!important;
+  margin:14px 0 0!important;
+  font-size:13px!important;
+  line-height:2!important;
+}
+.actions{
+  justify-content:flex-start!important;
+  margin-top:20px!important;
+  gap:9px!important;
+}
+.actions .primary,.actions .secondary,.actions a{
+  min-height:43px;
+  border-radius:10px!important;
+  border:1px solid transparent;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease;
+}
+.actions .primary:hover,.actions .secondary:hover,.actions a:hover{
+  transform:translateY(-2px);
+}
+.heroCrest{
+  width:min(510px,100%)!important;
+  justify-self:center!important;
+}
+.heroCrest img{
+  width:min(440px,100%)!important;
+  max-height:56vh!important;
+}
+.heroCrest span{
+  font-size:12px!important;
+  margin-top:8px!important;
+}
+
+/* The siren belongs to the same visual system as the sidebar: thin, restrained, no hard rail. */
+.sirenBar{
+  position:relative!important;
+  height:8px!important;
+  min-height:8px!important;
+  border:0!important;
+  background:#07101c!important;
+}
+.sirenTrack:before{
+  top:3px!important;
+  height:2px!important;
+  width:150%!important;
+  left:-25%!important;
+  right:auto!important;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      rgba(61,115,255,.08) 8%,
+      rgba(61,115,255,.95) 27%,
+      rgba(61,115,255,.15) 42%,
+      rgba(213,180,94,.65) 50%,
+      rgba(225,65,88,.15) 58%,
+      rgba(225,65,88,.95) 73%,
+      rgba(225,65,88,.08) 92%,
+      transparent 100%)!important;
+  filter:blur(.6px)!important;
+  box-shadow:0 0 14px rgba(70,112,255,.42),0 0 14px rgba(225,65,88,.28)!important;
+  animation:kSirenSweep 5.5s ease-in-out infinite alternate!important;
+}
+@keyframes kSirenSweep{
+  0%{transform:translateX(-13%) scaleX(.82);opacity:.55}
+  35%{transform:translateX(3%) scaleX(1.02);opacity:.95}
+  68%{transform:translateX(-4%) scaleX(.92);opacity:.75}
+  100%{transform:translateX(13%) scaleX(.82);opacity:.55}
+}
+
+/* Keep the same spacing rhythm used by panels and the fixed right sidebar. */
+@media(min-width:761px){
+  .welcome{margin:24px!important}
+}
+@media(max-width:900px){
+  .welcome{
+    margin:16px!important;
+    min-height:calc(100dvh - 114px)!important;
+    padding:30px 24px!important;
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+  .welcome:after{display:none}
+  .welcomeCopy{
+    max-width:680px!important;
+    text-align:center!important;
+    order:1;
+  }
+  .welcomeCopy>p{margin:8px auto 0!important}
+  .actions{justify-content:center!important}
+  .heroCrest{order:2}
+}
+@media(max-width:560px){
+  .welcome{
+    margin:12px!important;
+    padding:24px 16px!important;
+    min-height:calc(100dvh - 106px)!important;
+    border-radius:18px!important;
+  }
+  .welcome h1{font-size:29px!important}
+  .welcomeCopy .eyebrow{font-size:8px!important}
+  .welcomeCopy>p{font-size:11px!important;line-height:1.85!important}
+  .actions{gap:7px!important}
+  .actions .primary,.actions .secondary,.actions a{width:100%;min-height:42px}
+  .heroCrest img{width:min(315px,82vw)!important;max-height:43vh!important}
+  .heroCrest span{font-size:11px!important}
+}
