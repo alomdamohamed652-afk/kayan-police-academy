@@ -1957,3 +1957,90 @@ input,textarea,select{max-width:100%;min-width:0}
     animation:none!important;
   }
 }
+
+
+/* HOME HERO POLISH — clean logo/text balance + soft police light bar */
+.sirenBar{
+  height:8px;
+  background:#070d16;
+  border-bottom:1px solid rgba(38,53,74,.65);
+  overflow:hidden;
+}
+.sirenTrack{
+  height:100%;
+  position:relative;
+  overflow:hidden;
+}
+.sirenTrack:before{
+  content:"";
+  position:absolute;
+  left:-12%;
+  right:-12%;
+  top:50%;
+  height:5px;
+  transform:translateY(-50%);
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(55,113,255,.05) 8%,
+    rgba(55,113,255,.75) 22%,
+    rgba(55,113,255,.12) 34%,
+    rgba(213,180,94,.72) 47%,
+    rgba(213,180,94,.08) 54%,
+    rgba(230,63,87,.72) 68%,
+    rgba(230,63,87,.10) 79%,
+    transparent 92%);
+  filter:blur(2px);
+  opacity:.85;
+  background-size:210% 100%;
+  animation:sirenSweep 5.8s ease-in-out infinite alternate;
+  box-shadow:0 0 12px rgba(60,105,255,.35),0 0 16px rgba(224,61,83,.2);
+}
+.sirenTrack:after{
+  content:"";
+  position:absolute;
+  inset:-8px 0;
+  background:linear-gradient(90deg,rgba(46,100,255,.08),transparent 34%,rgba(213,180,94,.05) 50%,transparent 66%,rgba(224,61,83,.08));
+  filter:blur(7px);
+  background-size:170% 100%;
+  animation:sirenSweep 7.5s ease-in-out infinite alternate-reverse;
+}
+.sirenTrack i{display:none!important}
+@keyframes sirenSweep{
+  0%{transform:translate(-10%,-50%);background-position:0% 50%}
+  50%{transform:translate(3%,-50%);background-position:48% 50%}
+  100%{transform:translate(10%,-50%);background-position:100% 50%}
+}
+.welcome{
+  margin:25px 30px;
+  padding:46px 54px;
+  min-height:520px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:44px;
+}
+.welcomeCopy{flex:1 1 0;max-width:560px;min-width:0}
+.welcome h1{font-size:40px;line-height:1.42;margin:14px 0 10px}
+.welcome p{max-width:520px;margin:0;color:#9daabd;font-size:13px;line-height:2}
+.actions{max-width:560px}
+.crestCard{width:285px;min-width:285px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.crestCard img{width:235px;height:235px;object-fit:contain;filter:drop-shadow(0 14px 28px rgba(0,0,0,.5))}
+.crestCard span{margin-top:10px;color:#d5b45e;font-size:10px;font-weight:700;white-space:nowrap}
+.heroScrollHint{display:none!important}
+@media(max-width:1000px){
+  .welcome{padding:36px 30px;gap:28px}
+  .crestCard{width:245px;min-width:245px}
+  .crestCard img{width:205px;height:205px}
+  .welcome h1{font-size:35px}
+}
+@media(max-width:760px){
+  .welcome{margin:15px 16px;padding:30px 20px 34px;min-height:0;gap:24px}
+  .welcomeCopy{width:100%;max-width:none}
+  .welcome h1{font-size:31px;line-height:1.45}
+  .welcome p{font-size:11px}
+  .crestCard{width:100%;min-width:0;order:2}
+  .crestCard img{width:190px;height:190px}
+  .crestCard span{font-size:10px}
+  .actions{width:100%;justify-content:center}
+  .actions .primary,.actions .secondary{flex:1 1 100%;min-height:44px}
+}
