@@ -421,6 +421,7 @@ app.get('/auth/discord/callback',async(req,res)=>{try{const code=String(req.quer
 app.post('/api/logout',(_q,res)=>{res.clearCookie('kayan_session',{path:'/'});res.json({ok:true})});
 app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
 await load();
+if(supabaseActive&&DATA_SHEET_ID)queueGoogleMirror('startup');
 const expiredOnBoot=expireBatches();
 if(expiredOnBoot.length)await save().catch(e=>console.error('Auto-close on boot save failed:',e.message));
 setInterval(()=>{const expired=expireBatches();if(expired.length)save().catch(e=>console.error('Auto-close interval save failed:',e.message))},60000).unref?.();
