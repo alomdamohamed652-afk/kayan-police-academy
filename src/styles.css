@@ -1662,3 +1662,298 @@ input,textarea,select{max-width:100%;min-width:0}
     animation:none!important;
   }
 }
+
+
+/* ===== KAYAN HOME / LIGHTBAR FINAL ALIGNMENT =====
+   Keeps the original visual identity, but removes the cramped/overlapping hero.
+   The lightbar is intentionally borderless and irregular: it should feel like
+   distant police light leaking through haze, not like a UI control. */
+.welcome{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(360px,.95fr);
+  align-items:center;
+  gap:34px;
+  min-height:590px;
+  overflow:hidden;
+}
+.welcome::before{
+  content:"";
+  position:absolute;
+  z-index:-2;
+  inset:-18%;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 27% 52%,rgba(102,145,205,.12) 0%,rgba(62,93,137,.07) 19%,transparent 48%),
+    radial-gradient(ellipse at 42% 61%,rgba(213,180,94,.07) 0%,transparent 34%),
+    radial-gradient(ellipse at 30% 82%,rgba(89,117,154,.08) 0%,transparent 32%);
+  filter:blur(24px);
+  animation:kayanFogDrift 10s ease-in-out infinite alternate;
+}
+.welcome::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:12% 4% 2% 3%;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 31% 58%,rgba(255,255,255,.075) 0%,rgba(140,166,193,.045) 13%,transparent 40%),
+    radial-gradient(ellipse at 52% 66%,rgba(213,180,94,.045) 0%,transparent 30%);
+  filter:blur(30px);
+  opacity:.85;
+  animation:kayanFogBreathe 7s ease-in-out infinite;
+}
+.welcomeCopy{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:620px;
+  justify-self:end;
+  text-align:right;
+}
+.welcome h1{
+  margin:12px 0 18px;
+  font-size:clamp(38px,4.2vw,58px);
+  line-height:1.34;
+  letter-spacing:-.02em;
+}
+.welcome h1 strong{display:inline-block}
+.welcomeCopy>p{display:none!important}
+.actions{
+  justify-content:flex-start;
+  margin-top:24px;
+}
+.crestCard{
+  position:relative;
+  z-index:2;
+  width:min(430px,100%);
+  min-width:0;
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+.crestCard::before{
+  content:"";
+  position:absolute;
+  width:82%;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(170,184,201,.11) 0%,rgba(93,117,143,.065) 24%,transparent 67%);
+  filter:blur(25px);
+  z-index:-1;
+  animation:kayanCrestHaze 6s ease-in-out infinite;
+}
+.crestCard img{
+  width:min(405px,100%);
+  height:auto;
+  aspect-ratio:1;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 22px 35px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(213,180,94,.08));
+  animation:kayanCrestFloat 6s ease-in-out infinite;
+}
+.crestCard>span{display:none!important}
+.heroScrollHint{
+  z-index:3;
+}
+@keyframes kayanFogDrift{
+  0%{transform:translate3d(-2%,0,0) scale(1)}
+  100%{transform:translate3d(3%,-1%,0) scale(1.06)}
+}
+@keyframes kayanFogBreathe{
+  0%,100%{opacity:.45;transform:scale(1)}
+  50%{opacity:.82;transform:scale(1.045)}
+}
+@keyframes kayanCrestHaze{
+  0%,100%{opacity:.45;transform:scale(.94)}
+  50%{opacity:.8;transform:scale(1.04)}
+}
+@keyframes kayanCrestFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+
+/* Full-width roof light: no visible lower edge, no boxed track.
+   Blue/red beams overlap and travel independently. */
+.sirenBar{
+  height:20px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  border:0!important;
+  background:#050b13!important;
+  box-shadow:0 2px 18px rgba(0,0,0,.48)!important;
+  isolation:isolate;
+}
+.sirenBar::before,
+.sirenBar::after{
+  content:"";
+  position:absolute;
+  top:-10px;
+  width:55%;
+  height:40px;
+  filter:blur(8px);
+  opacity:.8;
+  pointer-events:none;
+  mix-blend-mode:screen;
+}
+.sirenBar::before{
+  left:-12%;
+  background:radial-gradient(ellipse at 45% 50%,rgba(54,112,255,.78) 0%,rgba(54,112,255,.32) 18%,transparent 60%);
+  animation:kayanBlueSweep 3.8s ease-in-out infinite;
+}
+.sirenBar::after{
+  right:-12%;
+  background:radial-gradient(ellipse at 55% 50%,rgba(239,61,81,.72) 0%,rgba(239,61,81,.3) 18%,transparent 60%);
+  animation:kayanRedSweep 4.15s ease-in-out infinite;
+}
+.sirenTrack{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:block!important;
+}
+.sirenTrack::before{
+  content:"";
+  position:absolute;
+  inset:-14px -8%;
+  background:
+    linear-gradient(90deg,transparent 0%,rgba(66,123,255,.16) 16%,transparent 30%,transparent 48%,rgba(235,62,82,.13) 66%,transparent 84%,transparent 100%);
+  filter:blur(7px);
+  animation:kayanLightMist 5.4s ease-in-out infinite;
+}
+.sirenTrack::after{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:1px;
+  transform:translateX(-50%);
+  background:rgba(213,180,94,.28);
+  box-shadow:0 0 9px rgba(213,180,94,.25);
+  opacity:.6;
+}
+.sirenTrack i{
+  position:absolute!important;
+  top:50%!important;
+  width:18%!important;
+  height:3px!important;
+  min-width:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  transform:translateY(-50%);
+  z-index:2;
+  opacity:.72;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.sirenTrack i:nth-child(1){
+  left:3%;animation:kayanBeamBlueA 2.8s ease-in-out infinite;
+}
+.sirenTrack i:nth-child(2){
+  left:17%;animation:kayanBeamBlueB 3.35s ease-in-out infinite;
+}
+.sirenTrack i:nth-child(3){
+  left:41%;width:9%!important;background:rgba(213,180,94,.45)!important;
+  box-shadow:0 0 9px rgba(213,180,94,.25)!important;
+  animation:kayanGoldFlicker 2.7s ease-in-out infinite;
+}
+.sirenTrack i:nth-child(4){
+  right:17%;animation:kayanBeamRedB 3.15s ease-in-out infinite;
+}
+.sirenTrack i:nth-child(5){
+  right:3%;animation:kayanBeamRedA 2.9s ease-in-out infinite;
+}
+@keyframes kayanBlueSweep{
+  0%,100%{transform:translateX(-12%) scaleX(.72);opacity:.45}
+  45%{transform:translateX(42%) scaleX(1.18);opacity:.95}
+  70%{transform:translateX(58%) scaleX(.86);opacity:.6}
+}
+@keyframes kayanRedSweep{
+  0%,100%{transform:translateX(12%) scaleX(.72);opacity:.45}
+  42%{transform:translateX(-42%) scaleX(1.18);opacity:.95}
+  72%{transform:translateX(-58%) scaleX(.86);opacity:.6}
+}
+@keyframes kayanLightMist{
+  0%,100%{transform:translateX(-5%) scaleX(.9);opacity:.35}
+  50%{transform:translateX(5%) scaleX(1.08);opacity:.75}
+}
+@keyframes kayanBeamBlueA{
+  0%,100%{background:rgba(45,96,220,.08);box-shadow:0 0 2px rgba(45,96,220,.08);transform:translateY(-50%) translateX(-12%) scaleX(.7)}
+  35%{background:rgba(75,133,255,.85);box-shadow:0 0 10px rgba(75,133,255,.78),0 0 24px rgba(75,133,255,.3);transform:translateY(-50%) translateX(20%) scaleX(1.15)}
+  65%{background:rgba(55,112,240,.28);box-shadow:0 0 6px rgba(55,112,240,.18);transform:translateY(-50%) translateX(35%) scaleX(.78)}
+}
+@keyframes kayanBeamBlueB{
+  0%,100%{background:rgba(45,96,220,.1);box-shadow:0 0 3px rgba(45,96,220,.08);transform:translateY(-50%) translateX(18%) scaleX(.75)}
+  45%{background:rgba(72,126,255,.7);box-shadow:0 0 9px rgba(72,126,255,.6),0 0 20px rgba(72,126,255,.22);transform:translateY(-50%) translateX(-12%) scaleX(1.2)}
+}
+@keyframes kayanBeamRedA{
+  0%,100%{background:rgba(220,45,65,.08);box-shadow:0 0 2px rgba(220,45,65,.08);transform:translateY(-50%) translateX(12%) scaleX(.7)}
+  35%{background:rgba(244,67,87,.85);box-shadow:0 0 10px rgba(244,67,87,.78),0 0 24px rgba(244,67,87,.3);transform:translateY(-50%) translateX(-20%) scaleX(1.15)}
+  65%{background:rgba(230,57,76,.28);box-shadow:0 0 6px rgba(230,57,76,.18);transform:translateY(-50%) translateX(-35%) scaleX(.78)}
+}
+@keyframes kayanBeamRedB{
+  0%,100%{background:rgba(220,45,65,.1);box-shadow:0 0 3px rgba(220,45,65,.08);transform:translateY(-50%) translateX(-18%) scaleX(.75)}
+  45%{background:rgba(242,65,84,.7);box-shadow:0 0 9px rgba(242,65,84,.6),0 0 20px rgba(242,65,84,.22);transform:translateY(-50%) translateX(12%) scaleX(1.2)}
+}
+@keyframes kayanGoldFlicker{
+  0%,100%{opacity:.25;transform:translateY(-50%) scaleX(.7)}
+  40%,55%{opacity:.8;transform:translateY(-50%) scaleX(1)}
+}
+@media(max-width:760px){
+  .welcome{
+    display:flex;
+    flex-direction:column;
+    min-height:calc(100vh - 115px);
+    gap:18px;
+    padding:30px 18px 28px;
+    text-align:center;
+  }
+  .welcomeCopy{
+    order:1;
+    width:100%;
+    max-width:100%;
+    justify-self:auto;
+    text-align:center;
+  }
+  .welcome h1{
+    font-size:clamp(31px,9vw,42px);
+    line-height:1.38;
+    margin-bottom:14px;
+  }
+  .actions{
+    justify-content:center;
+    gap:8px;
+    margin-top:18px;
+  }
+  .actions .secondary.dark,
+  .actions .primary{
+    flex:1 1 100%;
+    min-height:46px;
+  }
+  .crestCard{
+    order:2;
+    width:100%;
+    max-width:370px;
+    justify-self:auto;
+  }
+  .crestCard img{width:min(350px,82vw)}
+  .heroScrollHint{order:3}
+  .sirenBar{height:16px!important}
+  .sirenTrack i{height:2px!important;width:20%!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .welcome::before,.welcome::after,.crestCard::before,.crestCard img,
+  .sirenBar::before,.sirenBar::after,.sirenTrack::before,.sirenTrack i{
+    animation:none!important;
+  }
+}
