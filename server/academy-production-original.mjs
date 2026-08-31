@@ -64,6 +64,21 @@ if(Array.isArray(data.hierarchy)&&data.hierarchy.length>1&&data.hierarchy.every(
   let level=1,pos=1,count=0;
   data.hierarchy=data.hierarchy.map((x,i)=>{if(count>=level){level++;pos=1;count=0}const out={...x,level,position:pos};pos++;count++;return out});
   try{await save()}catch(e){console.error('Hierarchy migration save failed:',e.message)}
+
+if(Array.isArray(data.hierarchy)&&data.hierarchy.length>1){
+  const levels=data.hierarchy.map(x=>Number(x?.level)||1);
+  const allSame=levels.every(v=>v===levels[0]);
+  if(allSame&&levels[0]===1){
+    let cursor=0,level=1,slot=0;
+    data.hierarchy=data.hierarchy.map(x=>{
+      if(slot>=level){level++;slot=0}
+      slot++;
+      cursor++;
+      return {...x,level,position:slot};
+    });
+    try{await save()}catch(e){console.error('Hierarchy row migration save failed:',e.message)}
+  }
+}
 }data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};delete data.settings.applicationEnabled}const previousVersion=Number(data.version||0);
 if(previousVersion<17){
   const shiftLegacy=(v)=>{if(!validDate(v))return v;const d=new Date(v);return new Date(d.getTime()+d.getTimezoneOffset()*60*1000).toISOString()};
