@@ -1670,3 +1670,286 @@ input,textarea,select{max-width:100%;min-width:0}
 .welcomeHero{position:relative!important;min-height:calc(100vh - 94px)!important;margin:0!important;padding:clamp(34px,6vw,72px) 6vw 62px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,470px)!important;align-items:center!important;gap:clamp(20px,5vw,80px)!important;overflow:hidden!important;border-radius:0!important;border:0!important;background:radial-gradient(circle at 72% 48%,rgba(213,180,94,.09),transparent 22%),radial-gradient(circle at 28% 72%,rgba(49,101,170,.11),transparent 28%),linear-gradient(145deg,#050d18,#081524 62%,#050c15)!important;box-shadow:none!important}.welcomeHero:before{content:"";position:absolute;inset:18% 6% 2%;background:radial-gradient(ellipse at 62% 55%,rgba(205,214,226,.1),transparent 33%),radial-gradient(ellipse at 48% 75%,rgba(205,214,226,.07),transparent 27%);filter:blur(30px);animation:kSmoke 7s ease-in-out infinite alternate;pointer-events:none}@keyframes kSmoke{from{opacity:.3;transform:translateX(-1%) scale(.98)}to{opacity:.72;transform:translateX(2%) scale(1.04)}}.welcomeCopy{position:relative;z-index:2}.welcome h1{font-size:clamp(34px,4.4vw,58px)!important;line-height:1.38!important}.welcome h1 strong{color:#f0d17c!important;text-shadow:0 0 30px rgba(213,180,94,.1)}.heroCrest{position:relative!important;z-index:2;width:100%!important;min-width:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;padding:0!important}.heroCrest img{width:min(450px,38vw)!important;height:auto!important;filter:drop-shadow(0 22px 45px rgba(0,0,0,.72)) drop-shadow(0 0 26px rgba(213,180,94,.1));animation:kCrestFloat 6s ease-in-out infinite}.heroCrest span{display:block!important;color:#f0d17c!important;font-size:clamp(13px,1.25vw,17px)!important;font-weight:700;margin-top:14px;text-shadow:0 0 18px rgba(213,180,94,.15)}@keyframes kCrestFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}.heroScrollHint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:2px;color:#718197;font-size:9px;animation:kScrollHint 2.4s ease-in-out infinite}.heroScrollHint svg{transform:rotate(-90deg);color:#d5b45e}@keyframes kScrollHint{0%,100%{opacity:.4;transform:translate(-50%,0)}50%{opacity:.9;transform:translate(-50%,5px)}}
 .loginPage{position:relative;overflow:hidden}.loginAtmosphere{position:absolute;inset:0;pointer-events:none}.loginAtmosphere span{position:absolute;width:38vw;height:38vw;border-radius:50%;filter:blur(55px);opacity:.11}.loginAtmosphere span:nth-child(1){left:-12%;top:25%;background:#397cff}.loginAtmosphere span:nth-child(2){right:-12%;top:25%;background:#ef465c}.loginAtmosphere span:nth-child(3){left:30%;bottom:-30%;background:#d5b45e}.loginCard{position:relative;z-index:2}.loginBrand{display:flex;flex-direction:column;align-items:center;gap:7px;margin-bottom:12px}.loginBrand span{color:#f0d17c;font-size:12px;font-weight:700}.loginLogo{width:min(230px,55vw)!important;height:auto!important;filter:drop-shadow(0 18px 35px rgba(0,0,0,.62))}
 @media(max-width:760px){.welcomeHero{min-height:calc(100vh - 88px)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:18px!important;padding:34px 18px 62px!important}.welcomeCopy{text-align:center;width:100%}.welcome h1{font-size:clamp(29px,8.6vw,38px)!important}.welcomeCopy>p{font-size:11px!important}.actions{justify-content:center}.heroCrest img{width:min(310px,78vw)!important}.heroCrest span{font-size:13px!important;margin-top:8px}.heroScrollHint{bottom:13px}}@media(max-width:430px){.heroCrest img{width:min(285px,76vw)!important}.welcome h1{font-size:29px!important}}@media(prefers-reduced-motion:reduce){.sirenBar:before,.sirenBar:after,.sirenTrack:before,.sirenTrack i,.heroCrest img,.welcomeHero:before,.heroScrollHint{animation:none!important}}
+
+/* ===== KAYAN VISUAL REFINEMENT V5 =====
+   Full-width cinematic police light + centered academy crest.
+*/
+html,body,#root,.app,main{width:100%;max-width:100%;overflow-x:hidden!important}
+
+/* Remove the visible physical lightbar frame: only its light should be perceived. */
+.sirenBar{
+  height:14px!important;
+  min-height:14px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+.sirenBar:before{
+  content:"";
+  position:absolute;
+  inset:-18px -8%;
+  background:
+    radial-gradient(ellipse 24% 100% at 8% 50%,rgba(58,126,255,.72),transparent 68%),
+    radial-gradient(ellipse 20% 100% at 24% 50%,rgba(58,126,255,.24),transparent 70%),
+    radial-gradient(ellipse 20% 100% at 76% 50%,rgba(239,65,84,.22),transparent 70%),
+    radial-gradient(ellipse 24% 100% at 92% 50%,rgba(239,65,84,.70),transparent 68%);
+  filter:blur(9px);
+  opacity:.72;
+  animation:kLightHaze 4.8s ease-in-out infinite alternate;
+  z-index:-2;
+}
+.sirenBar:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(101deg,transparent 0 8%,rgba(70,130,255,.82) 17%,transparent 31% 54%,rgba(239,65,84,.74) 69%,transparent 84%),
+    linear-gradient(83deg,transparent 0 27%,rgba(70,130,255,.18) 38%,transparent 47% 61%,rgba(239,65,84,.18) 73%,transparent 86%);
+  background-size:145% 100%,170% 100%;
+  filter:blur(3px);
+  mix-blend-mode:screen;
+  animation:kLightSweep 4.1s cubic-bezier(.55,.08,.35,.92) infinite;
+  opacity:.76;
+}
+.sirenTrack{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.sirenTrack:before{
+  content:"";
+  position:absolute;
+  width:34%;
+  height:3px;
+  left:-18%;
+  top:50%;
+  transform:translateY(-50%) skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(68,130,255,.18),rgba(75,139,255,.9),rgba(255,255,255,.28),transparent);
+  filter:blur(2px);
+  box-shadow:0 0 13px 3px rgba(64,126,255,.25);
+  animation:kBlueGlide 3.7s cubic-bezier(.45,.04,.35,.96) infinite;
+}
+.sirenTrack:after{
+  content:"";
+  position:absolute;
+  width:31%;
+  height:3px;
+  right:-18%;
+  top:50%;
+  transform:translateY(-50%) skewX(18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),rgba(239,65,84,.9),rgba(239,65,84,.2),transparent);
+  filter:blur(2px);
+  box-shadow:0 0 13px 3px rgba(239,65,84,.22);
+  animation:kRedGlide 3.7s cubic-bezier(.45,.04,.35,.96) .72s infinite;
+}
+.sirenTrack i{
+  display:none!important;
+}
+@keyframes kLightHaze{
+  0%{transform:translateX(-5%) scaleX(.88);opacity:.38}
+  42%{opacity:.66}
+  68%{transform:translateX(4%) scaleX(1.08);opacity:.82}
+  100%{transform:translateX(-2%) scaleX(.98);opacity:.54}
+}
+@keyframes kLightSweep{
+  0%{background-position:-75% 0,125% 0;opacity:.25}
+  24%{opacity:.82}
+  50%{background-position:35% 0,70% 0;opacity:.58}
+  78%{opacity:.9}
+  100%{background-position:145% 0,-70% 0;opacity:.28}
+}
+@keyframes kBlueGlide{
+  0%,100%{left:-24%;opacity:0}
+  12%{opacity:.82}
+  48%{left:58%;opacity:.9}
+  60%{left:72%;opacity:.12}
+  100%{left:112%;opacity:0}
+}
+@keyframes kRedGlide{
+  0%,100%{right:-24%;opacity:0}
+  14%{opacity:.72}
+  52%{right:55%;opacity:.88}
+  65%{right:70%;opacity:.1}
+  100%{right:112%;opacity:0}
+}
+
+/* Cinematic smoke sits behind the crest, never behind the text. */
+.welcomeHero{
+  min-height:calc(100vh - 86px)!important;
+  width:100%!important;
+  max-width:100%!important;
+  padding:clamp(28px,5vh,58px) 24px 42px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:18px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  text-align:center;
+  background:
+    radial-gradient(ellipse 42% 34% at 50% 60%,rgba(213,180,94,.08),transparent 70%),
+    linear-gradient(145deg,#050d18,#081524 62%,#050c15)!important;
+}
+.welcomeHero:before{
+  content:"";
+  position:absolute;
+  width:min(850px,100vw);
+  height:min(650px,72vh);
+  left:50%;
+  top:49%;
+  transform:translate(-50%,-50%);
+  background:
+    radial-gradient(ellipse at 35% 48%,rgba(210,220,232,.12),transparent 34%),
+    radial-gradient(ellipse at 68% 55%,rgba(210,220,232,.09),transparent 32%),
+    radial-gradient(ellipse at 50% 75%,rgba(96,124,150,.09),transparent 35%);
+  filter:blur(42px);
+  opacity:.62;
+  animation:kSmokeDrift 9s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.welcomeHero:after{
+  content:"";
+  position:absolute;
+  width:72%;
+  max-width:780px;
+  height:52%;
+  left:50%;
+  top:56%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse,rgba(232,238,246,.075),transparent 66%);
+  filter:blur(30px);
+  animation:kSmokeBreath 6.5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes kSmokeDrift{
+  0%{transform:translate(-53%,-49%) scale(.94) rotate(-1deg);opacity:.38}
+  50%{opacity:.72}
+  100%{transform:translate(-47%,-52%) scale(1.07) rotate(1deg);opacity:.58}
+}
+@keyframes kSmokeBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.92);opacity:.28}
+  50%{transform:translate(-50%,-50%) scale(1.08);opacity:.7}
+}
+.welcomeCopy{
+  position:relative;
+  z-index:3;
+  flex:none!important;
+  width:min(900px,100%)!important;
+  text-align:center!important;
+}
+.welcomeCopy .eyebrow{display:block;margin-bottom:5px}
+.welcome h1{
+  margin:0!important;
+  font-size:clamp(30px,4vw,54px)!important;
+  line-height:1.35!important;
+}
+.welcome h1 strong{
+  color:#f0d17c!important;
+  text-shadow:0 0 26px rgba(213,180,94,.13);
+}
+.welcomeCopy>p{display:none!important}
+.actions{
+  justify-content:center!important;
+  margin-top:14px!important;
+  flex-wrap:wrap!important;
+}
+.heroCrest{
+  position:relative!important;
+  z-index:3;
+  width:min(540px,82vw)!important;
+  min-width:0!important;
+  flex:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.heroCrest:before{
+  content:"";
+  position:absolute;
+  width:78%;
+  height:78%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(232,238,246,.11),rgba(100,130,160,.035) 42%,transparent 72%);
+  filter:blur(24px);
+  animation:kCrestMist 5.8s ease-in-out infinite;
+  z-index:-1;
+}
+.heroCrest img{
+  width:min(480px,76vw)!important;
+  max-height:58vh!important;
+  height:auto!important;
+  aspect-ratio:1;
+  object-fit:contain;
+  display:block;
+  filter:
+    drop-shadow(0 24px 42px rgba(0,0,0,.72))
+    drop-shadow(0 0 26px rgba(213,180,94,.13));
+  animation:kCrestFloat 6.2s ease-in-out infinite;
+}
+.heroCrest span{display:none!important}
+@keyframes kCrestMist{
+  0%,100%{transform:scale(.88);opacity:.3}
+  50%{transform:scale(1.08);opacity:.75}
+}
+@keyframes kCrestFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.heroScrollHint{z-index:4}
+
+/* Drawer is an overlay, so opening it never changes the page width. */
+@media(max-width:900px){
+  .app main{width:100%!important;max-width:100vw!important}
+  .topNav{
+    position:fixed!important;
+    top:0!important;
+    right:-300px!important;
+    bottom:0!important;
+    width:min(292px,82vw)!important;
+    height:100dvh!important;
+    z-index:1000!important;
+    overflow-y:auto!important;
+    box-shadow:-18px 0 50px rgba(0,0,0,.45)!important;
+  }
+  .topNav.open{right:0!important}
+  .welcomeHero{
+    min-height:calc(100dvh - 84px)!important;
+    padding:26px 16px 44px!important;
+  }
+  .welcome h1{font-size:clamp(28px,8vw,38px)!important}
+  .heroCrest{width:min(430px,88vw)!important}
+  .heroCrest img{width:min(390px,82vw)!important;max-height:52vh!important}
+}
+@media(max-width:480px){
+  .sirenBar{height:11px!important;min-height:11px!important}
+  .welcomeHero{gap:13px!important;padding:22px 12px 34px!important}
+  .welcomeCopy .eyebrow{font-size:8px!important;letter-spacing:1px!important}
+  .welcome h1{font-size:28px!important}
+  .actions{gap:7px!important}
+  .actions button,.actions a{min-height:40px!important;padding:9px 12px!important}
+  .heroCrest img{width:min(315px,82vw)!important;max-height:46vh!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .sirenBar:before,.sirenBar:after,.sirenTrack:before,.sirenTrack:after,
+  .welcomeHero:before,.welcomeHero:after,.heroCrest:before,.heroCrest img{
+    animation:none!important;
+  }
+}
