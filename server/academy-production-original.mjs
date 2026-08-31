@@ -227,8 +227,10 @@ async function saveExamStorage(which=['exams','results','attempts'],source=data)
 }
 async function persistExamStorage(which=['exams','results','attempts']){
   if(supabaseActive){
-    await saveAcademyData(data);
-    queueGoogleMirror('exam-data');
+    // Exam autosave/submit/start requests can arrive concurrently. Route them
+    // through the same persistence queue used by normal mutations so Supabase
+    // writes cannot race each other.
+    await save();
     return;
   }
   await saveExamStorage(which);
@@ -287,7 +289,7 @@ function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function perms(uid){return ADMINS.has(id(uid))?ALL:(admin(uid)?.enabled?(admin(uid).permissions||[]):[])}
 async function current(req){const x=sess(req);if(!x)return{x:null,police:null,role:'citizen',admin:false,permissions:[]};try{const rows=await police(),p=rows.find(r=>id(r.discordId)===id(x.id))||null,a=admin(x.id);return{x,police:p,role:role(p),admin:ADMINS.has(id(x.id))||Boolean(a?.enabled),permissions:perms(x.id),sheet:true}}catch(e){const a=admin(x.id);return{x,police:null,role:'unknown',admin:ADMINS.has(id(x.id))||Boolean(a?.enabled),permissions:perms(x.id),sheet:false,error:e.message}}}
 async function requireAdmin(req,res,p='view_dashboard'){const c=await current(req);if(!c.x){res.status(401).json({error:'UNAUTHENTICATED'});return null}if(!c.sheet){res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});return null}if(!storageReady){res.status(503).json({error:'ACADEMY_STORAGE_UNAVAILABLE',retryable:true});return null}if(!c.admin){res.status(403).json({error:'FORBIDDEN'});return null}if(p&&!c.permissions.includes(p)){res.status(403).json({error:'INSUFFICIENT_PERMISSION',permission:p});return null}return c}
-function audit(c,a,t,d=''){data.audit.unshift({id:`audit-${Date.now()}`,at:new Date().toISOString(),actorId:String(c.x.id),actorName:c.police?.name||c.x.global_name||c.x.username,actorDepartment:c.police?.department||c.police?.responsibility||'',action:a,target:t,details:d});data.audit=data.audit.slice(0,1000)}
+function audit(c,a,t,d=''){data.audit.unshift({id:`audit-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,at:new Date().toISOString(),actorId:String(c.x.id),actorName:c.police?.name||c.x.global_name||c.x.username,actorDepartment:c.police?.department||c.police?.responsibility||'',action:a,target:t,details:d});data.audit=data.audit.slice(0,1000)}
 function member(r){return{...r,role:role(r),image:data.memberImages?.[r.discordId]||'',profileButtonVisible:data.memberSettings?.[r.discordId]?.showProfileButton!==false}}
 async function saved(fn,req,res){const snapshot=structuredClone(data);try{return await fn()}catch(e){data=snapshot;console.error('API mutation failed:',e);if(res.headersSent)return;return res.status(503).json({error:'STORAGE_ERROR',message:'تعذر حفظ البيانات حاليًا. تم التراجع عن العملية ولم تُحفظ بيانات ناقصة.',retryable:true})}}
 function cleanQuestion(q){const type=['choice','yesno','text'].includes(q?.type)?q.type:'text';const options=Array.isArray(q?.options)?q.options.map(v=>String(v).trim()).filter(Boolean):[];let correct=q?.correct==null?'':String(q.correct);if(type==='choice'&&!options.includes(correct))correct='';if(type==='yesno'&&!['نعم','لا'].includes(correct))correct='';if(type==='text')correct='';const questionBankId=q?.questionBankId?String(q.questionBankId).trim():'';return{id:String(q?.id||`q-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),text:String(q?.text||'').trim(),type,options,correct,required:q?.required!==false,points:Math.max(1,Number(q?.points||1)),...(questionBankId?{questionBankId}: {})}}
