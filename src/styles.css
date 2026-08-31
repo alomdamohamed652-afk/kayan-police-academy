@@ -1267,3 +1267,51 @@ button:not(:disabled):hover{transform:translateY(-1px)}
 .hierarchyLevelLabel{display:none!important}
 .hierarchyPosition{display:none}
 .hierInfo span:empty{display:none}
+
+/* ===== ACADEMY HIERARCHY V2 ===== */
+.hierarchyOrg{position:relative;padding:10px 0 55px}
+.hierarchyOrgRow{position:relative;animation:academyPanelIn .45s ease both}
+.hierarchyOrgRow+.hierarchyOrgRow{margin-top:22px}
+.hierarchyRowCards{display:flex;justify-content:center;align-items:flex-start;gap:22px;flex-wrap:nowrap;direction:rtl}
+.hierarchyConnector{height:54px;position:relative;display:flex;justify-content:center;align-items:flex-start}
+.hierarchyConnector:before{content:"";position:absolute;top:0;bottom:0;width:2px;background:linear-gradient(180deg,rgba(217,185,87,.8),rgba(217,185,87,.22));box-shadow:0 0 12px rgba(217,185,87,.18)}
+.hierarchyConnector span{position:absolute;top:0;width:11px;height:11px;border:2px solid #d9b957;background:#081523;border-radius:50%;z-index:2}
+.hierCard{width:245px;max-width:245px;min-height:335px;padding:18px 16px 20px;gap:12px;border-radius:22px}
+.hierCard img,.hierPlaceholder{width:155px;height:155px;flex-basis:155px}
+.hierInfo b{font-size:18px}
+.hierarchyPosition{font-size:10px;top:12px;right:12px}
+.hierarchyAdminGuide{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 24px}
+.hierarchyAdminGuide>div{padding:13px 15px;border:1px solid rgba(92,125,166,.22);border-radius:14px;background:#091827}
+.hierarchyAdminGuide b{display:block;color:#d9b957;font-size:14px;margin-bottom:4px}
+.hierarchyAdminGuide span{font-size:12px;color:#8ea0b4}
+.hierarchyAdminRows{display:flex;flex-direction:column;gap:24px}
+.hierarchyAdminRow{border:1px solid rgba(92,125,166,.25);border-radius:20px;padding:18px;background:linear-gradient(180deg,rgba(13,30,49,.78),rgba(7,18,30,.72))}
+.hierarchyAdminRow>header{display:flex;justify-content:space-between;align-items:center;padding:0 4px 14px;border-bottom:1px solid rgba(92,125,166,.16);margin-bottom:16px}
+.hierarchyAdminRow>header strong{font-size:19px;color:#f4f6f8}
+.hierarchyAdminRow>header span{font-size:12px;color:#d9b957}
+.hierarchyAdminRowCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.hierarchyEditCard{margin:0!important;display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:start;padding:14px;border:1px solid rgba(92,125,166,.22);border-radius:16px;background:#081523}
+.hierarchyEditCard .preview{position:relative;min-height:92px}
+.hierarchyEditCard .preview img,.hierarchyEditCard .preview>svg{width:78px;height:78px;border-radius:50%;object-fit:cover;border:1px solid rgba(217,185,87,.35)}
+.hierarchyEditCard .preview small{position:absolute;bottom:-2px;right:0;background:#071321;border:1px solid rgba(217,185,87,.3);border-radius:7px;padding:3px 5px;color:#d9b957;direction:ltr}
+.hierarchyEditFields{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
+.hierarchyEditFields label{font-size:11px!important;color:#8ea0b4!important}
+.hierarchyEditFields label:first-child,.hierarchyEditFields label:nth-child(2){grid-column:span 1}
+.hierarchyEditFields input,.hierarchyEditFields select{margin-top:5px!important}
+.hierEditActions{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid rgba(92,125,166,.13)}
+.hierEditActions>span{font-size:11px;color:#8ea0b4}
+.hierEditActions>span b{color:#d9b957}
+.hierEditActions>div{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.hierEditActions button{font-size:11px!important;padding:7px 10px!important}
+@media(max-width:900px){
+ .hierarchyRowCards{flex-wrap:wrap}
+ .hierarchyAdminGuide{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+ .hierCard{width:min(100%,280px);max-width:280px}
+ .hierarchyRowCards{flex-direction:column;align-items:center}
+ .hierarchyAdminGuide{grid-template-columns:1fr}
+ .hierarchyEditCard{grid-template-columns:1fr}
+ .hierarchyEditCard .preview{display:flex;justify-content:center}
+ .hierEditActions{flex-direction:column;align-items:stretch}
+}
