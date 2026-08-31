@@ -1194,3 +1194,54 @@ button:not(:disabled):hover{transform:translateY(-1px)}
   .hierarchyLevelRow{grid-template-columns:1fr;gap:12px}
   .hierCard{width:min(100%,280px);max-width:280px;justify-self:center}
 }
+
+/* Refined hierarchy level headings: clean section dividers instead of pill labels */
+.hierarchyLevelLabel{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  margin:2px 0 20px;
+  min-height:38px;
+}
+.hierarchyLevelLabel::before,
+.hierarchyLevelLabel::after{
+  content:"";
+  display:block;
+  width:min(24%,180px);
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(217,185,87,.42));
+}
+.hierarchyLevelLabel::after{
+  background:linear-gradient(90deg,rgba(217,185,87,.42),transparent);
+}
+.hierarchyLevelLabel span{
+  min-width:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+  color:#d9b957;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.1px;
+  white-space:nowrap;
+}
+.hierarchyLevelLabel span::before{
+  content:"";
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-inline-end:9px;
+  border:1px solid rgba(217,185,87,.72);
+  border-radius:50%;
+  vertical-align:1px;
+  box-shadow:0 0 0 4px rgba(217,185,87,.055);
+}
+@media(max-width:560px){
+  .hierarchyLevelLabel{gap:10px;margin-bottom:14px}
+  .hierarchyLevelLabel::before,.hierarchyLevelLabel::after{width:18%;min-width:35px}
+  .hierarchyLevelLabel span{font-size:14px}
+}
