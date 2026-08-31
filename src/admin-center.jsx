@@ -144,7 +144,7 @@ function HierarchyAdmin({state,reload,setMsg}){
  const seed=normalize((state.hierarchy||[]).map((x,i)=>({...x,level:Math.max(1,Number(x.level)||1),position:Math.max(1,Number(x.position)||i+1)})));
  const[items,setItems]=useState(seed);
  useEffect(()=>setItems(normalize((state.hierarchy||[]).map((x,i)=>({...x,level:Math.max(1,Number(x.level)||1),position:Math.max(1,Number(x.position)||i+1)})))),[state.hierarchy]);
- const patch=(idv,k,v)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,[k]:k==='level'?Math.max(1,Number(v)||1):k==='position'?Math.max(1,Number(v)||1):v:x));
+ const patch=(idv,k,v)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,[k]:k==='level'?Math.max(1,Number(v)||1):k==='position'?Math.max(1,Number(v)||1):v}:x));
  const moveLevel=(idv,delta)=>setItems(a=>a.map(x=>String(x.id)===String(idv)?{...x,level:Math.max(1,Number(x.level||1)+delta)}:x));
  const add=()=>{const max=Math.max(0,...items.map(x=>Number(x.level)||1));setItems(a=>[...a,{id:`node-${Date.now()}`,title:'منصب جديد',name:'غير محدد',discordId:'',image:'',level:max+1,position:1}])};
  const remove=idv=>setItems(a=>a.filter(x=>String(x.id)!==String(idv)));
