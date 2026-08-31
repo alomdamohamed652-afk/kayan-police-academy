@@ -1,3 +1,4 @@
+import './runtime-stability-patch.mjs';
 import fs from 'node:fs/promises';
 const source=await fs.readFile('src/main.jsx','utf8');
 if(!source.includes('function Applications({user}){'))throw new Error('PREPARE_BUILD_APPLICATION_FUNCTION_NOT_FOUND');
