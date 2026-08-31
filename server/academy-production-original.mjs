@@ -58,6 +58,8 @@ async function police(force=false){if(!POLICE_SHEET_ID)throw new Error('POLICE_S
 async function ensureSheets(s,names=[DATA_SHEET]){if(!DATA_SHEET_ID)throw new Error('ACADEMY_GOOGLE_SHEET_ID_NOT_CONFIGURED');const m=await s.spreadsheets.get({spreadsheetId:DATA_SHEET_ID,fields:'sheets.properties'});const have=new Set((m.data.sheets||[]).map(x=>x.properties?.title));const requests=names.filter(n=>n&&!have.has(n)).map(n=>({addSheet:{properties:{title:n}}}));if(requests.length)try{await s.spreadsheets.batchUpdate({spreadsheetId:DATA_SHEET_ID,requestBody:{requests}})}catch(e){if(!/already exists|alreadyExists|duplicate/i.test(String(e?.message||e)))throw e}}
 async function ensureData(s){return ensureSheets(s,[DATA_SHEET])}
 async function recoverMissingLegacyCollections(remote){
+  const hasCore=Array.isArray(remote?.exams)&&remote.exams.length>0&&Array.isArray(remote?.hierarchy)&&remote.hierarchy.length>0&&Array.isArray(remote?.questionBank)&&remote.questionBank.length>0;
+  if(hasCore)return false;
   if(!DATA_SHEET_ID)return false;
   try{
     const s=await service();
