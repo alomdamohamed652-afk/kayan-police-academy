@@ -54,14 +54,37 @@ function expireBatches(){const expired=[];for(const b of Array.isArray(data.batc
 async function creds(){if(credentials)return credentials;const raw=String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON||'').trim()||await fs.readFile(SERVICE_FILE,'utf8');credentials=JSON.parse(raw);return credentials}
 function isGoogleClockSkewError(e){const m=String(e?.message||e?.response?.data?.error?.message||e||'').toLowerCase();return m.includes('jwt issued at future')||m.includes('issued at future')||m.includes('token used too early')||m.includes('invalid_grant')&&m.includes('clock')}
 async function resetGoogleAuth(){credentials=null;sheets=null}
+let googleClockOffsetMs=0,googleClockOffsetAt=0,googleClockQueue=Promise.resolve();
+async function getGoogleClockOffset(){
+  const forced=Number(process.env.GOOGLE_CLOCK_SKEW_MS);
+  if(Number.isFinite(forced)&&forced!==0)return forced;
+  if(now()-googleClockOffsetAt<300000)return googleClockOffsetMs;
+  try{
+    const r=await fetch('https://www.googleapis.com/',{method:'HEAD',signal:AbortSignal.timeout(5000)});
+    const serverDate=Date.parse(r.headers.get('date')||'');
+    if(Number.isFinite(serverDate)){googleClockOffsetMs=serverDate-Date.now();googleClockOffsetAt=now();console.warn('Google clock offset detected: '+googleClockOffsetMs+'ms')}
+  }catch(e){console.warn('Google clock sync probe failed; using local clock:',e.message)}
+  return googleClockOffsetMs;
+}
+async function withGoogleClock(fn){
+  const previous=googleClockQueue;
+  let release;
+  googleClockQueue=new Promise(r=>{release=r});
+  await previous;
+  const realNow=Date.now;
+  const offset=await getGoogleClockOffset();
+  try{Date.now=()=>realNow()+offset;return await fn()}
+  finally{Date.now=realNow;release()}
+}
 async function googleRetry(fn,label='Google API'){
   let last;
   for(let attempt=0;attempt<4;attempt++){
-    try{return await fn()}
+    try{return await withGoogleClock(fn)}
     catch(e){
       last=e;
       if(!isGoogleClockSkewError(e)||attempt===3)throw e;
-      console.warn(`${label}: Google clock-skew auth error; retrying in ${1+attempt*2}s (attempt ${attempt+1}/4)`);
+      console.warn(label+': Google clock-skew auth error; resyncing and retrying in '+(1+attempt*2)+'s (attempt '+(attempt+1)+'/4)');
+      googleClockOffsetAt=0;
       await resetGoogleAuth();
       await sleep(1000+attempt*2000);
     }
