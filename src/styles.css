@@ -2467,3 +2467,16 @@ input,textarea,select{max-width:100%;min-width:0}
 .devStorePopup small{position:relative;display:block;margin-top:17px;color:#62758b;font-size:10px}
 @keyframes devStoreFade{from{opacity:0}to{opacity:1}}
 @media(max-width:520px){.devStorePopup{padding:30px 20px 22px}.devStoreActions{flex-direction:column}.devStoreJoin,.devStoreLater{width:100%}}
+
+/* === VERIFIED DEVELOPMENT STORE === */
+.devStoreGuildIcon{position:relative;width:74px;height:74px;margin:0 auto 16px;border-radius:22px;object-fit:cover;border:1px solid rgba(213,180,94,.55);box-shadow:0 12px 30px rgba(0,0,0,.3)}
+.devStoreVerify{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border:1px solid rgba(213,180,94,.55);border-radius:12px;background:#14253a;color:#e9eef5;font-weight:900;cursor:pointer}
+.devStoreVerify:disabled{opacity:.65;cursor:wait}
+.spin{animation:devSpin .9s linear infinite}
+@keyframes devSpin{to{transform:rotate(360deg)}}
+.devStoreAdminCard{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;margin:12px 0 18px;border:1px solid #273c54;border-radius:14px;background:#0b1a2a}
+.devStoreAdminCard>div{display:flex;flex-direction:column;gap:5px}
+.devStoreAdminCard strong{color:#edf2f7}
+.devStoreAdminCard span{color:#71859b;font-size:12px;line-height:1.6}
+.settingsPanel .warning{background:#d5b45e!important;color:#07111e!important;border-color:#d5b45e!important}
+@media(max-width:600px){.devStoreAdminCard{align-items:stretch;flex-direction:column}.devStoreAdminCard .warning{width:100%}.devStoreVerify,.devStoreJoin{width:100%}}
