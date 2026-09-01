@@ -128,7 +128,7 @@ async function saveAcademyData(data){
 async function loadAcademyData(){
   if(!supabaseConfigured) return null;
   const [settings,batches,appQs,apps,bank,exams,eq,attempts,results,admins,hierarchy,memberSettings,memberImages,evaluations,audit,logins,drafts,overrides]=await Promise.all([
-    all('academy_settings','id'),all('application_batches'),all('application_questions'),all('applications'),all('question_bank'),
+    all('academy_settings','id'),all('application_batches'),all('application_questions','position'),all('applications'),all('question_bank'),
     all('exams'),all('exam_questions','position'),all('exam_attempts'),all('exam_results'),all('admins','discord_id'),all('hierarchy','position'),
     all('member_settings','discord_id'),all('member_images','discord_id'),all('evaluations'),all('audit_logs'),all('login_logs'),
     all('application_drafts','discord_id'),all('role_overrides','discord_id')
