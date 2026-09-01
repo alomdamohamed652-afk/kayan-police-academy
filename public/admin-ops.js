@@ -12,7 +12,7 @@
   const healthOk=()=>health?.ok&&health?.persistentAcademyConfigured&&health?.storageMode!=='unavailable';
   const renderDock=()=>{
     if(!isAdminRoute()){dock?.remove();dock=null;return}
-    if(!dock){dock=document.createElement('div');dock.className='kayanOpsDock';dock.innerHTML='<span class="kayanOpsStatus"><i></i><span>فحص النظام</span></span><button type="button" data-kayan-action="search">⌕ بحث شامل <kbd>Ctrl K</kbd></button><button type="button" data-kayan-action="alerts">تنبيهات <span class="kayanOpsCount">0</span></button>';document.body.appendChild(dock);dock.addEventListener('click',e=>{const b=e.target.closest('button[data-kayan-action]');if(!b)return;openModal(b.dataset.kayanAction)})}
+    if(!dock){dock=document.createElement('div');dock.className='kayanOpsDock';dock.innerHTML='<span class="kayanOpsStatus"><i></i><span>فحص النظام</span></span><button type="button" data-kayan-action="search">⌕ بحث شامل <kbd>Ctrl Q</kbd></button><button type="button" data-kayan-action="alerts">تنبيهات <span class="kayanOpsCount">0</span></button>';document.body.appendChild(dock);dock.addEventListener('click',e=>{const b=e.target.closest('button[data-kayan-action]');if(!b)return;openModal(b.dataset.kayanAction)})}
     const st=dock.querySelector('.kayanOpsStatus'),ct=dock.querySelector('.kayanOpsCount');
     st.classList.toggle('ok',Boolean(healthOk()));st.classList.toggle('warn',Boolean(health&&!healthOk()));st.querySelector('span').textContent=healthOk()?'النظام مستقر':health?'راجع حالة التخزين':'فحص النظام';ct.textContent=String(alertTotal());
   };
