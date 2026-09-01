@@ -169,7 +169,40 @@ async function recoverMissingLegacyCollections(remote){
   }
 }
 async function load(){try{
-if(supabaseConfigured){const remote=await loadAcademyData();const base=structuredClone(DEFAULT);if(remote){data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};data.version=18;}else{let recoveredFromLegacy=false;try{if(DATA_SHEET_ID){await googleRetry(async()=>{const gs=await service();await ensureData(gs);return true},'Legacy academy recovery');const gs=await service();const gr=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A10000`})},'Legacy academy recovery read');const raw=(gr.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);if(parsed&&typeof parsed==='object'&&Object.values(parsed).some(v=>Array.isArray(v)?v.length>0:(v&&typeof v==='object'?Object.keys(v).length>0:Boolean(v)))){data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};data.version=18;recoveredFromLegacy=true;console.warn('Supabase academy storage was empty; recovered academy data from Google legacy storage.');}}}}catch(e){console.error('Legacy academy recovery failed:',e.message)}if(!recoveredFromLegacy){data=base;console.error('Supabase academy storage is empty and no legacy academy data was recovered; refusing to overwrite legacy storage.');}}}try{const repaired=recoverSubmittedExamResults();if(repaired)saveToSheet(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Google storage:',e.message)}data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};try{const recovered=await recoverMissingLegacyCollections(data);if(recovered)await saveAcademyData(data);}catch(e){console.error('Legacy recovery unavailable; continuing with Supabase:',e.message)}try{const repaired=recoverSubmittedExamResults();if(repaired)saveAcademyData(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Supabase:',e.message)}supabaseActive=true;storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await saveAcademyData(data);if(remote||changed)console.log('Supabase academy storage ready.');else console.warn('Supabase academy storage started with defaults only; no Google mirror overwrite is triggered until real academy data exists.');return;}await googleRetry(async()=>{const s=await service();await ensureData(s);return true},'Google DATA initialization');const s=await service();const r=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`})},'Google DATA read');const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
+if(supabaseConfigured){
+const remote=await loadAcademyData();
+const base=structuredClone(DEFAULT);
+if(remote){
+  data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};
+  data.version=18;
+}else{
+  let recoveredFromLegacy=false;
+  if(DATA_SHEET_ID){
+    try{
+      await googleRetry(async()=>{const gs=await service();await ensureData(gs);return true},'Legacy academy recovery');
+      const gs=await service();
+      const gr=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A10000`})},'Legacy academy recovery read');
+      const raw=(gr.data.values||[]).map(row=>String(row?.[0]??'')).join('');
+      if(raw){
+        const parsed=JSON.parse(raw);
+        const hasLegacy=parsed&&typeof parsed==='object'&&Object.values(parsed).some(v=>Array.isArray(v)?v.length>0:(v&&typeof v==='object'?Object.keys(v).length>0:Boolean(v)));
+        if(hasLegacy){
+          data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};
+          data.version=18;
+          recoveredFromLegacy=true;
+          console.warn('Supabase academy storage was empty; recovered academy data from Google legacy storage.');
+        }
+      }
+    }catch(e){
+      console.error('Legacy academy recovery failed:',e.message);
+    }
+  }
+  if(!recoveredFromLegacy){
+    data=base;
+    console.error('Supabase academy storage is empty and no legacy academy data was recovered; refusing to overwrite legacy storage.');
+  }
+}
+try{const repaired=recoverSubmittedExamResults();if(repaired)saveToSheet(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Google storage:',e.message)}data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};try{const recovered=await recoverMissingLegacyCollections(data);if(recovered)await saveAcademyData(data);}catch(e){console.error('Legacy recovery unavailable; continuing with Supabase:',e.message)}try{const repaired=recoverSubmittedExamResults();if(repaired)saveAcademyData(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Supabase:',e.message)}supabaseActive=true;storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await saveAcademyData(data);if(remote||changed)console.log('Supabase academy storage ready.');else console.warn('Supabase academy storage started with defaults only; no Google mirror overwrite is triggered until real academy data exists.');return;}await googleRetry(async()=>{const s=await service();await ensureData(s);return true},'Google DATA initialization');const s=await service();const r=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`})},'Google DATA read');const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
 // Migrate legacy hierarchy entries that predate explicit level/position fields into the simple row layout.
 if(Array.isArray(data.hierarchy)&&data.hierarchy.length>1&&data.hierarchy.every(x=>x?.level==null&&x?.position==null&&x?.order==null)){
   let level=1,pos=1,count=0;
