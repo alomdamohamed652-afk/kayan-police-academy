@@ -2453,8 +2453,8 @@ input,textarea,select{max-width:100%;min-width:0}
 }
 
 /* === DEVELOPMENT STORE INVITE === */
-.devStoreOverlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,8,15,.78);backdrop-filter:blur(8px);animation:devStoreFade .2s ease}
-.devStorePopup{position:relative;width:min(470px,calc(100vw - 36px));padding:34px 30px 26px;border:1px solid rgba(213,180,94,.55);border-radius:24px;background:linear-gradient(145deg,#0d1b2b,#07111e);box-shadow:0 25px 80px rgba(0,0,0,.55);text-align:center;overflow:hidden}
+.devStoreOverlay{position:fixed;top:0;left:0;width:100vw;height:100dvh;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,8,15,.78);backdrop-filter:blur(8px);animation:devStoreFade .2s ease;overflow:auto}
+.devStorePopup{position:relative;width:min(470px,calc(100vw - 36px));max-height:calc(100dvh - 40px);overflow-y:auto;padding:34px 30px 26px;border:1px solid rgba(213,180,94,.55);border-radius:24px;background:linear-gradient(145deg,#0d1b2b,#07111e);box-shadow:0 25px 80px rgba(0,0,0,.55);text-align:center;overflow:hidden}
 .devStorePopup:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 0,rgba(213,180,94,.13),transparent 48%)}
 .devStoreClose{position:absolute;top:12px;left:14px;width:34px;height:34px;border:1px solid #30435b;border-radius:10px;background:#132236;color:#aebdce;font-size:23px;cursor:pointer}
 .devStoreIcon{position:relative;width:58px;height:58px;margin:0 auto 16px;display:grid;place-items:center;border-radius:18px;background:rgba(213,180,94,.12);border:1px solid rgba(213,180,94,.45);color:#d5b45e}
