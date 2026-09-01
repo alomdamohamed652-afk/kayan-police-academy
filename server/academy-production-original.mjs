@@ -357,7 +357,41 @@ function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function perms(uid){return ADMINS.has(id(uid))?ALL:(admin(uid)?.enabled?(admin(uid).permissions||[]):[])}
 const withTimeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('POLICE_SHEET_TIMEOUT')),ms))]);
 async function current(req){const x=sess(req);if(!x)return{x:null,police:null,role:'citizen',admin:false,permissions:[]};const a=admin(x.id),isAdmin=ADMINS.has(id(x.id))||Boolean(a?.enabled);try{const rows=await withTimeout(police(),4000),p=rows.find(r=>id(r.discordId)===id(x.id))||null;return{x,police:p,role:role(p),admin:isAdmin,permissions:perms(x.id),sheet:true}}catch(e){return{x,police:null,role:'unknown',admin:isAdmin,permissions:perms(x.id),sheet:false,error:e.message}}}
-async function requireAdmin(req,res,p='view_dashboard'){const c=await current(req);if(!c.x){res.status(401).json({error:'UNAUTHENTICATED'});return null}if(!c.sheet){res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});return null}if(!storageReady){res.status(503).json({error:'ACADEMY_STORAGE_UNAVAILABLE',retryable:true});return null}if(!c.admin){res.status(403).json({error:'FORBIDDEN'});return null}if(p&&!c.permissions.includes(p)){res.status(403).json({error:'INSUFFICIENT_PERMISSION',permission:p});return null}return c}
+let storageRecoveryPromise=null;
+async function recoverStorage(){
+  if(storageReady)return true;
+  if(storageRecoveryPromise)return storageRecoveryPromise;
+  storageRecoveryPromise=(async()=>{
+    // Do not make a transient startup failure permanently disable the admin API.
+    // Retry the real persistent store before returning 503.
+    if(supabaseConfigured){
+      for(let attempt=1;attempt<=5;attempt++){
+        try{
+          const remote=await loadAcademyData();
+          if(remote){
+            const base=structuredClone(DEFAULT);
+            data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};
+            data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};
+            data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};
+            data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};
+            supabaseActive=true;storageReady=true;lastStorageError='';
+            console.log('Supabase academy storage recovered on request.');
+            return true;
+          }
+        }catch(e){
+          lastStorageError=String(e?.message||e);
+          console.error('Supabase storage recovery attempt '+attempt+':',lastStorageError);
+        }
+        await sleep(attempt*1000);
+      }
+    }
+    // If Supabase is configured but temporarily empty/unreachable, never promote
+    // Google mirror failure to the primary storage status.
+    return false;
+  })().finally(()=>{storageRecoveryPromise=null});
+  return storageRecoveryPromise;
+}
+async function requireAdmin(req,res,p='view_dashboard'){const c=await current(req);if(!c.x){res.status(401).json({error:'UNAUTHENTICATED'});return null}if(!c.sheet){res.status(503).json({error:'POLICE_SHEET_UNAVAILABLE',retryable:true});return null}if(!storageReady&&!await recoverStorage()){res.status(503).json({error:'ACADEMY_STORAGE_UNAVAILABLE',retryable:true});return null}if(!c.admin){res.status(403).json({error:'FORBIDDEN'});return null}if(p&&!c.permissions.includes(p)){res.status(403).json({error:'INSUFFICIENT_PERMISSION',permission:p});return null}return c}
 function audit(c,a,t,d=''){data.audit.unshift({id:`audit-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,at:new Date().toISOString(),actorId:String(c.x.id),actorName:c.police?.name||c.x.global_name||c.x.username,actorDepartment:c.police?.department||c.police?.responsibility||'',action:a,target:t,details:d});data.audit=data.audit.slice(0,1000)}
 function member(r){const assigned=(data.memberBadges?.[r.discordId]||[]).map(bid=>(data.badges||[]).find(b=>String(b.id)===String(bid))).filter(Boolean);return{...r,role:role(r),image:data.memberImages?.[r.discordId]||'',profileButtonVisible:data.memberSettings?.[r.discordId]?.showProfileButton!==false,badges:assigned}}
 async function saved(fn,req,res){const snapshot=structuredClone(data);try{return await fn()}catch(e){data=snapshot;console.error('API mutation failed:',e);if(res.headersSent)return;return res.status(503).json({error:'STORAGE_ERROR',message:'تعذر حفظ البيانات حاليًا. تم التراجع عن العملية ولم تُحفظ بيانات ناقصة.',retryable:true})}}
