@@ -2340,3 +2340,24 @@ input,textarea,select{max-width:100%;min-width:0}
  .siteFooter .footerDeveloper{min-width:0!important;border-left:0!important;border-right:0!important;border-top:1px solid #203047!important;border-bottom:1px solid #203047!important;padding:22px 0!important}
  .siteFooter .footerActions{padding:22px 0 6px!important}
 }
+
+/* ===== Academy management additions ===== */
+.badgeManagerPanel{margin-bottom:18px;padding:20px}
+.badgeCreateGrid{grid-template-columns:90px 1fr 1.5fr auto;align-items:center}
+.badgeCreateGrid input:first-child{text-align:center;font-size:20px}
+.badgeCatalog,.badgeAssignList{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.badgeCatalogItem,.memberCustomBadge,.badgeAssignButton{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800}
+.badgeCatalogItem,.memberCustomBadge{background:#16263a;border:1px solid #30465f;color:#edf1f6}
+.badgeAssignButton{background:#0d1928;border:1px dashed #3a506d;color:#aebdcd;cursor:pointer}
+.badgeAssignButton:hover{background:#17283d;color:#edf1f6}
+.memberBadgeAssign{margin-top:12px;padding-top:11px;border-top:1px solid #203047}
+.evaluationDashboardGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.evaluationPersonSearch{margin-top:12px}
+.evaluationPeopleResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 14px}
+.evaluationPeopleResults button{padding:12px;border:1px solid #263a52;background:#0d1928;border-radius:12px;color:#edf1f6;text-align:right;cursor:pointer}
+.evaluationPeopleResults button:hover{border-color:#d5b45e}
+.evaluationPeopleResults small{display:block;color:#718096;margin-top:4px}
+.profileTwoCol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.personEvaluationProfile>.panel{margin-bottom:14px}
+@media(max-width:900px){.badgeCreateGrid{grid-template-columns:1fr 1fr}.evaluationDashboardGrid{grid-template-columns:1fr 1fr}.evaluationPeopleResults{grid-template-columns:1fr 1fr}.profileTwoCol{grid-template-columns:1fr}}
+@media(max-width:520px){.badgeCreateGrid,.evaluationDashboardGrid,.evaluationPeopleResults{grid-template-columns:1fr}.badgeCreateGrid input:first-child{width:100%}}
