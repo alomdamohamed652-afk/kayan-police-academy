@@ -114,7 +114,8 @@ async function googleAccessToken(){
 }
 async function service(){
   if(sheets)return sheets;
-  const auth={getRequestHeaders:async()=>({Authorization:'Bearer '+await googleAccessToken()})};
+  const auth=new google.auth.OAuth2();
+  auth.refreshHandler=async()=>({access_token:await googleAccessToken()});
   sheets=google.sheets({version:'v4',auth});
   return sheets;
 }
