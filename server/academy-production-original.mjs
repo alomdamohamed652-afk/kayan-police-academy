@@ -126,7 +126,6 @@ async function ensureSheets(s,names=[DATA_SHEET]){if(!DATA_SHEET_ID)throw new Er
 async function ensureData(s){return ensureSheets(s,[DATA_SHEET])}
 async function recoverMissingLegacyCollections(remote){
   const hasCore=Array.isArray(remote?.exams)&&remote.exams.length>0&&Array.isArray(remote?.hierarchy)&&remote.hierarchy.length>0&&Array.isArray(remote?.questionBank)&&remote.questionBank.length>0;
-  if(hasCore)return false;
   if(!DATA_SHEET_ID)return false;
   try{
     const s=await service();
@@ -144,13 +143,15 @@ async function recoverMissingLegacyCollections(remote){
         changed=true;
       }
     }
-    const objectKeys=['memberImages','memberSettings','applicationDrafts','roleOverrides'];
+    const objectKeys=['memberImages','memberSettings','applicationDrafts','roleOverrides','memberBadges','devStoreTokens'];
     for(const key of objectKeys){
       if((!remote[key]||typeof remote[key]!=='object'||Array.isArray(remote[key])||Object.keys(remote[key]).length===0)&&legacy[key]&&typeof legacy[key]==='object'&&!Array.isArray(legacy[key])){
         remote[key]=legacy[key];
         changed=true;
       }
     }
+    if((!Array.isArray(remote.badges)||remote.badges.length===0)&&Array.isArray(legacy.badges)&&legacy.badges.length){remote.badges=legacy.badges;changed=true;}
+    if((!Number(remote?.settings?.sessionEpoch)&&Number(legacy?.settings?.sessionEpoch))){remote.settings={...(remote.settings||{}),sessionEpoch:Number(legacy.settings.sessionEpoch)};changed=true;}
     const separate=await loadExamStorage(s);
     if((!Array.isArray(remote.exams)||remote.exams.length===0)&&separate.hasSeparate&&Array.isArray(separate.exams)&&separate.exams.length){
       remote.exams=separate.exams; changed=true;
