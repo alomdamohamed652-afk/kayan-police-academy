@@ -341,7 +341,7 @@ function shuffleQuestions(list){const a=[...(Array.isArray(list)?list:[])];for(l
 function orderedExam(e,attempt){const ids=Array.isArray(attempt?.questionOrder)?attempt.questionOrder.map(String):[];const by=new Map((e.questions||[]).map(q=>[String(q.id),q]));const ordered=ids.length?ids.map(id=>by.get(id)).filter(Boolean):shuffleQuestions(e.questions||[]);return publicExam({...e,questions:ordered})}
 function scoreAttempt(e,answers){let earned=0,total=0;for(const q of e.questions||[]){const p=Number(q.points||1);total+=p;if((q.type==='choice'||q.type==='yesno')&&String(answers?.[q.id]??'')===String(q.correct??''))earned+=p}return total?Math.round(earned/total*100):0}
 function recoverSubmittedExamResults(){
-  let changed=false;
+  let changed=false,recoveredCount=0,restoredAnswers=0;
   const attempts=Array.isArray(data.examAttempts)?data.examAttempts:[];
   const results=Array.isArray(data.examResults)?data.examResults:[];
   const byAttempt=new Map(results.map(r=>[String(r.attemptId||r.attemptID||''),r]).filter(([k])=>k));
@@ -362,12 +362,13 @@ function recoverSubmittedExamResults(){
       const score=scoreAttempt(exam,answers);
       result={id:'result-recovered-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),examId:exam.id,userId:String(a.userId||a.discordId||''),name:String(a.name||a.username||'متقدم'),score,passed:score>=Number(exam.passingScore||60),submittedAt,answers,durationSeconds:Number(a.activeDurationSeconds||a.durationSeconds||0),autoSubmitted:Boolean(a.autoSubmitted||a.expired),review};
       results.unshift(result);
+      recoveredCount++;
       byAttempt.set(attemptId,result);
       byUserExam.set(String(exam.id)+'|'+id(a.userId||a.discordId),result);
       changed=true;
     }else{
       if(!result.answers||typeof result.answers!=='object'||!Object.keys(result.answers).length){
-        result.answers=answers;changed=true;
+        result.answers=answers;restoredAnswers++;changed=true;
       }
       if(!Array.isArray(result.review)||!result.review.length){
         result.review=review;changed=true;
@@ -378,6 +379,7 @@ function recoverSubmittedExamResults(){
     if(a.status!=='submitted'&&!a.expired){a.status=result.autoSubmitted?'expired':'submitted';changed=true;}
   }
   data.examResults=results;
+  console.log('Exam recovery scan:',{attempts:attempts.length,results:results.length,recoveredResults:recoveredCount,restoredAnswers});
   return changed;
 }
 
