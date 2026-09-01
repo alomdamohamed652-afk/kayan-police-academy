@@ -353,7 +353,7 @@ function recoverSubmittedExamResults(){
   for(const a of attempts){
     const exam=data.exams?.find(e=>String(e.id)===String(a.examId));
     const answers=a?.answers&&typeof a.answers==='object'?a.answers:{};
-    const submittedAt=a.submittedAt||a.completedAt||a.finishedAt||null;
+    const submittedAt=a.submittedAt||a.completedAt||a.finishedAt||((a.status==='submitted'||a.status==='expired')?(a.updatedAt||a.expiresAt||a.startedAt):null);
     if(!exam||!submittedAt||!Object.keys(answers).length)continue;
     const attemptId=String(a.id||'');
     let result=byAttempt.get(attemptId)||byUserExam.get(String(exam.id)+'|'+id(a.userId||a.discordId));
