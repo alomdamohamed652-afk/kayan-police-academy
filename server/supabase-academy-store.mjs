@@ -56,12 +56,12 @@ function settingsRow(s){
     applications_description:x.applicationsDescription||'نموذج التقديم الرسمي للانضمام إلى شرطة كيان.',passing_score:num(x.passingScore)||60,
     logo_url:x.logoUrl||null,accepted_message:x.acceptedMessage||null,rejected_message:x.rejectedMessage||null,
     accepted_discord_url:x.acceptedDiscordUrl||null,evaluation_trainer_ranks:cleanRows(x.evaluationTrainerRanks).map(str),
-    evaluation_trainee_ranks:cleanRows(x.evaluationTraineeRanks).map(str),updated_by:null,legacy_data:{...x, badges:Array.isArray(data?.badges)?data.badges:[], memberBadges:data?.memberBadges&&typeof data.memberBadges==='object'?data.memberBadges:{}}};
+    evaluation_trainee_ranks:cleanRows(x.evaluationTraineeRanks).map(str),updated_by:null,legacy_data:{...x, badges:Array.isArray(x?.badges)?x.badges:[], memberBadges:x?.memberBadges&&typeof x.memberBadges==='object'?x.memberBadges:{}, devStoreTokens:x?.devStoreTokens&&typeof x.devStoreTokens==='object'?x.devStoreTokens:{}}};
 }
 
 async function saveAcademyData(data){
   if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
-  await upsert('academy_settings',[settingsRow(data.settings)],'id');
+  await upsert('academy_settings',[settingsRow({...data.settings,badges:data.badges,memberBadges:data.memberBadges,devStoreTokens:data.devStoreTokens})],'id');
   const batches=cleanRows(data.batches);
   await upsert('application_batches',batches.map(x=>({legacy_id:legacyOf(x),name:str(x.name)||'دفعة',description:x.description||null,status:x.status||'open',start_at:x.startAt||null,end_at:x.endAt||null,closed_at:x.closedAt||null,created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'legacy_id');
   await prune('application_batches',batches.map(legacyOf));
