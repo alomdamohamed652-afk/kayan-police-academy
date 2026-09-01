@@ -2386,3 +2386,33 @@ input,textarea,select{max-width:100%;min-width:0}
 .publicMemberBadge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,#302916,#1b2230);border:1px solid rgba(216,180,91,.48);color:#e6c86d;font-size:9px;font-weight:800;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.12)}
 .publicMemberIdentity .publicMemberBadge{vertical-align:middle}
 @media(max-width:760px){.personProfileBanner{flex-direction:column;align-items:stretch}.profileAverage{min-width:0}.evaluationRelation{grid-template-columns:1fr!important}.evaluationRelation>b{transform:rotate(90deg)}.evaluationAdminActions>*{flex:1 1 140px}}
+
+/* BADGE MEDIA + CRUD */
+.badgeCreateGrid{grid-template-columns:100px 1fr 1.25fr 1.7fr auto}
+.badgeIconImage{width:18px;height:18px;object-fit:contain;display:inline-block;vertical-align:middle}
+.badgeCatalog{align-items:center}
+.badgeCatalogItem{padding:7px 9px;gap:7px}
+.badgeCatalogItem strong{font-size:11px}
+.badgeCatalogActions{display:inline-flex;gap:4px;margin-right:4px}
+.badgeCatalogActions button{width:26px;height:26px;padding:0;border:1px solid #33485f;border-radius:7px;background:#101e2f;color:#c7d2df;display:grid;place-items:center;cursor:pointer}
+.badgeCatalogActions button:hover{border-color:#d5b45e;color:#fff}
+.badgeCatalogActions button.danger{background:#642331;border-color:#8f3040;color:#fff}
+.badgeEditBox{margin-top:14px;padding:14px;border:1px solid rgba(216,180,91,.25);border-radius:14px;background:#0a1624}
+.badgeImageUrlInput{min-width:0}
+.memberCustomBadge .badgeIconImage{width:15px;height:15px}
+.evaluationAdminActions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:15px}
+.evaluationAdminActions .primary{background:#13844c!important;border-color:#20a864!important;color:#fff!important;box-shadow:0 5px 16px rgba(19,132,76,.2)}
+.evaluationAdminActions .reject{background:#8e2937!important;border:1px solid #b43d4c!important;color:#fff!important}
+.evaluationAdminActions .investigate{background:#7a4d19!important;border:1px solid #a87329!important;color:#fff!important}
+.evaluationAdminActions .danger{background:#642331!important;border:1px solid #913343!important;color:#fff!important}
+.evaluationAdminActions button{min-height:40px;padding:0 15px;border-radius:11px;font-weight:800}
+.profileBadgeRow{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.profileBadge{font-size:10px!important}
+.profileBadge img{width:17px;height:17px;object-fit:contain}
+.memberProfileModal{position:relative;width:min(760px,calc(100vw - 32px));max-height:min(82vh,760px);overflow-y:auto;overflow-x:hidden}
+.memberProfileModal .panelHead{position:sticky;top:-18px;z-index:3;margin:-18px -18px 12px;padding:18px;background:#0a1522ee;backdrop-filter:blur(10px);border-bottom:1px solid #203047}
+.profileHeroIdentity{min-width:0;flex:1}
+.profileHeroIdentity .profileBadgeRow{justify-content:flex-start}
+.modalBackdrop{position:fixed!important;inset:0!important;overflow:auto!important;place-items:center!important;padding:24px!important}
+@media(max-width:900px){.badgeCreateGrid{grid-template-columns:1fr 1fr}.badgeImageUrlInput{grid-column:1/-1}}
+@media(max-width:560px){.badgeCreateGrid{grid-template-columns:1fr}.badgeImageUrlInput{grid-column:auto}.evaluationAdminActions button{flex:1 1 140px}.memberProfileModal{width:calc(100vw - 20px);max-height:90vh}.modalBackdrop{padding:10px!important}}
