@@ -2416,3 +2416,17 @@ input,textarea,select{max-width:100%;min-width:0}
 .modalBackdrop{position:fixed!important;inset:0!important;overflow:auto!important;place-items:center!important;padding:24px!important}
 @media(max-width:900px){.badgeCreateGrid{grid-template-columns:1fr 1fr}.badgeImageUrlInput{grid-column:1/-1}}
 @media(max-width:560px){.badgeCreateGrid{grid-template-columns:1fr}.badgeImageUrlInput{grid-column:auto}.evaluationAdminActions button{flex:1 1 140px}.memberProfileModal{width:calc(100vw - 20px);max-height:90vh}.modalBackdrop{padding:10px!important}}
+
+/* BADGE + PROFILE POLISH */
+.publicMemberBadgeIcon{width:16px;height:16px;object-fit:contain;display:inline-block;flex:0 0 16px;border-radius:4px}
+.profileBadge img{width:18px;height:18px;object-fit:contain;border-radius:4px}
+@media(max-width:760px){
+  .memberProfileModal{width:min(760px,calc(100vw - 20px));max-height:88vh;padding:14px}
+  .memberProfileModal .profileHero{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center}
+  .memberProfileModal .profileAvatar{width:72px;height:72px}
+  .memberProfileModal .detailGrid{grid-template-columns:1fr 1fr}
+  .memberProfileModal .profileBadgeRow{justify-content:flex-start}
+}
+@media(max-width:460px){
+  .memberProfileModal .detailGrid{grid-template-columns:1fr}
+}
