@@ -2318,3 +2318,25 @@ input,textarea,select{max-width:100%;min-width:0}
 .footerDeveloperName{margin-top:12px;}
 .footerActionsStack{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
 .footerActionsStack a{width:100%;justify-content:center;}
+
+/* ===== FOOTER V2 — explicit production overrides ===== */
+.siteFooter .footerInner{display:grid!important;grid-template-columns:minmax(0,1fr) 250px minmax(220px,1fr)!important;align-items:stretch!important;min-height:250px!important;padding:30px 34px!important}
+.siteFooter .footerBrand{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:22px!important;padding:12px 28px!important;direction:rtl!important}
+.siteFooter .academyFooterLogo{display:block!important;width:118px!important;height:118px!important;min-width:118px!important;max-width:118px!important;object-fit:contain!important;filter:drop-shadow(0 7px 16px rgba(0,0,0,.35))!important}
+.siteFooter .footerBrandText{display:flex!important;flex-direction:column!important;gap:8px!important}
+.siteFooter .footerBrandText strong{font-size:21px!important;font-weight:800!important;color:#edf1f6!important}
+.siteFooter .footerBrandText span{font-size:12px!important;color:#718096!important}
+.siteFooter .footerDeveloper{min-width:250px!important;padding:14px 34px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;border-left:1px solid #203047!important;border-right:1px solid #203047!important}
+.siteFooter .footerDeveloper>strong{font-size:22px!important;color:#d5b45e!important}
+.siteFooter .footerDeveloper>small{font-size:11px!important;color:#718096!important}
+.siteFooter .footerDeveloperName{margin-top:28px!important;padding-top:20px!important;width:100%!important;border-top:1px solid #203047!important}
+.siteFooter .footerActions{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:11px!important;padding:14px 28px!important}
+.siteFooter .footerActions a{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:52px!important;padding:14px 18px!important;border-radius:13px!important;font-size:13px!important;font-weight:800!important;box-sizing:border-box!important}
+.siteFooter .footerBottom{min-height:48px!important;padding:12px 30px!important}
+@media(max-width:900px){
+ .siteFooter .footerInner{grid-template-columns:1fr!important;min-height:0!important;padding:22px 18px!important}
+ .siteFooter .footerBrand{justify-content:center!important;padding:10px 0 22px!important}
+ .siteFooter .academyFooterLogo{width:96px!important;height:96px!important;min-width:96px!important}
+ .siteFooter .footerDeveloper{min-width:0!important;border-left:0!important;border-right:0!important;border-top:1px solid #203047!important;border-bottom:1px solid #203047!important;padding:22px 0!important}
+ .siteFooter .footerActions{padding:22px 0 6px!important}
+}
