@@ -2361,3 +2361,28 @@ input,textarea,select{max-width:100%;min-width:0}
 .personEvaluationProfile>.panel{margin-bottom:14px}
 @media(max-width:900px){.badgeCreateGrid{grid-template-columns:1fr 1fr}.evaluationDashboardGrid{grid-template-columns:1fr 1fr}.evaluationPeopleResults{grid-template-columns:1fr 1fr}.profileTwoCol{grid-template-columns:1fr}}
 @media(max-width:520px){.badgeCreateGrid,.evaluationDashboardGrid,.evaluationPeopleResults{grid-template-columns:1fr}.badgeCreateGrid input:first-child{width:100%}}
+
+/* === Individual profiles, clickable report parties & public badges === */
+.evaluationPersonCard{appearance:none;border:1px solid rgba(92,125,166,.28);background:linear-gradient(145deg,#0d1b2c,#0a1624);color:#eef3f8;text-align:right;padding:16px;border-radius:14px;width:100%;cursor:pointer;transition:.18s ease;display:block}
+.evaluationPersonCard:hover{border-color:rgba(216,180,91,.7);background:linear-gradient(145deg,#12243a,#0c1928);transform:translateY(-1px);box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.evaluationPersonCard small{color:#d5b45e!important;font-size:11px!important;font-weight:800}
+.evaluationPersonCard strong{margin-top:7px}
+.evaluationPersonCard span{margin-top:5px}
+.evaluationAdminActions{justify-content:flex-start;gap:8px}
+.evaluationAdminActions .primary{background:#16844d!important;color:#fff!important;border:1px solid #24a968!important;box-shadow:0 6px 18px rgba(22,132,77,.2)}
+.evaluationAdminActions .primary:hover{background:#1ba45f!important}
+.evaluationAdminActions .secondary{background:#7d2631!important;color:#fff!important;border:1px solid #ad3a48!important}
+.evaluationAdminActions .secondary:hover{background:#9a2f3b!important}
+.evaluationAdminActions .danger{background:#8a2935!important;color:#fff!important;border:1px solid #b73d4c!important}
+.evaluationAdminActions .danger:hover{background:#a93240!important}
+.personProfileBanner{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 15px;padding:20px 22px;border:1px solid rgba(216,180,91,.25);border-radius:16px;background:linear-gradient(120deg,rgba(216,180,91,.07),#0b1828)}
+.personProfileBanner h2{margin:7px 0 4px!important}
+.personProfileBanner p{margin:0;color:#91a0b2;font-size:11px}
+.profileAverage{min-width:150px;text-align:center;padding:12px 18px;border-radius:14px;background:#0a1421;border:1px solid #2c3c51}
+.profileAverage strong{display:block;color:#d8b45b;font-size:31px;line-height:1}
+.profileAverage span{display:block;color:#8998aa;font-size:9px;margin-top:7px}
+.publicMemberNameLine{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
+.publicMemberNameLine>strong{display:inline-block}
+.publicMemberBadge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,#302916,#1b2230);border:1px solid rgba(216,180,91,.48);color:#e6c86d;font-size:9px;font-weight:800;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+.publicMemberIdentity .publicMemberBadge{vertical-align:middle}
+@media(max-width:760px){.personProfileBanner{flex-direction:column;align-items:stretch}.profileAverage{min-width:0}.evaluationRelation{grid-template-columns:1fr!important}.evaluationRelation>b{transform:rotate(90deg)}.evaluationAdminActions>*{flex:1 1 140px}}
