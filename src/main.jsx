@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useState,useRef}from'react';
-import{createRoot,createPortal}from'react-dom/client';
+import{createRoot}from'react-dom/client';
+import{createPortal}from'react-dom';
 import{LayoutDashboard,Users,ClipboardCheck,FileText,Shield,LogIn,Menu,X,ChevronLeft,LockKeyhole,ArrowLeft,UserRound,Settings,Network,Upload,Search,Plus,Trash2,ExternalLink,RefreshCw,Eye,Check,BookOpen,Star,Clock}from'lucide-react';
 import'./styles.css';import'./motion.css';
 import{AdminCenter}from'./admin-center.jsx';
