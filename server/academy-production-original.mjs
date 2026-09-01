@@ -72,7 +72,7 @@ async function getGoogleClockOffset(){
     const serverDate=Date.parse(r.headers.get('date')||'');
     if(Number.isFinite(serverDate)){googleClockOffsetMs=serverDate-Date.now();googleClockOffsetAt=now();console.warn('Google clock offset detected: '+googleClockOffsetMs+'ms')}
   }catch(e){console.warn('Google clock sync probe failed; using local clock:',e.message)}
-  return googleClockOffsetMs;
+  return Number.isFinite(googleClockOffsetMs)&&googleClockOffsetMs!==0?googleClockOffsetMs:safeDefault;
 }
 async function withGoogleClock(fn){
   const previous=googleClockQueue;
