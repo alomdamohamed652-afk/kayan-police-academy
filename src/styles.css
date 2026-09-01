@@ -2430,3 +2430,24 @@ input,textarea,select{max-width:100%;min-width:0}
 @media(max-width:460px){
   .memberProfileModal .detailGrid{grid-template-columns:1fr}
 }
+
+/* === HEADER BADGES + TRUE VIEWPORT PROFILES === */
+.headerBadges{display:flex;align-items:center;gap:5px;max-width:min(360px,32vw);overflow:hidden;direction:rtl}
+.headerBadge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;height:30px;padding:4px 8px;border-radius:16px;background:linear-gradient(135deg,#17283d,#101d2d);border:1px solid rgba(213,180,94,.55);color:#e7edf5;font-size:8px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.16)}
+.headerBadge img{width:17px;height:17px;object-fit:contain;border-radius:4px}
+.headerBadge b{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modalBackdrop{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;z-index:99999!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:24px!important;overflow:auto!important;background:rgba(0,0,0,.72)!important}
+.memberProfileModal{position:relative!important;width:min(720px,calc(100vw - 48px))!important;max-height:min(88dvh,820px)!important;margin:0!important;transform:none!important;flex:none!important}
+@media(max-width:760px){
+  .headerBadges{max-width:150px;gap:3px}
+  .headerBadge{height:27px;padding:3px 6px;font-size:7px}
+  .headerBadge b{max-width:65px}
+  .headerBadge img{width:15px;height:15px}
+  .modalBackdrop{padding:12px!important}
+  .memberProfileModal{width:calc(100vw - 24px)!important;max-height:calc(100dvh - 24px)!important}
+}
+@media(max-width:520px){
+  .headerBadges{max-width:105px}
+  .headerBadge b{display:none}
+  .headerBadge{width:28px;justify-content:center;padding:3px}
+}
