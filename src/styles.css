@@ -2277,3 +2277,9 @@ input,textarea,select{max-width:100%;min-width:0}
 .boot::before{width:86px;height:86px;margin-bottom:20px;filter:drop-shadow(0 0 22px rgba(217,185,87,.24));}
 .boot{font-size:16px;letter-spacing:.2px;}
 .academyLoader img{width:78px;height:78px;filter:drop-shadow(0 0 20px rgba(217,185,87,.24));}
+
+
+/* Developer credits + stacked Discord actions */
+.footerDeveloperName{margin-top:12px;}
+.footerActionsStack{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
+.footerActionsStack a{width:100%;justify-content:center;}
