@@ -132,7 +132,9 @@ function AdminsAdmin({state,reload,setMsg,setState}){
     ['manage_hierarchy','إدارة الهيكل','هيكل الأكاديمية والمناصب'],
     ['view_evaluations','الاطلاع على التقييمات','قراءة التقارير السرية فقط'],
     ['manage_evaluations','إدارة التقييمات','مراجعة واعتماد ورفض وتحويل التقارير'],
-    ['manage_settings','الإعدادات','إعدادات النظام الحساسة']
+    ['manage_settings','الإعدادات','إعدادات النظام العامة والحساسة'],
+    ['manage_dev_store','متجر التطوير','إدارة إعلان متجر التطوير وإعداداته وإعادة الإشعار'],
+    ['manage_sessions','الأمان والجلسات','إبطال جلسات الدخول وتسجيل خروج جميع المستخدمين']
   ];
   const allKeys=all.map(x=>x[0]);
   const setPermissions=permissions=>setForm(f=>({...f,permissions}));
