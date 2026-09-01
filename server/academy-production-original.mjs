@@ -340,6 +340,47 @@ function cleanExam(e){const questions=Array.isArray(e?.questions)?e.questions.ma
 function shuffleQuestions(list){const a=[...(Array.isArray(list)?list:[])];for(let i=a.length-1;i>0;i--){const j=crypto.randomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
 function orderedExam(e,attempt){const ids=Array.isArray(attempt?.questionOrder)?attempt.questionOrder.map(String):[];const by=new Map((e.questions||[]).map(q=>[String(q.id),q]));const ordered=ids.length?ids.map(id=>by.get(id)).filter(Boolean):shuffleQuestions(e.questions||[]);return publicExam({...e,questions:ordered})}
 function scoreAttempt(e,answers){let earned=0,total=0;for(const q of e.questions||[]){const p=Number(q.points||1);total+=p;if((q.type==='choice'||q.type==='yesno')&&String(answers?.[q.id]??'')===String(q.correct??''))earned+=p}return total?Math.round(earned/total*100):0}
+function recoverSubmittedExamResults(){
+  let changed=false;
+  const attempts=Array.isArray(data.examAttempts)?data.examAttempts:[];
+  const results=Array.isArray(data.examResults)?data.examResults:[];
+  const byAttempt=new Map(results.map(r=>[String(r.attemptId||r.attemptID||''),r]).filter(([k])=>k));
+  const byUserExam=new Map();
+  for(const r of results){
+    const key=String(r.examId||'')+'|'+id(r.userId||r.discordId);
+    if(key!=='|')byUserExam.set(key,r);
+  }
+  for(const a of attempts){
+    const exam=data.exams?.find(e=>String(e.id)===String(a.examId));
+    const answers=a?.answers&&typeof a.answers==='object'?a.answers:{};
+    const submittedAt=a.submittedAt||a.completedAt||a.finishedAt||null;
+    if(!exam||!submittedAt||!Object.keys(answers).length)continue;
+    const attemptId=String(a.id||'');
+    let result=byAttempt.get(attemptId)||byUserExam.get(String(exam.id)+'|'+id(a.userId||a.discordId));
+    const review=(exam.questions||[]).map(q=>({id:q.id,text:q.text,type:q.type,answer:answers?.[q.id]??'',correct:q.correct??'',points:q.points||1}));
+    if(!result){
+      const score=scoreAttempt(exam,answers);
+      result={id:'result-recovered-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),examId:exam.id,userId:String(a.userId||a.discordId||''),name:String(a.name||a.username||'متقدم'),score,passed:score>=Number(exam.passingScore||60),submittedAt,answers,durationSeconds:Number(a.activeDurationSeconds||a.durationSeconds||0),autoSubmitted:Boolean(a.autoSubmitted||a.expired),review};
+      results.unshift(result);
+      byAttempt.set(attemptId,result);
+      byUserExam.set(String(exam.id)+'|'+id(a.userId||a.discordId),result);
+      changed=true;
+    }else{
+      if(!result.answers||typeof result.answers!=='object'||!Object.keys(result.answers).length){
+        result.answers=answers;changed=true;
+      }
+      if(!Array.isArray(result.review)||!result.review.length){
+        result.review=review;changed=true;
+      }
+      if(!result.attemptId&&attemptId){result.attemptId=a.id;changed=true;}
+      if(!result.submittedAt){result.submittedAt=submittedAt;changed=true;}
+    }
+    if(a.status!=='submitted'&&!a.expired){a.status=result.autoSubmitted?'expired':'submitted';changed=true;}
+  }
+  data.examResults=results;
+  return changed;
+}
+
 let expiryJobRunning=false;
 async function finalizeExpiredAttempts(){if(expiryJobRunning)return;expiryJobRunning=true;try{const t=now(),changed=[];for(const a of data.examAttempts||[]){if(a?.submittedAt||a?.status==='submitted'||a?.status==='expired')continue;if(!a.expiresAt||t<new Date(a.expiresAt).getTime())continue;const e=data.exams.find(x=>x.id===a.examId);if(!e)continue;const answers=a.answers&&typeof a.answers==='object'?a.answers:{};const submittedAt=new Date(a.expiresAt).toISOString();const score=scoreAttempt(e,answers);const activeBase=Math.max(0,Number(a.activeDurationSeconds||0));const activeStart=a.activeStartedAt?new Date(a.activeStartedAt).getTime():new Date(a.startedAt).getTime();const activeEnd=Math.min(new Date(submittedAt).getTime(),new Date(a.expiresAt).getTime());const activeDurationSeconds=activeBase+Math.max(0,Math.round((activeEnd-activeStart)/1000));a.activeDurationSeconds=activeDurationSeconds;const r={id:'result-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),examId:e.id,userId:String(a.userId),name:String(a.name||'متقدم'),score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:true};a.submittedAt=submittedAt;a.status='expired';a.expired=true;a.score=score;data.examResults.unshift(r);changed.push(a)}if(changed.length)await persistExamStorage(['results','attempts'])}finally{expiryJobRunning=false}}
 function examAllowed(e,c,token=''){if(!c?.x)return false;if(e.accessType==='all')return true;if(e.accessType==='police')return Boolean(c.police);if(e.accessType==='specific')return e.allowedDiscordIds?.includes(id(c.x.id));if(e.accessType==='link')return Boolean(token&&String(token)===String(e.accessToken));return false}
