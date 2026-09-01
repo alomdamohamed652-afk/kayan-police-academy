@@ -61,18 +61,10 @@ async function getGoogleClockOffset(){
     const forced=Number(forcedRaw);
     if(Number.isFinite(forced)&&forced!==0)return forced;
   }
-  // Render can occasionally report a small clock skew against Google's auth servers.
-  // Keep the Google JWT safely inside Google's accepted iat window even when the
-  // external clock probe is unavailable.
+  // Keep service-account JWT timestamps safely behind Google's clock on Render.
+  // The previous probe was not reliable enough for the auth exchange.
   const safeDefault=-240000;
-  if(now()-googleClockOffsetAt<300000)return googleClockOffsetMs||safeDefault;
-  if(now()-googleClockOffsetAt<300000)return googleClockOffsetMs;
-  try{
-    const r=await fetch('https://www.googleapis.com/',{method:'HEAD',signal:AbortSignal.timeout(5000)});
-    const serverDate=Date.parse(r.headers.get('date')||'');
-    if(Number.isFinite(serverDate)){googleClockOffsetMs=serverDate-Date.now();googleClockOffsetAt=now();console.warn('Google clock offset detected: '+googleClockOffsetMs+'ms')}
-  }catch(e){console.warn('Google clock sync probe failed; using local clock:',e.message)}
-  return Number.isFinite(googleClockOffsetMs)&&googleClockOffsetMs!==0?googleClockOffsetMs:safeDefault;
+  return safeDefault;
 }
 async function withGoogleClock(fn){
   const previous=googleClockQueue;
