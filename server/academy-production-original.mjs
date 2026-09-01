@@ -56,8 +56,16 @@ function isGoogleClockSkewError(e){const m=String(e?.message||e?.response?.data?
 async function resetGoogleAuth(){credentials=null;sheets=null}
 let googleClockOffsetMs=0,googleClockOffsetAt=0,googleClockQueue=Promise.resolve();
 async function getGoogleClockOffset(){
-  const forced=Number(process.env.GOOGLE_CLOCK_SKEW_MS);
-  if(Number.isFinite(forced)&&forced!==0)return forced;
+  const forcedRaw=String(process.env.GOOGLE_CLOCK_SKEW_MS||'').trim();
+  if(forcedRaw){
+    const forced=Number(forcedRaw);
+    if(Number.isFinite(forced)&&forced!==0)return forced;
+  }
+  // Render can occasionally report a small clock skew against Google's auth servers.
+  // Keep the Google JWT safely inside Google's accepted iat window even when the
+  // external clock probe is unavailable.
+  const safeDefault=-240000;
+  if(now()-googleClockOffsetAt<300000)return googleClockOffsetMs||safeDefault;
   if(now()-googleClockOffsetAt<300000)return googleClockOffsetMs;
   try{
     const r=await fetch('https://www.googleapis.com/',{method:'HEAD',signal:AbortSignal.timeout(5000)});
