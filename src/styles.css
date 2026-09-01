@@ -2451,3 +2451,19 @@ input,textarea,select{max-width:100%;min-width:0}
   .headerBadge b{display:none}
   .headerBadge{width:28px;justify-content:center;padding:3px}
 }
+
+/* === DEVELOPMENT STORE INVITE === */
+.devStoreOverlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,8,15,.78);backdrop-filter:blur(8px);animation:devStoreFade .2s ease}
+.devStorePopup{position:relative;width:min(470px,calc(100vw - 36px));padding:34px 30px 26px;border:1px solid rgba(213,180,94,.55);border-radius:24px;background:linear-gradient(145deg,#0d1b2b,#07111e);box-shadow:0 25px 80px rgba(0,0,0,.55);text-align:center;overflow:hidden}
+.devStorePopup:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 0,rgba(213,180,94,.13),transparent 48%)}
+.devStoreClose{position:absolute;top:12px;left:14px;width:34px;height:34px;border:1px solid #30435b;border-radius:10px;background:#132236;color:#aebdce;font-size:23px;cursor:pointer}
+.devStoreIcon{position:relative;width:58px;height:58px;margin:0 auto 16px;display:grid;place-items:center;border-radius:18px;background:rgba(213,180,94,.12);border:1px solid rgba(213,180,94,.45);color:#d5b45e}
+.devStorePopup .eyebrow{position:relative;display:block;margin-bottom:8px;color:#d5b45e;font-size:10px;letter-spacing:1.5px}
+.devStorePopup h2{position:relative;margin:0 0 12px;font-size:25px;color:#eef3f8}
+.devStorePopup p{position:relative;margin:0 auto 23px;max-width:390px;line-height:1.9;color:#91a2b6;font-size:14px}
+.devStoreActions{position:relative;display:flex;gap:10px;justify-content:center}
+.devStoreJoin{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:12px;background:#d5b45e;color:#07111e;text-decoration:none;font-weight:900}
+.devStoreLater{min-height:46px;padding:0 18px;border:1px solid #34475d;border-radius:12px;background:#132236;color:#c7d2df;font-weight:700;cursor:pointer}
+.devStorePopup small{position:relative;display:block;margin-top:17px;color:#62758b;font-size:10px}
+@keyframes devStoreFade{from{opacity:0}to{opacity:1}}
+@media(max-width:520px){.devStorePopup{padding:30px 20px 22px}.devStoreActions{flex-direction:column}.devStoreJoin,.devStoreLater{width:100%}}
