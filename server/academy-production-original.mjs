@@ -379,7 +379,7 @@ function recoverSubmittedExamResults(){
     if(a.status!=='submitted'&&!a.expired){a.status=result.autoSubmitted?'expired':'submitted';changed=true;}
   }
   data.examResults=results;
-  const statusCounts=attempts.reduce((m,a)=>{const k=String(a?.status||'missing');m[k]=(m[k]||0)+1;return m},{}); const answerCounts=attempts.reduce((m,a)=>{const n=Object.keys(a?.answers&&typeof a.answers==='object'?a.answers:{}).length;const k=n?'withAnswers':'withoutAnswers';m[k]=(m[k]||0)+1;return m},{}); console.log('Exam recovery scan:',{attempts:attempts.length,results:results.length,recoveredResults:recoveredCount,restoredAnswers,statusCounts,answerCounts});
+  return changed;
   return changed;
 }
 
