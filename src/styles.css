@@ -1118,8 +1118,15 @@ button:not(:disabled):hover{transform:translateY(-1px)}
 .questionDragHandle{height:42px;display:grid;place-items:center;border:1px dashed rgba(217,185,87,.35);border-radius:10px;color:#d9b957;font-size:18px;letter-spacing:-4px;cursor:grab;user-select:none}
 .questionDragHandle:active{cursor:grabbing}
 .questionOrderBadge{width:34px;height:34px;margin-top:4px;display:grid;place-items:center;border-radius:10px;background:rgba(217,185,87,.1);border:1px solid rgba(217,185,87,.25);color:#d9b957;font-weight:900;font-size:12px}
-.questionSortBody{min-width:0}
-.questionAdmin{margin:0!important;padding:14px!important}
+.questionSortBody{min-width:0;position:relative}
+.questionOrderActions{display:flex;justify-content:flex-end;gap:6px;margin-top:7px}
+.questionOrderActions button{width:36px;height:32px;border:1px solid #2b4059;border-radius:9px;background:#0d1b2b;color:#d8b65d;font-size:16px;font-weight:900;cursor:pointer}
+.questionOrderActions button:hover:not(:disabled){border-color:#d8b65d;background:#132337}
+.questionOrderActions button:disabled{opacity:.3;cursor:not-allowed}
+.questionAdmin{margin:0!important;padding:12px!important}
+.questionAdmin .formGrid{gap:8px}
+.questionAdmin .formGrid textarea{min-height:72px;resize:vertical}
+.questionAdmin .formGrid input,.questionAdmin .formGrid select,.questionChoices input{min-height:42px}
 .questionAdminHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .questionAdminTitle{min-width:0;display:flex;flex-direction:column;gap:3px}
 .questionAdminTitle span{font-size:14px;font-weight:900;color:#e8edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
