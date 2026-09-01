@@ -356,7 +356,7 @@ function sess(req){try{return jwt.verify(req.cookies.kayan_session,SESSION_SECRE
 function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function perms(uid){return ADMINS.has(id(uid))?ALL:(admin(uid)?.enabled?(admin(uid).permissions||[]):[])}
 const withTimeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('POLICE_SHEET_TIMEOUT')),ms))]);
-async const DEV_STORE_GUILD_ID='1516201999488647248';
+const DEV_STORE_GUILD_ID='1516201999488647248';
 const DEV_STORE_INVITE='https://discord.gg/Vm5DZXbzb3';
 const DEV_STORE_INTERVAL_MS=3*60*60*1000;
 const devTokenKey=()=>crypto.createHash('sha256').update(SESSION_SECRET).digest();
