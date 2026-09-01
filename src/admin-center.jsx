@@ -49,9 +49,15 @@ function QuestionBankAdmin({state,reload,setMsg,setState}){const[questions,setQu
 function MembersAdmin({state,reload,setMsg}){
   const[q,setQ]=useState('');
   const[saving,setSaving]=useState('');
+  const[badgeForm,setBadgeForm]=useState({name:'',description:'',icon:'🏅'});
   const[urls,setUrls]=useState({});
   const[view,setView]=useState('cards');
   const list=(state.members||[]).filter(m=>`${m.name||''} ${m.rank||''} ${m.discordId||''} ${m.badge||''} ${m.responsibility||''}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const badges=Array.isArray(state.badges)?state.badges:[],memberBadges=state.memberBadges||{};
+  const badgeFor=m=>(memberBadges[String(m.discordId)]||[]).map(id=>badges.find(b=>String(b.id)===String(id))).filter(Boolean);
+  const createBadge=async()=>{if(!badgeForm.name.trim())return setMsg('أدخل اسم البادج.');try{const d=await api('/api/admin/badges',{method:'POST',body:JSON.stringify(badgeForm)});if(d?.badge)setState(prev=>({...prev,badges:[d.badge,...(prev.badges||[])]}));setBadgeForm({name:'',description:'',icon:'🏅'});setMsg('تم إنشاء البادج.')}catch(e){setMsg(errText(e))}};
+  const assignBadge=async(m,b)=>{try{const d=await api('/api/admin/member-badges',{method:'POST',body:JSON.stringify({discordId:m.discordId,badgeId:b.id})});setState(prev=>({...prev,memberBadges:{...(prev.memberBadges||{}),[m.discordId]:d.badgeIds||[]}}));setMsg('تمت إضافة البادج للفرد.')}catch(e){setMsg(errText(e))}};
+  const removeBadge=async(m,b)=>{try{const d=await api('/api/admin/member-badges',{method:'DELETE',body:JSON.stringify({discordId:m.discordId,badgeId:b.id})});setState(prev=>({...prev,memberBadges:{...(prev.memberBadges||{}),[m.discordId]:d.badgeIds||[]}}));setMsg('تمت إزالة البادج.')}catch(e){setMsg(errText(e))}};
 
   const fileToDataUrl=async file=>{
     if(!/^image\/(png|jpeg|webp)$/i.test(file.type)) throw Error('PNG أو JPG/JPEG أو WebP فقط.');
@@ -83,11 +89,12 @@ function MembersAdmin({state,reload,setMsg}){
     <div className="memberAvatar adminMemberAvatar">{m.image?<img src={m.image} alt=""/>:<Users size={22}/>}</div>
     <div className="adminMemberMain">
       <div className="adminMemberNameRow"><strong>{m.name||'بدون اسم'}</strong><span className="memberPresenceDot" title="الفرد مسجل في سجل الشرطة"/></div>
-      <div className="adminMemberBadges"><span className="memberChip memberChipRank">{m.rank||'بدون رتبة'}</span><span className="memberChip">{m.badge||'بدون Badge'}</span></div>
+      <div className="adminMemberBadges"><span className="memberChip memberChipRank">{m.rank||'بدون رتبة'}</span>{badgeFor(m).map(b=><span className="memberChip memberCustomBadge" key={b.id} title={b.description||b.name}>{b.icon} {b.name}</span>)}{!badgeFor(m).length&&<span className="memberChip">{m.badge||'بدون Badge'}</span>}</div>
       <small className="adminMemberDiscord">Discord ID: {m.discordId}</small>
     </div>
   </div>;
   return <div className="panel membersAdminPanel">
+    <div className="panel badgeManagerPanel"><div className="panelHead"><div><span className="eyebrow">BADGES</span><h3>بادجات الأفراد</h3><p className="muted">أنشئ بادجات مخصصة وستظهر مباشرة في قائمة الأفراد والملفات.</p></div><span className="ok">{badges.length} بادج</span></div><div className="formGrid badgeCreateGrid"><input value={badgeForm.icon} onChange={e=>setBadgeForm({...badgeForm,icon:e.target.value})} placeholder="🏅"/><input value={badgeForm.name} onChange={e=>setBadgeForm({...badgeForm,name:e.target.value})} placeholder="اسم البادج"/><input value={badgeForm.description} onChange={e=>setBadgeForm({...badgeForm,description:e.target.value})} placeholder="وصف مختصر"/><Btn className="primary" onClick={createBadge}><Plus size={15}/> إنشاء بادج</Btn></div><div className="badgeCatalog">{badges.map(b=><span className="badgeCatalogItem" key={b.id}>{b.icon} {b.name}</span>)}{!badges.length&&<span className="emptyMini">لا توجد بادجات مخصصة.</span>}</div></div>
     <div className="membersToolbar"><div><span className="eyebrow">ACADEMY PERSONNEL</span><h2>إدارة الأفراد</h2><p className="muted">بيانات الأفراد الأساسية والرتب تُسحب مباشرة من سجل الشرطة. الإدارة هنا مخصصة للعرض وإدارة صورة الملف.</p></div><div className="membersCount"><b>{list.length}</b><span>إجمالي النتائج</span></div></div>
     <div className="membersControls">
       <div className="search membersSearch"><Search size={17}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالاسم أو الرتبة أو Badge أو Discord ID"/></div>
@@ -101,6 +108,7 @@ function MembersAdmin({state,reload,setMsg}){
       {list.map(m=><article className="adminMemberCard" key={m.discordId}>
         {identity(m)}
         <div className="adminMemberMeta"><div><span>المسؤولية</span><strong>{m.responsibility||'غير محددة'}</strong></div><div><span>مصدر البيانات</span><strong>سجل الشرطة</strong></div></div>
+        <div className="memberBadgeAssign"><div className="memberImagePanelTitle"><Star size={15}/> بادجات</div><div className="badgeAssignList">{badgeFor(m).map(b=><button type="button" key={b.id} className="memberChip memberCustomBadge" title="إزالة البادج" onClick={()=>removeBadge(m,b)}>{b.icon} {b.name} ×</button>)}{badges.filter(b=>!badgeFor(m).some(x=>String(x.id)===String(b.id))).map(b=><button type="button" key={b.id} className="badgeAssignButton" onClick={()=>assignBadge(m,b)}>{b.icon} {b.name}</button>)}</div></div>
         {imageControls(m)}
       </article>)}
     </div>
