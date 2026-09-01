@@ -91,7 +91,33 @@ async function googleRetry(fn,label='Google API'){
   }
   throw last;
 }
-async function service(){if(sheets)return sheets;const auth=new google.auth.GoogleAuth({credentials:await creds(),scopes:['https://www.googleapis.com/auth/spreadsheets']});sheets=google.sheets({version:'v4',auth});return sheets}
+let googleTokenCache={accessToken:'',expiresAt:0};
+const b64u=v=>Buffer.from(typeof v==='string'?v:JSON.stringify(v)).toString('base64url');
+async function googleAccessToken(){
+  if(googleTokenCache.accessToken&&Date.now()<googleTokenCache.expiresAt-120000)return googleTokenCache.accessToken;
+  const c=await creds();
+  const skew=Number(process.env.GOOGLE_CLOCK_SKEW_MS||-290000);
+  const iat=Math.floor((Date.now()+(Number.isFinite(skew)?skew:-290000))/1000);
+  const exp=iat+3600;
+  const header={alg:'RS256',typ:'JWT',kid:c.private_key_id};
+  const payload={iss:c.client_email,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',iat,exp};
+  const unsigned=b64u(header)+'.'+b64u(payload);
+  const signer=crypto.createSign('RSA-SHA256');signer.update(unsigned);signer.end();
+  const assertion=unsigned+'.'+signer.sign(c.private_key,'base64url');
+  const body=new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion});
+  const response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body,signal:AbortSignal.timeout(15000)});
+  const json=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(String(json?.error_description||json?.error||'Google OAuth token request failed'));
+  googleTokenCache={accessToken:String(json.access_token||''),expiresAt:Date.now()+Number(json.expires_in||3600)*1000};
+  if(!googleTokenCache.accessToken)throw new Error('Google OAuth returned no access token');
+  return googleTokenCache.accessToken;
+}
+async function service(){
+  if(sheets)return sheets;
+  const auth={getRequestHeaders:async()=>({Authorization:'Bearer '+await googleAccessToken()})};
+  sheets=google.sheets({version:'v4',auth});
+  return sheets;
+}
 function hidx(h,cs,f){const a=h.map(norm);for(const c0 of cs){const c=norm(c0),i=a.findIndex(x=>x===c||x.includes(c)||c.includes(x));if(i>=0)return i}return f}
 function row(headers,r){const b=hidx(headers,['Badge #','Badge','البادج','الكود'],0),n=hidx(headers,['الاسم','name'],1),l=hidx(headers,['الإجازة','الاجازة','leave'],2),k=hidx(headers,['الرتبة','الرتبه','rank'],3),s=hidx(headers,['الحالة','status'],4),q=hidx(headers,['المسؤولية','المسؤوليه','responsibility'],5),d=hidx(headers,['ديسكورد','discord','discord id','discordid','discord_id'],6),dep=hidx(headers,['القسم','القسم التابع','القطاع','الإدارة','الادارة','الوحدة','الوحده','department','division','sector','unit'],7);const responsibility=String(r[q]??'').trim();return{badge:String(r[b]??'').trim(),code:String(r[b]??'').trim(),name:String(r[n]??'').trim(),leave:String(r[l]??'').trim(),rank:String(r[k]??'').trim(),status:String(r[s]??'').trim().toUpperCase(),responsibility,department:String(r[dep]??'').trim()||responsibility,discordId:id(r[d])}}
 async function police(force=false){if(!POLICE_SHEET_ID)throw new Error('POLICE_SHEET_NOT_CONFIGURED');if(!force&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;let last=null;try{const s=await service(),r=await s.spreadsheets.values.get({spreadsheetId:POLICE_SHEET_ID,range:POLICE_RANGE});const v=r.data.values||[],headers=v[0]||[],rows=v.slice(1).map(x=>row(headers,x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}last=new Error('POLICE_SHEET_EMPTY')}catch(e){last=e}if(cache.rows.length)return cache.rows;if(API_KEY)try{const u=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${POLICE_SHEET_ID}/values/${encodeURIComponent(POLICE_RANGE)}`);u.searchParams.set('key',API_KEY);const r=await fetch(u,{signal:AbortSignal.timeout(10000)});if(r.ok){const v=(await r.json()).values||[],rows=v.slice(1).map(x=>row(v[0]||[],x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}}}catch(e){last=e}throw last||new Error('POLICE_SHEET_UNAVAILABLE')}
