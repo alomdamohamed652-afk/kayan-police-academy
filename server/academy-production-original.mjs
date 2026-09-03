@@ -655,9 +655,12 @@ app.put('/api/admin/dev-store/settings',async(req,res)=>{const c=await requireAd
 app.post('/api/admin/dev-store/reset-prompt',async(req,res)=>{const c=await requireAdmin(req,res,'manage_dev_store');if(!c)return;data.settings.devStore={...(data.settings.devStore||{}),guildId:DEV_STORE_GUILD_ID,inviteUrl:data.settings.devStore?.inviteUrl||DEV_STORE_INVITE,promptIntervalHours:Math.max(1,Math.min(168,Number(data.settings.devStore?.promptIntervalHours||3))),promptResetAt:Date.now()};for(const uid of Object.keys(data.devStoreTokens||{})){const entry=data.devStoreTokens[uid]||{};if(entry.joined!==true)entry.lastPromptAt=0;data.devStoreTokens[uid]=entry}audit(c,'RESET_DEV_STORE_PROMPT','development-store','تمت إعادة تأهيل الإشعار لغير المنضمين فقط');await saveDurable();res.json({ok:true,resetAt:data.settings.devStore.promptResetAt})});
 app.post('/api/admin/logout-all',async(req,res)=>{try{const c=await requireAdmin(req,res,'manage_sessions');if(!c)return;data.settings={...data.settings,sessionEpoch:Number(data.settings?.sessionEpoch||0)+1};audit(c,'LOGOUT_ALL_USERS','sessions','تم إبطال جميع جلسات تسجيل الدخول الحالية');await saveDurable();res.clearCookie('kayan_session',{path:'/'});res.json({ok:true,sessionEpoch:data.settings.sessionEpoch})}catch(e){console.error('logout-all failed:',e);res.status(503).json({error:'STORAGE_ERROR'})}});
 app.post('/api/logout',(_q,res)=>{res.clearCookie('kayan_session',{path:'/'});res.json({ok:true})});
-app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
+// IMPORTANT: load persistent academy data before accepting HTTP requests.
+// Render can probe the service immediately after boot; serving DEFAULT during
+// that window made a healthy database appear empty to the first visitors.
 await load();
 if(supabaseActive&&DATA_SHEET_ID)queueGoogleMirror('startup');
+app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
 const expiredOnBoot=expireBatches();
 if(expiredOnBoot.length)await save().catch(e=>console.error('Auto-close on boot save failed:',e.message));
 setInterval(()=>{const expired=expireBatches();if(expired.length)save().catch(e=>console.error('Auto-close interval save failed:',e.message))},60000).unref?.();
