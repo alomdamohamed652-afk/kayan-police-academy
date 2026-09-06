@@ -25,5 +25,8 @@
     "googleapis": "latest",
     "@supabase/supabase-js": "^2.57.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22"
+  }
 }
