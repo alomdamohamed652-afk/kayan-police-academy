@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { supabaseConfigured } from './supabase.mjs';
 import { loadAcademyData, saveAcademyData } from './supabase-academy-store.mjs';
+import { sqliteStatus, saveSqliteSnapshot } from './local-sqlite-backup.mjs';
 
 // Academy schedule inputs are entered in Egypt local time. Render runs in UTC.
 // Keep server-side parsing aligned with Cairo so datetime-local values are not shifted by 3 hours.
@@ -375,9 +376,13 @@ function save(){
   const job=saveQueue.catch(()=>{}).then(async()=>{
     if(supabaseActive){
       await saveAcademyData(data);
+      // Local SQLite is an independent snapshot backup. A backup failure must
+      // never block or overwrite the primary database.
+      try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
       queueGoogleMirror('data-save');
     }else{
       await saveToSheet();
+      try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
     }
   });
   saveQueue=job.catch(e=>{
@@ -388,7 +393,7 @@ function save(){
   });
   return Promise.resolve({queued:true});
 }
-async function saveDurable(){const job=saveQueue.catch(()=>{}).then(async()=>{if(supabaseActive){await saveAcademyData(data);queueGoogleMirror('durable-save')}else await saveToSheet()});saveQueue=job.catch(e=>{console.error('Durable academy save failed:',e.message);lastStorageError=String(e?.message||e)});return job}
+async function saveDurable(){const job=saveQueue.catch(()=>{}).then(async()=>{if(supabaseActive){await saveAcademyData(data);try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}queueGoogleMirror('durable-save')}else{await saveToSheet();try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}}});saveQueue=job.catch(e=>{console.error('Durable academy save failed:',e.message);lastStorageError=String(e?.message||e)});return job}
 if(MIRROR_INTERVAL_MS>0){
   setInterval(()=>queueGoogleMirror('scheduled'),MIRROR_INTERVAL_MS).unref?.();
 }
@@ -627,6 +632,8 @@ app.get('/api/admin/activity-state',async(req,res)=>{
  const departments=[...new Set([...audit.map(x=>x.actorDepartment),...audit.map(x=>x.targetDepartment),...loginLogs.map(x=>x.department)].map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
  res.json({audit,loginLogs,departments});
 });
+app.get('/api/admin/storage-status',async(req,res)=>{const c=await requireAdmin(req,res,'manage_settings');if(!c)return;let supabase={configured:Boolean(supabaseConfigured),available:Boolean(supabaseActive),updatedAt:null,lastError:lastStorageError||''};try{if(supabaseConfigured){const remote=await loadAcademyData();supabase.available=Boolean(remote);supabase.updatedAt=remote?.settings?.updatedAt||null}}catch(e){supabase.available=false;supabase.lastError=String(e?.message||e)}const sqlite=sqliteStatus();const google={configured:Boolean(DATA_SHEET_ID),available:Boolean(DATA_SHEET_ID&&GOOGLE_SERVICE_ACCOUNT_JSON_OR_FILE_CONFIGURED),updatedAt:lastMirrorAt?new Date(lastMirrorAt).toISOString():null,lastError:lastMirrorError||'',syncing:Boolean(mirrorRunning)};res.json({primary:'supabase',supabase,sqlite,google,serverTime:new Date().toISOString()})});
+app.post('/api/admin/storage/snapshot',async(req,res)=>{const c=await requireAdmin(req,res,'manage_settings');if(!c)return;try{const out=saveSqliteSnapshot(data);audit(c,'CREATE_STORAGE_SNAPSHOT','sqlite');res.json({ok:true,...out,sqlite:sqliteStatus()})}catch(e){res.status(500).json({error:'SQLITE_SNAPSHOT_FAILED',message:String(e?.message||e)})}});
 app.get('/api/admin/hierarchy-state',async(req,res)=>{const c=await requireAdmin(req,res,'manage_hierarchy');if(!c)return;res.json({hierarchy:Array.isArray(data.hierarchy)?data.hierarchy:[]})});
 app.get('/api/admin/applications-state',async(req,res)=>{const c=await requireAdmin(req,res,'manage_applications');if(!c)return;const expired=expireBatches();if(expired.length)await save().catch(e=>console.error('Auto-close save failed:',e.message));res.json({batches:(data.batches||[]).map(b=>({...b,state:batchState(b)})),applications:data.applications||[],applicationQuestions:data.applicationQuestions||[]})});
 app.get('/api/admin/exams-state',async(req,res)=>{const c=await requireAdmin(req,res,'manage_exams');if(!c)return;res.json({exams:data.exams||[],examResults:data.examResults||[],examAttempts:data.examAttempts||[]})});
@@ -666,6 +673,7 @@ app.post('/api/logout',(_q,res)=>{res.clearCookie('kayan_session',{path:'/'});re
 // Render can probe the service immediately after boot; serving DEFAULT during
 // that window made a healthy database appear empty to the first visitors.
 await load();
+try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite startup snapshot failed:',e.message)}
 if(supabaseActive&&DATA_SHEET_ID)queueGoogleMirror('startup');
 app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
 const expiredOnBoot=expireBatches();
