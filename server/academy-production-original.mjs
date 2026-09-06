@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { supabaseConfigured } from './supabase.mjs';
 import { loadAcademyData, saveAcademyData } from './supabase-academy-store.mjs';
-import { sqliteStatus, saveSqliteSnapshot } from './local-sqlite-backup.mjs';
+import { sqliteStatus, saveSqliteSnapshot, loadSqliteSnapshot } from './local-sqlite-backup.mjs';
 
 // Academy schedule inputs are entered in Egypt local time. Render runs in UTC.
 // Keep server-side parsing aligned with Cairo so datetime-local values are not shifted by 3 hours.
@@ -171,7 +171,19 @@ async function recoverMissingLegacyCollections(remote){
 }
 async function load(){try{
 if(supabaseConfigured){
-const remote=await loadAcademyData();
+let remote=null;
+let supabaseLoadError=null;
+try{remote=await loadAcademyData()}catch(e){
+  supabaseLoadError=e;
+  try{
+    const backup=loadSqliteSnapshot();
+    if(backup?.data){
+      remote=backup.data;
+      console.error('Supabase read failed; serving the last SQLite snapshot instead:',e.message);
+    }
+  }catch(backupError){console.error('SQLite fallback unavailable:',backupError.message)}
+  if(!remote)throw e;
+}
 const base=structuredClone(DEFAULT);
 if(remote){
   data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};
@@ -374,15 +386,14 @@ function save(){
   // latest snapshot in the background. This prevents successful POST/PATCH/PUT
   // requests from hanging until every academy collection has been mirrored.
   const job=saveQueue.catch(()=>{}).then(async()=>{
+    // Write the local snapshot first. A temporary cloud failure must not
+    // prevent us from retaining the newest in-memory academy state.
+    try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
     if(supabaseActive){
       await saveAcademyData(data);
-      // Local SQLite is an independent snapshot backup. A backup failure must
-      // never block or overwrite the primary database.
-      try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
       queueGoogleMirror('data-save');
     }else{
       await saveToSheet();
-      try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
     }
   });
   saveQueue=job.catch(e=>{
@@ -393,7 +404,7 @@ function save(){
   });
   return Promise.resolve({queued:true});
 }
-async function saveDurable(){const job=saveQueue.catch(()=>{}).then(async()=>{if(supabaseActive){await saveAcademyData(data);try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}queueGoogleMirror('durable-save')}else{await saveToSheet();try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}}});saveQueue=job.catch(e=>{console.error('Durable academy save failed:',e.message);lastStorageError=String(e?.message||e)});return job}
+async function saveDurable(){const job=saveQueue.catch(()=>{}).then(async()=>{try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}if(supabaseActive){await saveAcademyData(data);queueGoogleMirror('durable-save')}else await saveToSheet()});saveQueue=job.catch(e=>{console.error('Durable academy save failed:',e.message);lastStorageError=String(e?.message||e)});return job}
 if(MIRROR_INTERVAL_MS>0){
   setInterval(()=>queueGoogleMirror('scheduled'),MIRROR_INTERVAL_MS).unref?.();
 }
