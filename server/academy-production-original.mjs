@@ -174,6 +174,13 @@ const remote=await loadAcademyData();
 const base=structuredClone(DEFAULT);
 if(remote){
   data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};
+  // A partially configured/migrated store must never make the live site look
+  // empty. Validate the persistent snapshot before exposing it to requests.
+  const coreKeys=['applicationQuestions','applications','questionBank','batches','exams','hierarchy'];
+  const hasPersistentData=coreKeys.some(k=>Array.isArray(remote[k])&&remote[k].length>0)||Object.keys(remote.settings||{}).length>0;
+  if(!hasPersistentData){
+    throw new Error('Supabase returned an empty academy snapshot; refusing to serve DEFAULT state');
+  }
   data.version=18;
 }else{
   let recoveredFromLegacy=false;
