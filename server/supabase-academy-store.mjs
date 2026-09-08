@@ -4,13 +4,35 @@ const cleanRows=v=>Array.isArray(v)?v:[];
 const str=v=>v==null?'':String(v);
 const num=v=>Number.isFinite(Number(v))?Number(v):null;
 const json=v=>v&&typeof v==='object'?v:{};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function retryable(error){
+  const code=String(error?.code||'');
+  const msg=String(error?.message||error?.details||error||'').toLowerCase();
+  return code==='PGRST303'||msg.includes('jwt issued at future')||msg.includes('fetch failed')||msg.includes('network')||msg.includes('timeout')||msg.includes('temporarily unavailable');
+}
+async function withRetry(label,fn){
+  let last;
+  for(let attempt=0;attempt<5;attempt++){
+    try{return await fn()}
+    catch(error){
+      last=error;
+      if(!retryable(error)||attempt===4)throw error;
+      const delay=500*Math.pow(2,attempt);
+      console.warn('Supabase '+label+' retry '+(attempt+1)+'/5 after '+delay+'ms:',String(error?.message||error));
+      await sleep(delay);
+    }
+  }
+  throw last;
+}
 
 async function all(table,order=null){
-  let query=supabase.from(table).select('*');
-  if(order) query=query.order(order,{ascending:true});
-  const {data,error}=await query;
-  if(error) throw error;
-  return data||[];
+  return withRetry('read '+table,async()=>{
+    let query=supabase.from(table).select('*');
+    if(order) query=query.order(order,{ascending:true});
+    const {data,error}=await query;
+    if(error) throw error;
+    return data||[];
+  });
 }
 async function upsert(table,rows,onConflict){
   if(!rows.length)return;
@@ -24,17 +46,14 @@ async function upsert(table,rows,onConflict){
     }
     const values=Array.from(unique.values());
     if(values.length){
-      const {error}=await supabase.from(table).upsert(values,{onConflict:'legacy_id'});
-      if(error) throw error;
+      await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(values,{onConflict:'legacy_id'});if(error)throw error;});
     }
     if(withoutLegacy.length){
-      const {error}=await supabase.from(table).insert(withoutLegacy);
-      if(error) throw error;
+      await withRetry('insert '+table,async()=>{const {error}=await supabase.from(table).insert(withoutLegacy);if(error)throw error;});
     }
     return;
   }
-  const {error}=await supabase.from(table).upsert(rows,{onConflict});
-  if(error) throw error;
+  await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(rows,{onConflict});if(error)throw error;});
 }
 async function prune(table,legacyIds){
   const ids=[...new Set(legacyIds.filter(Boolean).map(String))];
@@ -44,8 +63,7 @@ async function prune(table,legacyIds){
   if(!stale.length)return;
   for(let i=0;i<stale.length;i+=200){
     const chunk=stale.slice(i,i+200);
-    const {error}=await supabase.from(table).delete().in('legacy_id',chunk);
-    if(error) throw error;
+    await withRetry('prune '+table,async()=>{const {error}=await supabase.from(table).delete().in('legacy_id',chunk);if(error)throw error;});
   }
 }
 const legacyOf=x=>str(x?.id)||str(x?.discordId);
@@ -114,8 +132,7 @@ async function saveAcademyData(data){
   const auditRows=audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x}));
   if(auditRows.length){
     const uniqueAudit=Array.from(new Map(auditRows.map(x=>[String(x.legacy_id||''),x])).values()).filter(x=>x.legacy_id);
-    const {error}=await supabase.from('audit_logs').upsert(uniqueAudit,{onConflict:'legacy_id',ignoreDuplicates:true});
-    if(error) throw error;
+    await withRetry('upsert audit_logs',async()=>{const {error}=await supabase.from('audit_logs').upsert(uniqueAudit,{onConflict:'legacy_id',ignoreDuplicates:true});if(error)throw error;});
   }
   const logins=cleanRows(data.loginLogs);
   await upsert('login_logs',logins.map(x=>({legacy_id:legacyOf(x),discord_id:x.discordId||null,username:x.username||null,success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
@@ -133,7 +150,7 @@ async function loadAcademyData(){
     all('member_settings','discord_id'),all('member_images','discord_id'),all('evaluations'),all('audit_logs'),all('login_logs'),
     all('application_drafts','discord_id'),all('role_overrides','discord_id')
   ]);
-  const hasData=batches.length||appQs.length||apps.length||bank.length||exams.length||attempts.length||results.length||admins.length||hierarchy.length||evaluations.length||audit.length||logins.length;
+  const hasData=settings.length||batches.length||appQs.length||apps.length||bank.length||exams.length||attempts.length||results.length||admins.length||hierarchy.length||evaluations.length||audit.length||logins.length||memberSettings.length||memberImages.length||drafts.length||overrides.length;
   if(!hasData)return null;
   const s=settings[0]||{};
   const legacySettings=s.legacy_data&&typeof s.legacy_data==='object'?s.legacy_data:{};const data={version:18,settings:{academyName:s.academy_name,applicationsTitle:s.applications_title,applicationsDescription:s.applications_description,passingScore:s.passing_score,logoUrl:s.logo_url||'',acceptedMessage:s.accepted_message||'',rejectedMessage:s.rejected_message||'',acceptedDiscordUrl:s.accepted_discord_url||'',evaluationTrainerRanks:s.evaluation_trainer_ranks||[],evaluationTraineeRanks:s.evaluation_trainee_ranks||[],sessionEpoch:Number(legacySettings.sessionEpoch||0)},applicationQuestions:appQs.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),questionBank:bank.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),batches:batches.map(x=>x.legacy_data||{id:x.legacy_id,name:x.name,status:x.status,startAt:x.start_at,endAt:x.end_at,closedAt:x.closed_at}),applications:apps.map(x=>x.legacy_data||{id:x.legacy_id,batchId:x.batch_id,discordId:x.discord_id,name:x.applicant_name,status:x.status,answers:x.answers,submittedAt:x.submitted_at}),exams:exams.map(x=>{const legacy=x.legacy_data&&typeof x.legacy_data==='object'?x.legacy_data:{};return {id:x.legacy_id,title:x.title,description:x.description||legacy.description||'',stage:x.stage||legacy.stage||'عام',status:x.status||'open',active:x.status!=='closed',startAt:x.start_at,endAt:x.end_at,durationMinutes:x.duration_minutes,passingScore:x.passing_score,attemptsAllowed:x.attempts_allowed,accessType:x.access_type==='invite'?'link':(x.access_type||'all'),allowedDiscordIds:Array.isArray(x.access_users)?x.access_users.map(str):[],accessToken:legacy.accessToken||'',resultPublished:Boolean(x.publish_results),resultAnswersPublished:Boolean(x.show_answers),resumeEnabled:x.resume_enabled!==false,resumeMinutes:x.resume_minutes||null,createdAt:x.created_at,createdBy:x.created_by||'',updatedAt:x.updated_at,questions:[]};}),examResults:results.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,attemptId:x.attempt_id,discordId:x.discord_id,score:x.score,passed:x.passed,submittedAt:x.submitted_at}),examAttempts:attempts.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,discordId:x.discord_id,answers:x.answers,startedAt:x.started_at,expiresAt:x.expires_at,submittedAt:x.submitted_at}),evaluations:evaluations.map(x=>x.legacy_data||{id:x.legacy_id,evaluatorDiscordId:x.evaluator_discord_id,targetDiscordId:x.target_discord_id,ratings:x.ratings,overallRating:x.overall_rating,status:x.status}),hierarchy:hierarchy.map(x=>x.legacy_data||{id:x.legacy_id,title:x.title,name:x.name_snapshot,discordId:x.discord_id,image:x.image_url,level:x.level,position:x.position}),admins:admins.map(x=>x.legacy_data||{discordId:x.discord_id,name:x.name,permissions:x.permissions,enabled:x.enabled}),audit:audit.map(x=>x.legacy_data||{id:x.id,actorId:x.actor_discord_id,actorName:x.actor_name,action:x.action,details:x.details,at:x.created_at}),loginLogs:logins.map(x=>x.legacy_data||{id:x.id,discordId:x.discord_id,username:x.username,success:x.success,at:x.created_at}),memberImages:Object.fromEntries(memberImages.map(x=>[x.discord_id,x.image_url]).filter(([,v])=>v)),memberSettings:Object.fromEntries(memberSettings.map(x=>[x.discord_id,x.legacy_data||{showProfileButton:x.show_profile_button}])),applicationDrafts:Object.fromEntries(drafts.map(x=>[x.discord_id,x.draft])),roleOverrides:Object.fromEntries(overrides.map(x=>[x.discord_id,x.role])),badges:Array.isArray(legacySettings.badges)?legacySettings.badges:[],memberBadges:legacySettings.memberBadges&&typeof legacySettings.memberBadges==='object'?legacySettings.memberBadges:{},devStoreTokens:legacySettings.devStoreTokens&&typeof legacySettings.devStoreTokens==='object'?legacySettings.devStoreTokens:{}};
