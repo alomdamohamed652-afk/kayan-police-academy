@@ -196,8 +196,18 @@ if(remote){
   }
   data.version=18;
 }else{
+  let recoveredFromBackup=false;
+  try{
+    const backup=loadSqliteSnapshot();
+    if(backup?.data&&typeof backup.data==='object'){
+      data={...base,...backup.data,settings:{...base.settings,...(backup.data.settings||{})}};
+      data.version=18;
+      recoveredFromBackup=true;
+      console.warn('Supabase returned no academy rows; loaded the last known SQLite snapshot instead.');
+    }
+  }catch(e){console.error('SQLite startup recovery unavailable:',e.message)}
   let recoveredFromLegacy=false;
-  if(DATA_SHEET_ID){
+  if(!recoveredFromBackup&&DATA_SHEET_ID){
     try{
       await googleRetry(async()=>{const gs=await service();await ensureData(gs);return true},'Legacy academy recovery');
       const gs=await service();
@@ -217,9 +227,14 @@ if(remote){
       console.error('Legacy academy recovery failed:',e.message);
     }
   }
-  if(!recoveredFromLegacy){
+  if(!recoveredFromBackup&&!recoveredFromLegacy){
+    // Existing deployments must fail closed rather than silently booting with
+    // DEFAULT and later overwriting real data.
+    if(String(process.env.ALLOW_EMPTY_ACADEMY_BOOTSTRAP||'').toLowerCase()!=='true'){
+      throw new Error('No academy data could be recovered from Supabase, SQLite, or Google mirror. Refusing to boot with an empty state.');
+    }
     data=base;
-    console.error('Supabase academy storage is empty and no legacy academy data was recovered; refusing to overwrite legacy storage.');
+    console.warn('Starting an explicitly authorized empty academy bootstrap.');
   }
 }
 try{const repaired=recoverSubmittedExamResults();if(repaired)saveToSheet(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Google storage:',e.message)}data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};try{const recovered=await recoverMissingLegacyCollections(data);if(recovered)await saveAcademyData(data);}catch(e){console.error('Legacy recovery unavailable; continuing with Supabase:',e.message)}try{const repaired=recoverSubmittedExamResults();if(repaired)saveAcademyData(data).catch(e=>console.error('Submitted exam recovery save failed:',e.message))}catch(e){console.error('Submitted exam recovery unavailable; continuing with Supabase:',e.message)}supabaseActive=true;storageReady=true;lastStorageError='';let changed=false;for(const uid of ADMINS)if(!data.admins.some(a=>id(a.discordId)===uid)){data.admins.push({discordId:uid,name:'Super Admin',permissions:ALL,enabled:true,createdAt:new Date().toISOString(),source:'environment'});changed=true}if(changed)await saveAcademyData(data);if(remote||changed)console.log('Supabase academy storage ready.');else console.warn('Supabase academy storage started with defaults only; no Google mirror overwrite is triggered until real academy data exists.');return;}await googleRetry(async()=>{const s=await service();await ensureData(s);return true},'Google DATA initialization');const s=await service();const r=await googleRetry(async()=>{const client=await service();return client.spreadsheets.values.get({spreadsheetId:DATA_SHEET_ID,range:`${DATA_SHEET}!A1:A1000`})},'Google DATA read');const raw=(r.data.values||[]).map(row=>String(row?.[0]??'')).join('');if(raw){const parsed=JSON.parse(raw);const base=structuredClone(DEFAULT);data={...base,...parsed,settings:{...base.settings,...(parsed.settings||{})}};for(const k of ['applicationQuestions','questionBank','batches','applications','exams','examResults','examAttempts','evaluations','hierarchy','admins','audit','loginLogs'])if(!Array.isArray(data[k]))data[k]=base[k];
@@ -381,28 +396,23 @@ function queueGoogleMirror(reason='mutation'){
   mirrorQueue=mirrorQueue.catch(()=>{}).then(()=>mirrorSupabaseToGoogle(reason));
 }
 function save(){
-  // Persistence is intentionally queued and non-blocking for API responses.
-  // Mutations update the in-memory state first; the queued writer persists the
-  // latest snapshot in the background. This prevents successful POST/PATCH/PUT
-  // requests from hanging until every academy collection has been mirrored.
+  // API mutations await this promise. A 200 response therefore means the
+  // snapshot was actually persisted, not merely queued in RAM.
+  const snapshot=structuredClone(data);
   const job=saveQueue.catch(()=>{}).then(async()=>{
-    // Write the local snapshot first. A temporary cloud failure must not
-    // prevent us from retaining the newest in-memory academy state.
-    try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}
+    try{saveSqliteSnapshot(snapshot)}catch(e){console.error('SQLite academy backup failed:',e.message)}
     if(supabaseActive){
-      await saveAcademyData(data);
+      await saveAcademyData(snapshot);
       queueGoogleMirror('data-save');
     }else{
-      await saveToSheet();
+      await saveToSheet(snapshot);
     }
   });
   saveQueue=job.catch(e=>{
     console.error(supabaseActive?'Supabase academy save failed:':'Google DATA save failed:',e.message);
     lastStorageError=String(e?.message||e);
-    // Keep the service usable with the current in-memory state. The next
-    // mutation will enqueue another persistence attempt.
   });
-  return Promise.resolve({queued:true});
+  return job;
 }
 async function saveDurable(){const job=saveQueue.catch(()=>{}).then(async()=>{try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite academy backup failed:',e.message)}if(supabaseActive){await saveAcademyData(data);queueGoogleMirror('durable-save')}else await saveToSheet()});saveQueue=job.catch(e=>{console.error('Durable academy save failed:',e.message);lastStorageError=String(e?.message||e)});return job}
 if(MIRROR_INTERVAL_MS>0){
@@ -684,7 +694,7 @@ app.post('/api/logout',(_q,res)=>{res.clearCookie('kayan_session',{path:'/'});re
 // Render can probe the service immediately after boot; serving DEFAULT during
 // that window made a healthy database appear empty to the first visitors.
 await load();
-try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite startup snapshot failed:',e.message)}
+if(storageReady)try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite startup snapshot failed:',e.message)}
 if(supabaseActive&&DATA_SHEET_ID)queueGoogleMirror('startup');
 app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
 const expiredOnBoot=expireBatches();
