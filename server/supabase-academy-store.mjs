@@ -160,4 +160,44 @@ async function loadAcademyData(){
   return data;
 }
 
+// Targeted live-exam persistence. These functions intentionally update one
+// attempt/result instead of serializing the entire academy snapshot. Under
+// concurrent exams, whole-snapshot writes can queue behind each other and make
+// answer autosave/submit appear to fail.
+async function examRowId(legacyId){
+  const {data,error}=await supabase.from('exams').select('id').eq('legacy_id',String(legacyId)).maybeSingle();
+  if(error) throw error;
+  return data?.id||null;
+}
+async function attemptRowId(legacyId){
+  const {data,error}=await supabase.from('exam_attempts').select('id').eq('legacy_id',String(legacyId)).maybeSingle();
+  if(error) throw error;
+  return data?.id||null;
+}
+export async function saveExamAttempt(attempt){
+  if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
+  const exam_id=await examRowId(attempt.examId);
+  if(!exam_id) throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
+  const row={legacy_id:String(attempt.id),exam_id,discord_id:str(attempt.discordId||attempt.userId),
+    started_at:attempt.startedAt||new Date().toISOString(),expires_at:attempt.expiresAt||new Date().toISOString(),
+    submitted_at:attempt.submittedAt||null,resume_at:attempt.resumeAt||null,resume_until:attempt.resumeUntil||null,
+    resume_duration_minutes:attempt.resumeDurationMinutes?Number(attempt.resumeDurationMinutes):null,
+    answers:json(attempt.answers),question_order:cleanRows(attempt.questionOrder).map(str).filter(Boolean),
+    status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),auto_submitted:Boolean(attempt.autoSubmitted||attempt.expired),
+    legacy_data:attempt};
+  await withRetry('save exam attempt',async()=>{const {error}=await supabase.from('exam_attempts').upsert(row,{onConflict:'legacy_id'});if(error)throw error;});
+}
+export async function saveExamResult(result,attemptLegacyId=null){
+  if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
+  const exam_id=await examRowId(result.examId);
+  if(!exam_id) throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
+  const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);
+  if(!attempt_id) throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');
+  const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),
+    score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),
+    submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,
+    review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};
+  await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error;});
+}
+
 export { saveAcademyData, loadAcademyData };
