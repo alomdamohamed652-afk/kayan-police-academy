@@ -118,10 +118,20 @@ useEffect(()=>{if(!attempt)return;const tick=()=>{const r=Math.max(0,new Date(at
 // Crash-safe exam draft: write to the student's device immediately, then
 // sync the latest snapshot to the server. Network failure never clears answers.
 useEffect(()=>{if(!attempt||!active)return;const key='kayan_exam_draft_'+(user?.discord?.id||'me')+'_'+active.id;const snapshot={answers,updatedAt:Date.now(),attemptId:attempt.id,examId:active.id};try{localStorage.setItem(key,JSON.stringify(snapshot));setLastSavedAt(snapshot.updatedAt);setPendingSync(true);setSyncStatus('local')}catch{setSyncStatus('warning')}},[attempt,active,answers,user?.discord?.id]);
-// Low-load strategy: answers are saved instantly to this device, while the
-// server receives at most one snapshot every 15 seconds. Final submission
-// always sends the complete answer set, so rapid typing never hammers Render.
-useEffect(()=>{if(!attempt||!active)return;let cancelled=false;const sync=async()=>{if(cancelled||!pendingSync||syncInFlightRef.current)return;syncInFlightRef.current=true;try{setSaving(true);setSyncStatus('syncing');await api('/api/exams/'+active.id+'/attempt',{method:'PUT',body:JSON.stringify({answers:answersRef.current,accessToken:inviteToken||undefined})});if(!cancelled){setPendingSync(false);setSyncStatus('saved');setLastSavedAt(Date.now())}}catch{if(!cancelled){setSyncStatus('local');setPendingSync(true)}}finally{syncInFlightRef.current=false;if(!cancelled)setSaving(false)}};const t=setInterval(sync,15000);return()=>{cancelled=true;clearInterval(t)}},[attempt,active,pendingSync,inviteToken]);
+// Crash-safe autosave: device storage is immediate, then a debounced server
+// write follows quickly. If the network is busy/offline we retry in the
+// background without ever clearing the student's answers.
+useEffect(()=>{if(!attempt||!active||!pendingSync)return;let cancelled=false,retryTimer=null;
+ const sync=async()=>{if(cancelled||syncInFlightRef.current)return;syncInFlightRef.current=true;try{
+   setSaving(true);setSyncStatus('syncing');
+   await api('/api/exams/'+active.id+'/attempt',{method:'PUT',body:JSON.stringify({answers:answersRef.current,accessToken:inviteToken||undefined})});
+   if(!cancelled){setPendingSync(false);setSyncStatus('saved');setLastSavedAt(Date.now())}
+ }catch{
+   if(!cancelled){setSyncStatus('local');retryTimer=setTimeout(sync,5000)}
+ }finally{syncInFlightRef.current=false;if(!cancelled)setSaving(false)}};
+ const first=setTimeout(sync,2500);
+ return()=>{cancelled=true;clearTimeout(first);if(retryTimer)clearTimeout(retryTimer)}
+},[attempt,active,pendingSync,inviteToken]);
 const start=async e=>{try{const d=await api('/api/exams/'+e.id+'/start'+(inviteToken?'?token='+encodeURIComponent(inviteToken):''),{method:'POST',body:JSON.stringify({accessToken:inviteToken||undefined})});let local={};try{const raw=localStorage.getItem('kayan_exam_draft_'+(user?.discord?.id||'me')+'_'+e.id);const x=raw?JSON.parse(raw):null;if(x&&Date.now()-Number(x.updatedAt||0)<24*60*60*1000)local=x.answers||{}}catch{}setAttempt(d.attempt);setActive(d.exam||e);setAnswers({...local,...(d.attempt?.answers||{})});setRemaining(Math.max(0,new Date(d.attempt.expiresAt).getTime()-Date.now()));setError('')}catch(x){setError(errorText(x))}};
 const continueAttempt=async a=>{const e=exams.find(x=>x.id===a.examId);if(e)await start(e)};
 const timeLabel=ms=>{const sec=Math.max(0,Math.floor(ms/1000)),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return(h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')};
