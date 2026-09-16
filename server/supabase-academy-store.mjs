@@ -14,190 +14,50 @@ async function withRetry(label,fn){
   let last;
   for(let attempt=0;attempt<5;attempt++){
     try{return await fn()}
-    catch(error){
-      last=error;
-      if(!retryable(error)||attempt===4)throw error;
-      const delay=500*Math.pow(2,attempt);
-      console.warn('Supabase '+label+' retry '+(attempt+1)+'/5 after '+delay+'ms:',String(error?.message||error));
-      await sleep(delay);
-    }
+    catch(error){last=error;if(!retryable(error)||attempt===4)throw error;const delay=500*Math.pow(2,attempt);console.warn('Supabase '+label+' retry '+(attempt+1)+'/5 after '+delay+'ms:',String(error?.message||error));await sleep(delay);}
   }
   throw last;
 }
-
-async function all(table,order=null){
-  return withRetry('read '+table,async()=>{
-    let query=supabase.from(table).select('*');
-    if(order) query=query.order(order,{ascending:true});
-    const {data,error}=await query;
-    if(error) throw error;
-    return data||[];
-  });
-}
-async function upsert(table,rows,onConflict){
-  if(!rows.length)return;
-  if(onConflict==='legacy_id'){
-    const unique=new Map();
-    const withoutLegacy=[];
-    for(const raw of rows){
-      const legacy=raw?.legacy_id?String(raw.legacy_id):'';
-      if(legacy) unique.set(legacy,{...raw,legacy_id:legacy});
-      else withoutLegacy.push(raw);
-    }
-    const values=Array.from(unique.values());
-    if(values.length){
-      await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(values,{onConflict:'legacy_id'});if(error)throw error;});
-    }
-    if(withoutLegacy.length){
-      await withRetry('insert '+table,async()=>{const {error}=await supabase.from(table).insert(withoutLegacy);if(error)throw error;});
-    }
-    return;
-  }
-  await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(rows,{onConflict});if(error)throw error;});
-}
-async function prune(table,legacyIds){
-  const ids=[...new Set(legacyIds.filter(Boolean).map(String))];
-  const existing=await all(table);
-  const keep=new Set(ids);
-  const stale=existing.filter(x=>x.legacy_id&&!keep.has(String(x.legacy_id))).map(x=>x.legacy_id);
-  if(!stale.length)return;
-  for(let i=0;i<stale.length;i+=200){
-    const chunk=stale.slice(i,i+200);
-    await withRetry('prune '+table,async()=>{const {error}=await supabase.from(table).delete().in('legacy_id',chunk);if(error)throw error;});
-  }
-}
+async function all(table,order=null){return withRetry('read '+table,async()=>{let query=supabase.from(table).select('*');if(order)query=query.order(order,{ascending:true});const {data,error}=await query;if(error)throw error;return data||[]});}
+async function upsert(table,rows,onConflict){if(!rows.length)return;if(onConflict==='legacy_id'){const unique=new Map(),withoutLegacy=[];for(const raw of rows){const legacy=raw?.legacy_id?String(raw.legacy_id):'';if(legacy)unique.set(legacy,{...raw,legacy_id:legacy});else withoutLegacy.push(raw)}const values=Array.from(unique.values());if(values.length)await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(values,{onConflict:'legacy_id'});if(error)throw error});if(withoutLegacy.length)await withRetry('insert '+table,async()=>{const {error}=await supabase.from(table).insert(withoutLegacy);if(error)throw error});return}await withRetry('upsert '+table,async()=>{const {error}=await supabase.from(table).upsert(rows,{onConflict});if(error)throw error})}
+async function prune(table,legacyIds){const ids=[...new Set(legacyIds.filter(Boolean).map(String))],existing=await all(table),keep=new Set(ids),stale=existing.filter(x=>x.legacy_id&&!keep.has(String(x.legacy_id))).map(x=>x.legacy_id);if(!stale.length)return;for(let i=0;i<stale.length;i+=200){const chunk=stale.slice(i,i+200);await withRetry('prune '+table,async()=>{const {error}=await supabase.from(table).delete().in('legacy_id',chunk);if(error)throw error})}}
 const legacyOf=x=>str(x?.id)||str(x?.discordId);
-
-function settingsRow(s){
-  const x=s||{};
-  return {id:1,academy_name:x.academyName||'أكاديمية شرطة كيان',applications_title:x.applicationsTitle||'التقديم الأولي للشرطة',
-    applications_description:x.applicationsDescription||'نموذج التقديم الرسمي للانضمام إلى شرطة كيان.',passing_score:num(x.passingScore)||60,
-    logo_url:x.logoUrl||null,accepted_message:x.acceptedMessage||null,rejected_message:x.rejectedMessage||null,
-    accepted_discord_url:x.acceptedDiscordUrl||null,evaluation_trainer_ranks:cleanRows(x.evaluationTrainerRanks).map(str),
-    evaluation_trainee_ranks:cleanRows(x.evaluationTraineeRanks).map(str),updated_by:null,legacy_data:{...x, badges:Array.isArray(x?.badges)?x.badges:[], memberBadges:x?.memberBadges&&typeof x.memberBadges==='object'?x.memberBadges:{}, devStoreTokens:x?.devStoreTokens&&typeof x.devStoreTokens==='object'?x.devStoreTokens:{}}};
-}
+function settingsRow(s){const x=s||{};return{id:1,academy_name:x.academyName||'أكاديمية شرطة كيان',applications_title:x.applicationsTitle||'التقديم الأولي للشرطة',applications_description:x.applicationsDescription||'نموذج التقديم الرسمي للانضمام إلى شرطة كيان.',passing_score:num(x.passingScore)||60,logo_url:x.logoUrl||null,accepted_message:x.acceptedMessage||null,rejected_message:x.rejectedMessage||null,accepted_discord_url:x.acceptedDiscordUrl||null,evaluation_trainer_ranks:cleanRows(x.evaluationTrainerRanks).map(str),evaluation_trainee_ranks:cleanRows(x.evaluationTraineeRanks).map(str),updated_by:null,legacy_data:{...x,badges:Array.isArray(x?.badges)?x.badges:[],memberBadges:x?.memberBadges&&typeof x.memberBadges==='object'?x.memberBadges:{},devStoreTokens:x?.devStoreTokens&&typeof x.devStoreTokens==='object'?x.devStoreTokens:{}}}}
 
 async function saveAcademyData(data){
-  if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
   await upsert('academy_settings',[settingsRow({...data.settings,badges:data.badges,memberBadges:data.memberBadges,devStoreTokens:data.devStoreTokens})],'id');
-  const batches=cleanRows(data.batches);
-  await upsert('application_batches',batches.map(x=>({legacy_id:legacyOf(x),name:str(x.name)||'دفعة',description:x.description||null,status:x.status||'open',start_at:x.startAt||null,end_at:x.endAt||null,closed_at:x.closedAt||null,created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'legacy_id');
-  await prune('application_batches',batches.map(legacyOf));
-  const batchRows=await all('application_batches');
-  const batchMap=new Map(batchRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
-  const appQs=cleanRows(data.applicationQuestions);
-  await upsert('application_questions',appQs.map((x,i)=>({legacy_id:legacyOf(x),batch_id:x.batchId?batchMap.get(String(x.batchId))||null:null,text:str(x.text),type:['text','choice','yesno'].includes(x.type)?x.type:'text',options:Array.isArray(x.options)?x.options:[],correct:x.correct??null,required:x.required!==false,points:Number(x.points||1),position:i,legacy_data:x})),'legacy_id');
-  await prune('application_questions',appQs.map(legacyOf));
-  const apps=cleanRows(data.applications);
-  await upsert('applications',apps.map(x=>({legacy_id:legacyOf(x),batch_id:batchMap.get(String(x.batchId))||batchMap.get(String(x.batchID))||batchRows.find(b=>b.name===x.batchName)?.id,discord_id:str(x.discordId||x.userId),discord_username:x.username||x.discordUsername||null,applicant_name:x.name||null,submitted_at:x.submittedAt||new Date().toISOString(),status:x.status||'pending',review_note:x.reviewNote||x.note||null,reviewed_at:x.reviewedAt||null,reviewed_by:x.reviewerId||x.reviewedBy||null,answers:json(x.answers),legacy_data:x})),'legacy_id');
-  await prune('applications',apps.map(legacyOf));
-  const bank=cleanRows(data.questionBank);
-  await upsert('question_bank',bank.map(x=>({legacy_id:legacyOf(x),text:str(x.text),type:['text','choice','yesno'].includes(x.type)?x.type:'text',options:Array.isArray(x.options)?x.options:[],correct:x.correct??null,required:x.required!==false,points:Number(x.points||1),tags:Array.isArray(x.tags)?x.tags.map(str):[],active:x.active!==false,legacy_data:x})),'legacy_id');
-  await prune('question_bank',bank.map(legacyOf));
-  const bankRows=await all('question_bank');
-  const bankMap=new Map(bankRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
-  const exams=cleanRows(data.exams);
-  await upsert('exams',exams.map(x=>({legacy_id:legacyOf(x),title:str(x.title)||'اختبار',description:x.description||null,stage:x.stage||null,status:x.status||((x.active===false)?'closed':'open'),start_at:x.startAt||null,end_at:x.endAt||null,duration_minutes:Number(x.durationMinutes||30),passing_score:Number(x.passingScore||60),attempts_allowed:Number(x.attemptsAllowed||1),access_type:x.accessType==='link'?'invite':(x.accessType||'all'),access_users:Array.isArray(x.allowedDiscordIds)?x.allowedDiscordIds.map(str):Array.isArray(x.accessUsers)?x.accessUsers.map(str):[],invite_token_hash:x.inviteTokenHash||null,publish_results:Boolean(x.resultPublished||x.publishResults),show_answers:Boolean(x.showAnswers),resume_enabled:x.resumeEnabled!==false,resume_minutes:x.resumeMinutes?Number(x.resumeMinutes):null,created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'legacy_id');
-  await prune('exams',exams.map(legacyOf));
-  const examRows=await all('exams');
-  const examMap=new Map(examRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
-  const eq=[];
-  for(const exam of exams)for(const [i,q] of cleanRows(exam.questions).entries())eq.push({legacy_id:legacyOf(q),exam_id:examMap.get(legacyOf(exam)),question_bank_id:q.questionBankId?bankMap.get(String(q.questionBankId))||null:null,text:str(q.text),type:['text','choice','yesno'].includes(q.type)?q.type:'text',options:Array.isArray(q.options)?q.options:[],correct:q.correct??null,required:q.required!==false,points:Number(q.points||1),position:i,legacy_data:q});
-  await upsert('exam_questions',eq,'legacy_id');
-  await prune('exam_questions',eq.map(x=>x.legacy_id));
-  const attempts=cleanRows(data.examAttempts);
-  await upsert('exam_attempts',attempts.map(x=>({legacy_id:legacyOf(x),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),started_at:x.startedAt||new Date().toISOString(),expires_at:x.expiresAt||new Date().toISOString(),submitted_at:x.submittedAt||null,resume_at:x.resumeAt||null,resume_until:x.resumeUntil||null,resume_duration_minutes:x.resumeDurationMinutes?Number(x.resumeDurationMinutes):null,answers:json(x.answers),question_order:cleanRows(x.questionOrder).map(str).filter(Boolean),status:x.submittedAt?'submitted':(x.status||'in_progress'),auto_submitted:Boolean(x.autoSubmitted),legacy_data:x})).filter(x=>x.exam_id),'legacy_id');
-  // Attempts are append-only during live exams. Never prune them from an in-memory snapshot.
-  const attemptRows=await all('exam_attempts');
-  const attemptMap=new Map(attemptRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
-  const results=cleanRows(data.examResults);
-  await upsert('exam_results',results.map(x=>({legacy_id:legacyOf(x),attempt_id:attemptMap.get(String(x.attemptId||x.attemptID)),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),score:Number(x.score||0),passed:Boolean(x.passed),duration_seconds:x.durationSeconds==null?null:Number(x.durationSeconds),submitted_at:x.submittedAt||new Date().toISOString(),published_at:x.publishedAt||null,review:Array.isArray(x.review)?x.review:[],legacy_data:x})).filter(x=>x.exam_id&&x.attempt_id),'legacy_id');
-  // Results are append-only; never delete them as part of a routine snapshot save.
-  const admins=cleanRows(data.admins);
-  await upsert('admins',admins.map(x=>({discord_id:str(x.discordId),name:x.name||null,permissions:cleanRows(x.permissions).map(str),enabled:x.enabled!==false,source:x.source||'manual',created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'discord_id');
-  const hierarchy=cleanRows(data.hierarchy);
-  await upsert('hierarchy',hierarchy.map((x,i)=>({legacy_id:legacyOf(x),level:Math.max(1,Number(x.level||1)),position:Math.max(1,Number(x.position||x.order||i+1)),title:str(x.title)||'غير محدد',discord_id:x.discordId?str(x.discordId):null,name_snapshot:x.name||null,image_url:x.image||x.imageUrl||null,legacy_data:x})),'legacy_id');
-  await prune('hierarchy',hierarchy.map(legacyOf));
-  const settings=Object.entries(data.memberSettings||{}).map(([discordId,x])=>({discord_id:str(discordId),show_profile_button:x?.showProfileButton!==false,legacy_data:x||{}}));
-  await upsert('member_settings',settings,'discord_id');
-  const images=Object.entries(data.memberImages||{}).map(([discordId,image])=>({discord_id:str(discordId),image_url:typeof image==='string'?image:null,legacy_data:{image}}));
-  await upsert('member_images',images,'discord_id');
-  const evaluations=cleanRows(data.evaluations);
-  await upsert('evaluations',evaluations.map(x=>({legacy_id:legacyOf(x),evaluator_discord_id:str(x.evaluatorDiscordId||x.userId||x.discordId),evaluator_role:x.evaluationRole==='trainer'?'trainer':'trainee',target_discord_id:str(x.targetDiscordId),target_name_snapshot:x.targetName||x.target?.name||null,target_rank_snapshot:x.targetRank||x.target?.rank||null,hours:x.hours==null?null:Number(x.hours),ratings:json(x.ratings),overall_rating:x.overallRating==null?null:Number(x.overallRating),same_trainer:x.sameTrainer==null?null:Boolean(x.sameTrainer),notes:x.notes||null,complaint:x.complaint||null,reviewed_at:x.reviewedAt||null,reviewed_by:x.reviewedBy||null,review_note:x.reviewNote||null,status:x.status||'pending',legacy_data:x})).filter(x=>x.evaluator_discord_id&&x.target_discord_id&&x.evaluator_discord_id!==x.target_discord_id),'legacy_id');
-  await prune('evaluations',evaluations.map(legacyOf));
-  const audit=cleanRows(data.audit);
-  // Audit records are append-only. A repeated queued save/mirror must never make
-  // an otherwise successful mutation fail just because the same legacy audit ID
-  // is already present in Supabase.
-  const auditRows=audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x}));
-  if(auditRows.length){
-    const uniqueAudit=Array.from(new Map(auditRows.map(x=>[String(x.legacy_id||''),x])).values()).filter(x=>x.legacy_id);
-    await withRetry('upsert audit_logs',async()=>{const {error}=await supabase.from('audit_logs').upsert(uniqueAudit,{onConflict:'legacy_id',ignoreDuplicates:true});if(error)throw error;});
-  }
-  const logins=cleanRows(data.loginLogs);
-  await upsert('login_logs',logins.map(x=>({legacy_id:legacyOf(x),discord_id:x.discordId||null,username:x.username||null,success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');
-  const drafts=Object.entries(data.applicationDrafts||{}).map(([discordId,draft])=>({discord_id:str(discordId),draft:json(draft),legacy_data:draft||{}}));
-  await upsert('application_drafts',drafts,'discord_id');
-  const overrides=Object.entries(data.roleOverrides||{}).map(([discordId,role])=>({discord_id:str(discordId),role:str(role),legacy_data:{role}}));
-  await upsert('role_overrides',overrides,'discord_id');
+  const batches=cleanRows(data.batches);await upsert('application_batches',batches.map(x=>({legacy_id:legacyOf(x),name:str(x.name)||'دفعة',description:x.description||null,status:x.status||'open',start_at:x.startAt||null,end_at:x.endAt||null,closed_at:x.closedAt||null,created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'legacy_id');await prune('application_batches',batches.map(legacyOf));const batchRows=await all('application_batches');const batchMap=new Map(batchRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
+  const appQs=cleanRows(data.applicationQuestions);await upsert('application_questions',appQs.map((x,i)=>({legacy_id:legacyOf(x),batch_id:x.batchId?batchMap.get(String(x.batchId))||null:null,text:str(x.text),type:['text','choice','yesno'].includes(x.type)?x.type:'text',options:Array.isArray(x.options)?x.options:[],correct:x.correct??null,required:x.required!==false,points:Number(x.points||1),position:i,legacy_data:x})),'legacy_id');await prune('application_questions',appQs.map(legacyOf));
+  const apps=cleanRows(data.applications);await upsert('applications',apps.map(x=>({legacy_id:legacyOf(x),batch_id:batchMap.get(String(x.batchId))||batchMap.get(String(x.batchID))||batchRows.find(b=>b.name===x.batchName)?.id,discord_id:str(x.discordId||x.userId),discord_username:x.username||x.discordUsername||null,applicant_name:x.name||null,submitted_at:x.submittedAt||new Date().toISOString(),status:x.status||'pending',review_note:x.reviewNote||x.note||null,reviewed_at:x.reviewedAt||null,reviewed_by:x.reviewerId||x.reviewedBy||null,answers:json(x.answers),legacy_data:x})),'legacy_id');await prune('applications',apps.map(legacyOf));
+  const bank=cleanRows(data.questionBank);await upsert('question_bank',bank.map(x=>({legacy_id:legacyOf(x),text:str(x.text),type:['text','choice','yesno'].includes(x.type)?x.type:'text',options:Array.isArray(x.options)?x.options:[],correct:x.correct??null,required:x.required!==false,points:Number(x.points||1),tags:Array.isArray(x.tags)?x.tags.map(str):[],active:x.active!==false,legacy_data:x})),'legacy_id');await prune('question_bank',bank.map(legacyOf));const bankRows=await all('question_bank');const bankMap=new Map(bankRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
+  const exams=cleanRows(data.exams);await upsert('exams',exams.map(x=>({legacy_id:legacyOf(x),title:str(x.title)||'اختبار',description:x.description||null,stage:x.stage||null,status:x.status||((x.active===false)?'closed':'open'),start_at:x.startAt||null,end_at:x.endAt||null,duration_minutes:Number(x.durationMinutes||30),passing_score:Number(x.passingScore||60),attempts_allowed:Number(x.attemptsAllowed||1),access_type:x.accessType==='link'?'invite':(x.accessType||'all'),access_users:Array.isArray(x.allowedDiscordIds)?x.allowedDiscordIds.map(str):Array.isArray(x.accessUsers)?x.accessUsers.map(str):[],invite_token_hash:x.inviteTokenHash||null,publish_results:Boolean(x.resultPublished||x.publishResults),show_answers:Boolean(x.showAnswers),resume_enabled:x.resumeEnabled!==false,resume_minutes:x.resumeMinutes?Number(x.resumeMinutes):null,created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'legacy_id');await prune('exams',exams.map(legacyOf));const examRows=await all('exams');const examMap=new Map(examRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
+  const eq=[];for(const exam of exams)for(const [i,q] of cleanRows(exam.questions).entries())eq.push({legacy_id:legacyOf(q),exam_id:examMap.get(legacyOf(exam)),question_bank_id:q.questionBankId?bankMap.get(String(q.questionBankId))||null:null,text:str(q.text),type:['text','choice','yesno'].includes(q.type)?q.type:'text',options:Array.isArray(q.options)?q.options:[],correct:q.correct??null,required:q.required!==false,points:Number(q.points||1),position:i,legacy_data:q});await upsert('exam_questions',eq,'legacy_id');await prune('exam_questions',eq.map(x=>x.legacy_id));
+  const attempts=cleanRows(data.examAttempts);await upsert('exam_attempts',attempts.map(x=>({legacy_id:legacyOf(x),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),started_at:x.startedAt||new Date().toISOString(),expires_at:x.expiresAt||new Date().toISOString(),submitted_at:x.submittedAt||null,resume_at:x.resumeAt||null,resume_until:x.resumeUntil||null,resume_duration_minutes:x.resumeDurationMinutes?Number(x.resumeDurationMinutes):null,answers:json(x.answers),question_order:cleanRows(x.questionOrder).map(str).filter(Boolean),status:x.submittedAt?'submitted':(x.status||'in_progress'),auto_submitted:Boolean(x.autoSubmitted),legacy_data:x})).filter(x=>x.exam_id),'legacy_id');
+  const attemptRows=await all('exam_attempts');const attemptMap=new Map(attemptRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));const results=cleanRows(data.examResults);await upsert('exam_results',results.map(x=>({legacy_id:legacyOf(x),attempt_id:attemptMap.get(String(x.attemptId||x.attemptID)),exam_id:examMap.get(String(x.examId)),discord_id:str(x.discordId||x.userId),score:Number(x.score||0),passed:Boolean(x.passed),duration_seconds:x.durationSeconds==null?null:Number(x.durationSeconds),submitted_at:x.submittedAt||new Date().toISOString(),published_at:x.publishedAt||null,review:Array.isArray(x.review)?x.review:[],legacy_data:x})).filter(x=>x.exam_id&&x.attempt_id),'legacy_id');
+  const admins=cleanRows(data.admins);await upsert('admins',admins.map(x=>({discord_id:str(x.discordId),name:x.name||null,permissions:cleanRows(x.permissions).map(str),enabled:x.enabled!==false,source:x.source||'manual',created_by:x.createdBy||null,updated_by:x.updatedBy||null,legacy_data:x})),'discord_id');const hierarchy=cleanRows(data.hierarchy);await upsert('hierarchy',hierarchy.map((x,i)=>({legacy_id:legacyOf(x),level:Math.max(1,Number(x.level||1)),position:Math.max(1,Number(x.position||x.order||i+1)),title:str(x.title)||'غير محدد',discord_id:x.discordId?str(x.discordId):null,name_snapshot:x.name||null,image_url:x.image||x.imageUrl||null,legacy_data:x})),'legacy_id');await prune('hierarchy',hierarchy.map(legacyOf));
+  const settings=Object.entries(data.memberSettings||{}).map(([discordId,x])=>({discord_id:str(discordId),show_profile_button:x?.showProfileButton!==false,legacy_data:x||{}}));await upsert('member_settings',settings,'discord_id');const images=Object.entries(data.memberImages||{}).map(([discordId,image])=>({discord_id:str(discordId),image_url:typeof image==='string'?image:null,legacy_data:{image}}));await upsert('member_images',images,'discord_id');
+  const evaluations=cleanRows(data.evaluations);await upsert('evaluations',evaluations.map(x=>({legacy_id:legacyOf(x),evaluator_discord_id:str(x.evaluatorDiscordId||x.userId||x.discordId),evaluator_role:x.evaluationRole==='trainer'?'trainer':'trainee',target_discord_id:str(x.targetDiscordId),target_name_snapshot:x.targetName||x.target?.name||null,target_rank_snapshot:x.targetRank||x.target?.rank||null,hours:x.hours==null?null:Number(x.hours),ratings:json(x.ratings),overall_rating:x.overallRating==null?null:Number(x.overallRating),same_trainer:x.sameTrainer==null?null:Boolean(x.sameTrainer),notes:x.notes||null,complaint:x.complaint||null,reviewed_at:x.reviewedAt||null,reviewed_by:x.reviewedBy||null,review_note:x.reviewNote||null,status:x.status||'pending',legacy_data:x})).filter(x=>x.evaluator_discord_id&&x.target_discord_id&&x.evaluator_discord_id!==x.target_discord_id),'legacy_id');await prune('evaluations',evaluations.map(legacyOf));
+  const audit=cleanRows(data.audit),auditRows=audit.map(x=>({legacy_id:legacyOf(x),actor_discord_id:x.actorId||x.actorDiscordId||null,actor_name:x.actorName||null,action:str(x.action)||'UNKNOWN',entity_type:x.entityType||null,entity_id:x.entityId||null,details:json(x.details||x.target),created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x}));if(auditRows.length){const uniqueAudit=Array.from(new Map(auditRows.map(x=>[String(x.legacy_id||''),x])).values()).filter(x=>x.legacy_id);await withRetry('upsert audit_logs',async()=>{const {error}=await supabase.from('audit_logs').upsert(uniqueAudit,{onConflict:'legacy_id',ignoreDuplicates:true});if(error)throw error})}const logins=cleanRows(data.loginLogs);await upsert('login_logs',logins.map(x=>({legacy_id:legacyOf(x),discord_id:x.discordId||null,username:x.username||null,success:x.success!==false,reason:x.reason||null,ip_hash:x.ipHash||null,user_agent:x.userAgent||null,created_at:x.at||x.createdAt||new Date().toISOString(),legacy_data:x})),'legacy_id');const drafts=Object.entries(data.applicationDrafts||{}).map(([discordId,draft])=>({discord_id:str(discordId),draft:json(draft),legacy_data:draft||{}}));await upsert('application_drafts',drafts,'discord_id');const overrides=Object.entries(data.roleOverrides||{}).map(([discordId,role])=>({discord_id:str(discordId),role:str(role),legacy_data:{role}}));await upsert('role_overrides',overrides,'discord_id');
 }
 
 async function loadAcademyData(){
-  if(!supabaseConfigured) return null;
-  const [settings,batches,appQs,apps,bank,exams,eq,attempts,results,admins,hierarchy,memberSettings,memberImages,evaluations,audit,logins,drafts,overrides]=await Promise.all([
-    all('academy_settings','id'),all('application_batches'),all('application_questions','position'),all('applications'),all('question_bank'),
-    all('exams'),all('exam_questions','position'),all('exam_attempts'),all('exam_results'),all('admins','discord_id'),all('hierarchy','position'),
-    all('member_settings','discord_id'),all('member_images','discord_id'),all('evaluations'),all('audit_logs'),all('login_logs'),
-    all('application_drafts','discord_id'),all('role_overrides','discord_id')
-  ]);
-  const hasData=settings.length||batches.length||appQs.length||apps.length||bank.length||exams.length||attempts.length||results.length||admins.length||hierarchy.length||evaluations.length||audit.length||logins.length||memberSettings.length||memberImages.length||drafts.length||overrides.length;
-  if(!hasData)return null;
-  const s=settings[0]||{};
-  const legacySettings=s.legacy_data&&typeof s.legacy_data==='object'?s.legacy_data:{};const data={version:18,settings:{academyName:s.academy_name,applicationsTitle:s.applications_title,applicationsDescription:s.applications_description,passingScore:s.passing_score,logoUrl:s.logo_url||'',acceptedMessage:s.accepted_message||'',rejectedMessage:s.rejected_message||'',acceptedDiscordUrl:s.accepted_discord_url||'',evaluationTrainerRanks:s.evaluation_trainer_ranks||[],evaluationTraineeRanks:s.evaluation_trainee_ranks||[],sessionEpoch:Number(legacySettings.sessionEpoch||0)},applicationQuestions:appQs.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),questionBank:bank.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),batches:batches.map(x=>x.legacy_data||{id:x.legacy_id,name:x.name,status:x.status,startAt:x.start_at,endAt:x.end_at,closedAt:x.closed_at}),applications:apps.map(x=>x.legacy_data||{id:x.legacy_id,batchId:x.batch_id,discordId:x.discord_id,name:x.applicant_name,status:x.status,answers:x.answers,submittedAt:x.submitted_at}),exams:exams.map(x=>{const legacy=x.legacy_data&&typeof x.legacy_data==='object'?x.legacy_data:{};return {id:x.legacy_id,title:x.title,description:x.description||legacy.description||'',stage:x.stage||legacy.stage||'عام',status:x.status||'open',active:legacy.active!==false&&x.status!=='closed',startAt:x.start_at,endAt:x.end_at,durationMinutes:x.duration_minutes,passingScore:x.passing_score,attemptsAllowed:x.attempts_allowed,accessType:x.access_type==='invite'?'link':(x.access_type||'all'),allowedDiscordIds:Array.isArray(x.access_users)?x.access_users.map(str):[],accessToken:legacy.accessToken||'',resultPublished:Boolean(x.publish_results),resultAnswersPublished:Boolean(x.show_answers),resumeEnabled:x.resume_enabled!==false,resumeMinutes:x.resume_minutes||null,createdAt:x.created_at,createdBy:x.created_by||'',updatedAt:x.updated_at,questions:[]};}),examResults:results.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,attemptId:x.attempt_id,discordId:x.discord_id,score:x.score,passed:x.passed,submittedAt:x.submitted_at}),examAttempts:attempts.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,discordId:x.discord_id,answers:x.answers,startedAt:x.started_at,expiresAt:x.expires_at,submittedAt:x.submitted_at}),evaluations:evaluations.map(x=>x.legacy_data||{id:x.legacy_id,evaluatorDiscordId:x.evaluator_discord_id,targetDiscordId:x.target_discord_id,ratings:x.ratings,overallRating:x.overall_rating,status:x.status}),hierarchy:hierarchy.map(x=>x.legacy_data||{id:x.legacy_id,title:x.title,name:x.name_snapshot,discordId:x.discord_id,image:x.image_url,level:x.level,position:x.position}),admins:admins.map(x=>x.legacy_data||{discordId:x.discord_id,name:x.name,permissions:x.permissions,enabled:x.enabled}),audit:audit.map(x=>x.legacy_data||{id:x.id,actorId:x.actor_discord_id,actorName:x.actor_name,action:x.action,details:x.details,at:x.created_at}),loginLogs:logins.map(x=>x.legacy_data||{id:x.id,discordId:x.discord_id,username:x.username,success:x.success,at:x.created_at}),memberImages:Object.fromEntries(memberImages.map(x=>[x.discord_id,x.image_url]).filter(([,v])=>v)),memberSettings:Object.fromEntries(memberSettings.map(x=>[x.discord_id,x.legacy_data||{showProfileButton:x.show_profile_button}])),applicationDrafts:Object.fromEntries(drafts.map(x=>[x.discord_id,x.draft])),roleOverrides:Object.fromEntries(overrides.map(x=>[x.discord_id,x.role])),badges:Array.isArray(legacySettings.badges)?legacySettings.badges:[],memberBadges:legacySettings.memberBadges&&typeof legacySettings.memberBadges==='object'?legacySettings.memberBadges:{},devStoreTokens:legacySettings.devStoreTokens&&typeof legacySettings.devStoreTokens==='object'?legacySettings.devStoreTokens:{}};
-  const examById=new Map(data.exams.map(x=>[String(x.id),x]));
-  for(const q of eq){const sourceExam=exams.find(e=>e.id===q.exam_id);const exam=examById.get(String(sourceExam?.legacy_id));if(exam)(exam.questions??=[]).push({...((q.legacy_data&&typeof q.legacy_data==='object')?q.legacy_data:{}),id:q.legacy_id,text:q.text,type:q.type,options:q.options,correct:q.correct,required:q.required,points:q.points,questionBankId:q.question_bank_id||undefined,_position:Number(q.position)||0});}
-  for(const exam of data.exams){exam.questions=(exam.questions||[]).sort((a,b)=>Number(a._position||0)-Number(b._position||0)).map((q,i)=>{const out={...q};delete out._position;return out;});}
-  return data;
+  if(!supabaseConfigured)return null;
+  const [settings,batches,appQs,apps,bank,exams,eq,attempts,results,admins,hierarchy,memberSettings,memberImages,evaluations,audit,logins,drafts,overrides]=await Promise.all([all('academy_settings','id'),all('application_batches'),all('application_questions','position'),all('applications'),all('question_bank'),all('exams'),all('exam_questions','position'),all('exam_attempts'),all('exam_results'),all('admins','discord_id'),all('hierarchy','position'),all('member_settings','discord_id'),all('member_images','discord_id'),all('evaluations'),all('audit_logs'),all('login_logs'),all('application_drafts','discord_id'),all('role_overrides','discord_id')]);
+  const hasData=settings.length||batches.length||appQs.length||apps.length||bank.length||exams.length||attempts.length||results.length||admins.length||hierarchy.length||evaluations.length||audit.length||logins.length||memberSettings.length||memberImages.length||drafts.length||overrides.length;if(!hasData)return null;const s=settings[0]||{},legacySettings=s.legacy_data&&typeof s.legacy_data==='object'?s.legacy_data:{};const data={version:18,settings:{academyName:s.academy_name,applicationsTitle:s.applications_title,applicationsDescription:s.applications_description,passingScore:s.passing_score,logoUrl:s.logo_url||'',acceptedMessage:s.accepted_message||'',rejectedMessage:s.rejected_message||'',acceptedDiscordUrl:s.accepted_discord_url||'',evaluationTrainerRanks:s.evaluation_trainer_ranks||[],evaluationTraineeRanks:s.evaluation_trainee_ranks||[],sessionEpoch:Number(legacySettings.sessionEpoch||0)},applicationQuestions:appQs.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),questionBank:bank.map(x=>x.legacy_data||{id:x.legacy_id,text:x.text,type:x.type,options:x.options,correct:x.correct,required:x.required,points:x.points}),batches:batches.map(x=>x.legacy_data||{id:x.legacy_id,name:x.name,status:x.status,startAt:x.start_at,endAt:x.end_at,closedAt:x.closed_at}),applications:apps.map(x=>x.legacy_data||{id:x.legacy_id,batchId:x.batch_id,discordId:x.discord_id,name:x.applicant_name,status:x.status,answers:x.answers,submittedAt:x.submitted_at}),exams:exams.map(x=>{const legacy=x.legacy_data&&typeof x.legacy_data==='object'?x.legacy_data:{};return{id:x.legacy_id,title:x.title,description:x.description||legacy.description||'',stage:x.stage||legacy.stage||'عام',status:x.status||'open',active:legacy.active!==false&&x.status!=='closed',startAt:x.start_at,endAt:x.end_at,durationMinutes:x.duration_minutes,passingScore:x.passing_score,attemptsAllowed:x.attempts_allowed,accessType:x.access_type==='invite'?'link':(x.access_type||'all'),allowedDiscordIds:Array.isArray(x.access_users)?x.access_users.map(str):[],accessToken:legacy.accessToken||'',resultPublished:Boolean(x.publish_results),resultAnswersPublished:Boolean(x.show_answers),resumeEnabled:x.resume_enabled!==false,resumeMinutes:x.resume_minutes||null,createdAt:x.created_at,createdBy:x.created_by||'',updatedAt:x.updated_at,questions:[]}}),examResults:results.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,attemptId:x.attempt_id,discordId:x.discord_id,score:x.score,passed:x.passed,submittedAt:x.submitted_at}),examAttempts:attempts.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,discordId:x.discord_id,answers:x.answers,startedAt:x.started_at,expiresAt:x.expires_at,submittedAt:x.submitted_at}),evaluations:evaluations.map(x=>x.legacy_data||{id:x.legacy_id,evaluatorDiscordId:x.evaluator_discord_id,targetDiscordId:x.target_discord_id,ratings:x.ratings,overallRating:x.overall_rating,status:x.status}),hierarchy:hierarchy.map(x=>x.legacy_data||{id:x.legacy_id,title:x.title,name:x.name_snapshot,discordId:x.discord_id,image:x.image_url,level:x.level,position:x.position}),admins:admins.map(x=>x.legacy_data||{discordId:x.discord_id,name:x.name,permissions:x.permissions,enabled:x.enabled}),audit:audit.map(x=>x.legacy_data||{id:x.id,actorId:x.actor_discord_id,actorName:x.actor_name,action:x.action,details:x.details,at:x.created_at}),loginLogs:logins.map(x=>x.legacy_data||{id:x.id,discordId:x.discord_id,username:x.username,success:x.success,at:x.created_at}),memberImages:Object.fromEntries(memberImages.map(x=>[x.discord_id,x.image_url]).filter(([,v])=>v)),memberSettings:Object.fromEntries(memberSettings.map(x=>[x.discord_id,x.legacy_data||{showProfileButton:x.show_profile_button}])),applicationDrafts:Object.fromEntries(drafts.map(x=>[x.discord_id,x.draft])),roleOverrides:Object.fromEntries(overrides.map(x=>[x.discord_id,x.role])),badges:Array.isArray(legacySettings.badges)?legacySettings.badges:[],memberBadges:legacySettings.memberBadges&&typeof legacySettings.memberBadges==='object'?legacySettings.memberBadges:{},devStoreTokens:legacySettings.devStoreTokens&&typeof legacySettings.devStoreTokens==='object'?legacySettings.devStoreTokens:{}};const examById=new Map(data.exams.map(x=>[String(x.id),x]));for(const q of eq){const sourceExam=exams.find(e=>e.id===q.exam_id),exam=examById.get(String(sourceExam?.legacy_id));if(exam)(exam.questions??=[]).push({...((q.legacy_data&&typeof q.legacy_data==='object')?q.legacy_data:{}),id:q.legacy_id,text:q.text,type:q.type,options:q.options,correct:q.correct,required:q.required,points:q.points,questionBankId:q.question_bank_id||undefined,_position:Number(q.position)||0})}for(const exam of data.exams)exam.questions=(exam.questions||[]).sort((a,b)=>Number(a._position||0)-Number(b._position||0)).map(q=>{const out={...q};delete out._position;return out});return data;
 }
 
-// Targeted live-exam persistence. These functions intentionally update one
-// attempt/result instead of serializing the entire academy snapshot. Under
-// concurrent exams, whole-snapshot writes can queue behind each other and make
-// answer autosave/submit appear to fail.
-async function examRowId(legacyId){
-  const {data,error}=await supabase.from('exams').select('id').eq('legacy_id',String(legacyId)).maybeSingle();
-  if(error) throw error;
-  return data?.id||null;
-}
-async function attemptRowId(legacyId){
-  const {data,error}=await supabase.from('exam_attempts').select('id').eq('legacy_id',String(legacyId)).maybeSingle();
-  if(error) throw error;
-  return data?.id||null;
-}
+async function examRowId(legacyId){const {data,error}=await supabase.from('exams').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
+async function attemptRowId(legacyId){const {data,error}=await supabase.from('exam_attempts').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
+
 export async function saveExamAttempt(attempt){
-  if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const exam_id=await examRowId(attempt.examId);
-  if(!exam_id) throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
-  const row={legacy_id:String(attempt.id),exam_id,discord_id:str(attempt.discordId||attempt.userId),
-    started_at:attempt.startedAt||new Date().toISOString(),expires_at:attempt.expiresAt||new Date().toISOString(),
-    submitted_at:attempt.submittedAt||null,resume_at:attempt.resumeAt||null,resume_until:attempt.resumeUntil||null,
-    resume_duration_minutes:attempt.resumeDurationMinutes?Number(attempt.resumeDurationMinutes):null,
-    answers:json(attempt.answers),question_order:cleanRows(attempt.questionOrder).map(str).filter(Boolean),
-    status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),auto_submitted:Boolean(attempt.autoSubmitted||attempt.expired),
-    legacy_data:attempt};
-  await withRetry('save exam attempt',async()=>{const {error}=await supabase.from('exam_attempts').upsert(row,{onConflict:'legacy_id'});if(error)throw error;});
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const updatedAt=attempt.answersUpdatedAt||new Date().toISOString();
+  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:String(attempt.id),p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress')}));
+  if(error)throw error;
+  if(!Array.isArray(data)||!data.length)throw new Error('EXAM_ATTEMPT_NOT_FOUND');
+  return data[0];
 }
-export async function saveExamResult(result,attemptLegacyId=null){
-  if(!supabaseConfigured) throw new Error('SUPABASE_NOT_CONFIGURED');
-  const exam_id=await examRowId(result.examId);
-  if(!exam_id) throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
-  const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);
-  if(!attempt_id) throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');
-  const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),
-    score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),
-    submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,
-    review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};
-  await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error;});
-}
+export async function saveExamResult(result,attemptLegacyId=null){if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');const exam_id=await examRowId(result.examId);if(!exam_id)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);if(!attempt_id)throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error})}
 
 export { saveAcademyData, loadAcademyData };
