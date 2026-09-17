@@ -36,7 +36,7 @@ await replaceOnce(
 
 await replaceOnce(
   'src/main.jsx',
-  "body:JSON.stringify({answers:answersRef.current,accessToken:inviteToken||undefined,clientRevision:revision})",
+  "body:JSON.stringify({answers:answersRef.current,accessToken:inviteToken||undefined,clientRevision:revision,clientUpdatedAt:new Date(answersUpdatedAtRef.current).toISOString()})",
   "body:JSON.stringify({answers:answersRef.current,accessToken:inviteToken||undefined,clientRevision:revision,clientUpdatedAt:new Date(answersUpdatedAtRef.current).toISOString()})",
   'autosave-client-timestamp'
 );
