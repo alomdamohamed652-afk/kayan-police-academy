@@ -61,32 +61,6 @@ function queueGoogleMirror(reason='mutation'){
   }finally{mirrorRunning=false}`
   }
 ]);
-
-await patchFile('server/supabase-academy-store.mjs',[
-  {
-    name:'safe hierarchy upsert through temporary coordinates',
-    from:`  const hierarchy=cleanRows(data.hierarchy);
-  await upsert('hierarchy',hierarchy.map((x,i)=>({legacy_id:legacyOf(x),level:Math.max(1,Number(x.level||1)),position:Math.max(1,Number(x.position||x.order||i+1)),title:str(x.title)||'غير محدد',discord_id:x.discordId?str(x.discordId):null,name_snapshot:x.name||null,image_url:x.image||x.imageUrl||null,legacy_data:x})),'legacy_id');
-  await prune('hierarchy',hierarchy.map(legacyOf));`,
-    to:`  const hierarchy=cleanRows(data.hierarchy);
-  // Normalize positions inside each level and move current rows to temporary
-  // coordinates before the final upsert. This prevents swaps/reorders from
-  // violating hierarchy_level_position_unique while old coordinates still exist.
-  const levelCounters=new Map();
-  const hierarchyRows=hierarchy.map((x,i)=>{
-    const level=Math.max(1,Number(x.level||1));
-    const next=(levelCounters.get(level)||0)+1;levelCounters.set(level,next);
-    return {legacy_id:legacyOf(x),level,position:next,title:str(x.title)||'غير محدد',discord_id:x.discordId?str(x.discordId):null,name_snapshot:x.name||null,image_url:x.image||x.imageUrl||null,legacy_data:{...x,level,position:next}};
-  });
-  if(hierarchyRows.length){
-    const temporary=hierarchyRows.map((x,i)=>({...x,level:x.level+10000,position:i+1}));
-    await upsert('hierarchy',temporary,'legacy_id');
-  }
-  await prune('hierarchy',hierarchy.map(legacyOf));
-  await upsert('hierarchy',hierarchyRows,'legacy_id');`
-  }
-]);
-
 await patchFile('src/main.jsx',[
   {
     name:'exam autosave cannot get stuck behind an in-flight request',
