@@ -48,4 +48,18 @@ await replaceOnce(
   'beacon-client-timestamp'
 );
 
+await replaceOnce(
+  'src/main.jsx',
+  "try{navigator.sendBeacon('/api/exams/'+active.id+'/attempt',new Blob([body],{type:'application/json'}))}catch{}",
+  "try{fetch('/api/exams/'+active.id+'/attempt',{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'include',keepalive:true,body}).catch(()=>{})}catch{}",
+  'visibility-flush-uses-put-keepalive'
+);
+
+await replaceOnce(
+  'server/supabase-academy-store.mjs',
+  "examAttempts:attempts.map(x=>x.legacy_data||{id:x.legacy_id,examId:x.exam_id,discordId:x.discord_id,answers:x.answers,startedAt:x.started_at,expiresAt:x.expires_at,submittedAt:x.submitted_at}),",
+  "examAttempts:attempts.map(x=>{const legacy=x.legacy_data&&typeof x.legacy_data==='object'?x.legacy_data:{};return{...legacy,id:x.legacy_id,examId:x.exam_id,discordId:x.discord_id,answers:x.answers,startedAt:x.started_at,expiresAt:x.expires_at,submittedAt:x.submitted_at,answersUpdatedAt:x.answers_updated_at||legacy.answersUpdatedAt||null,answersRevision:Number(x.answers_revision||legacy.answersRevision||0)};}),",
+  'load-answer-version-metadata'
+);
+
 console.log('Exam hardening patch applied.');
