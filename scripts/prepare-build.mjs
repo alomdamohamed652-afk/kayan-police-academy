@@ -1,6 +1,8 @@
 import './runtime-stability-patch.mjs';
+import './stability-v2.mjs';
 import './admin-data-tools-patch-v2.mjs';
 import './evaluation-ui-patch.mjs';
+import './exam-hardening-v3.mjs';
 import fs from 'node:fs/promises';
 const source=await fs.readFile('src/main.jsx','utf8');
 if(!source.includes('function Applications({user}){'))throw new Error('PREPARE_BUILD_APPLICATION_FUNCTION_NOT_FOUND');
