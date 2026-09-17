@@ -30,6 +30,16 @@ const ui = await fs.readFile('src/admin-center.jsx','utf8');
 let __src = ui;
 __src=__src.replace("import React,{useEffect,useMemo,useState}from'react';","import React,{useEffect,useMemo,useState}from'react';import{createPortal}from'react-dom';");
 let next = __src;
+const reviewLogicStart="const[reviewModal,setReviewModal";
+const reviewLogicEnd=";const remove=";
+const reviewStart=next.indexOf(reviewLogicStart);
+const reviewEnd=next.indexOf(reviewLogicEnd,reviewStart);
+if(reviewStart<0||reviewEnd<0)throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:review-logic');
+const reviewLogic=next.slice(reviewStart,reviewEnd);
+if(!reviewLogic.includes("setReviewModal(null);setMsg("))throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:review-message');
+const reviewLogicUpdated=reviewLogic.replace("setReviewModal(null);setMsg(","setReviewModal(null);await refreshSection('applications');setMsg(").replace("تم قبول المتقدم بنجاح.","تم قبول المتقدم وتحديث القائمة تلقائيًا.").replace("تم رفض المتقدم بنجاح.","تم رفض المتقدم وتحديث القائمة تلقائيًا.").replace("تم تحديث حالة الطلب.","تم تحديث حالة الطلب والقائمة تلقائيًا.");
+next=next.slice(0,reviewStart)+reviewLogicUpdated+next.slice(reviewEnd);
+
 
 const batchButton = `<Btn className="danger" onClick={()=>{if(busy||!confirm('مسح إجابات جميع طلبات هذه الدفعة؟ سيبقى سجل التقديم والاسم وDiscord ID والحالة والتاريخ للرجوع إليه.'))return;withBusy(async()=>{try{const d=await api(\`/api/admin/batches/\${b.id}/clear-data\`,{method:'POST'});setState(prev=>({...prev,applications:(prev.applications||[]).map(a=>String(a.batchId)===String(b.id)?{...a,answers:{},answersClearedAt:new Date().toISOString()}:a)}));setMsg(\`تم مسح بيانات الإجابات من \${d.clearedApplications||0} طلب مع الاحتفاظ بسجل التقديم.\`)}catch(e){setMsg(errText(e))}})}}><Trash2 size={14}/> مسح بيانات الطلبات</Btn>`;
 const batchAnchor = `<Btn onClick={()=>toggle(b)}>{b.status==='open'?'إغلاق':'فتح'}</Btn>`;
