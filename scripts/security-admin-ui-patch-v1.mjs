@@ -8,7 +8,14 @@ if(!s.includes("const clearOldLogs=async()=>")){if(!s.includes(old))throw new Er
 
 const toolbar=" <Btn onClick={load}><RefreshCw size={15}/> تحديث</Btn>";
 const replacement=" <Btn onClick={clearOldLogs} className='danger'><Trash2 size={15}/> مسح الأقدم من 3 أيام</Btn>"+toolbar;
-if(!s.includes("مسح الأقدم من 3 أيام")){if(!s.includes(toolbar))throw new Error('SECURITY_UI_TOOLBAR_TARGET_NOT_FOUND');s=s.replace(toolbar,replacement)}
+if(!s.includes("مسح الأقدم من 3 أيام")){
+  if(s.includes(toolbar)) s=s.replace(toolbar,replacement);
+  else {
+    const anchor="<Btn onClick={load}><RefreshCw size={15}/> تحديث</Btn>";
+    if(!s.includes(anchor)) throw new Error('SECURITY_UI_TOOLBAR_TARGET_NOT_FOUND');
+    s=s.replace(anchor,"<Btn onClick={clearOldLogs} className='danger'><Trash2 size={15}/> مسح الأقدم من 3 أيام</Btn>"+anchor);
+  }
+}
 
 const cardPattern="a.source==='environment'?'أدمن بيئي محمي':'أدمن قابل للتعديل'";
 const cardReplacement="a.source==='environment'?'SUPER ADMIN · محمي بالكامل':'أدمن قابل للتعديل'";
