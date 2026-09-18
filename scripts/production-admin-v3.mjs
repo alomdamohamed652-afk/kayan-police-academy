@@ -134,7 +134,7 @@ app.use('/api/admin',rateLimit({windowMs:60000,max:120,keyPrefix:'admin'}));
   const qOld="function QuestionEditor({question,onChange,onDelete,collapsed=false,onToggleCollapse})";
   const qNew="function QuestionEditor({question,onChange,onDelete,collapsed=false,onToggleCollapse,sections=[]})";
   s=s.replace(qOld,qNew);
-  const qField='</div>{question.type===\\'choice\\'&&<div className="questionChoices">';
+  const qField="</div>{question.type==='choice'&&<div className=\"questionChoices\">";
   const qInject="</div>{sections.length>0&&<label className="questionSectionAssign">القسم المرتبط بالسؤال<select value={question.sectionId||''} onChange={e=>onChange({...question,sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(sec=><option key={sec.id} value={sec.id}>{sec.title||sec.id}</option>)}</select></label>}{question.type==='choice'&&<div className="questionChoices">";
   if(!s.includes(qField))throw new Error("question field target missing");
   s=s.replace(qField,qInject);
