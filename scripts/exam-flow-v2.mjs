@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 const replace=(s,a,b,l)=>{if(!s.includes(a)){if(s.includes(b))return s;throw new Error('EXAM_FLOW_TARGET_NOT_FOUND:'+l)}return s.replace(a,b)};
 let s=await fs.readFile('src/main.jsx','utf8');
+s=replace(s,"const submit=async(auto=false)=>{","const submit=async(auto=false,reason='')=>{",'submit-signature');
 s=replace(s,"const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined})});","const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined,earlyExit:reason==='rule'})});",'submit-body');
 s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(reason==='rule'?'انتهى الاختبار حسب شرط القسم المحدد. تم حفظ إجاباتك الحالية.':auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');",'submit-message');
 s=replace(s,"if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))","if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))",'auto-error');
