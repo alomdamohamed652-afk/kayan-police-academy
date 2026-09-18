@@ -5,8 +5,12 @@ let s=await fs.readFile(file,'utf8');
 const importOld="import { clearExamAnswerData, clearApplicationBatchData } from './admin-data-actions.mjs';";
 const importNew=importOld+"\nimport { purgeOldLogs, purgeLogsKeepRecent3Days } from './log-retention-actions.mjs';";
 if(!s.includes(importNew)){
-  if(!s.includes(importOld)) throw new Error('SECURITY_PATCH_IMPORT_TARGET_NOT_FOUND');
-  s=s.replace(importOld,importNew);
+  if(s.includes(importOld)) s=s.replace(importOld,importNew);
+  else {
+    const supabaseImport="import { loadAcademyData, saveAcademyData, saveExamAttempt, saveExamResult } from './supabase-academy-store.mjs';";
+    if(!s.includes(supabaseImport)) throw new Error('SECURITY_PATCH_IMPORT_TARGET_NOT_FOUND');
+    s=s.replace(supabaseImport,supabaseImport+"\nimport { clearExamAnswerData, clearApplicationBatchData } from './admin-data-actions.mjs';\nimport { purgeOldLogs, purgeLogsKeepRecent3Days } from './log-retention-actions.mjs';");
+  }
 }
 
 const auditNeed="function audit(c,a,t,d='')";
