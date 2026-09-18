@@ -26,16 +26,24 @@ app.post('/api/admin/exams/:id/clear-answers',async(req,res)=>{try{const c=await
 `;
 {
   const file='server/academy-production-original.mjs';
-  const source=await fs.readFile(file,'utf8');
-  if(!source.includes("clearExamAnswerData, clearApplicationBatchData")) throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:cleanup-import');
+  let source=await fs.readFile(file,'utf8');
+  const cleanupImport="import { clearExamAnswerData, clearApplicationBatchData } from './admin-data-actions.mjs';";
+  if(!source.includes(cleanupImport)){
+    const importAnchor="import { loadAcademyData, saveAcademyData, saveExamAttempt, saveExamResult } from './supabase-academy-store.mjs';";
+    if(!source.includes(importAnchor)){
+      throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:cleanup-import-anchor');
+    }
+    source=source.replace(importAnchor,importAnchor+"\n"+cleanupImport);
+  }
   if(!source.includes("CLEAR_BATCH_APPLICATION_DATA")&&!source.includes("app.post('/api/admin/batches/:id/clear-data'")){
     const anchor="app.put('/api/admin/question-bank'";
     if(!source.includes(anchor)){
       console.log('[admin-data-tools] cleanup route anchor already transformed; skipping route insertion.');
     }else{
-      await fs.writeFile(file,source.replace(anchor,cleanupRoutes+anchor),'utf8');
+      source=source.replace(anchor,cleanupRoutes+anchor);
     }
   }
+  await fs.writeFile(file,source,'utf8');
 }
 
 const ui = await fs.readFile('src/admin-center.jsx','utf8');
