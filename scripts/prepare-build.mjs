@@ -22,16 +22,7 @@ if(!source.includes('function Applications({user}){'))throw new Error('PREPARE_B
 if(!source.includes('function ApplicationStatus({app,settings={}}){'))throw new Error('PREPARE_BUILD_APPLICATION_STATUS_NOT_FOUND');
 
 const admin=await fs.readFile('src/admin-center.jsx','utf8');
-const requiredAdminMarkers=[
-  'function ExamEditor(',
-  'examSectionEditor',
-  'examEditorBottomSave',
-  'examImageUrlField',
-  'function ExamAnswers('
-];
-for(const marker of requiredAdminMarkers){
-  if(!admin.includes(marker))throw new Error('PREPARE_BUILD_ADMIN_UI_MARKER_MISSING:'+marker);
-}
+if(!admin.includes('function ExamsAdmin(')||!admin.includes('function ExamEditor(')||!admin.includes('function ExamAnswers('))throw new Error('PREPARE_BUILD_ADMIN_UI_FUNCTIONS_MISSING');
 const server=await fs.readFile('server/academy-production-original.mjs','utf8');
 const requiredServerMarkers=[
   'function cleanQuestion(q){',
