@@ -41,7 +41,7 @@ function cleanExam(e){
  const sections=Array.isArray(e?.sections)?e.sections.map((x,i)=>({id:String(x?.id||('section-'+(i+1))),title:String(x?.title||('القسم '+(i+1))).trim().slice(0,120),description:String(x?.description||'').trim().slice(0,500),gateQuestionId:String(x?.gateQuestionId||'').trim(),allowedAnswers:Array.isArray(x?.allowedAnswers)?x.allowedAnswers.map(v=>String(v).trim()).filter(Boolean).slice(0,50):[],failMessage:String(x?.failMessage||'').trim().slice(0,500),nextSectionId:String(x?.nextSectionId||'').trim()})):[],
  accessType=EXAM_ACCESS.includes(e?.accessType)?e.accessType:'police';
  const accessToken=accessType==='link'?(String(e?.accessToken||'').trim()||crypto.randomBytes(18).toString('base64url')):'';
- const allowedDiscordIds=accessType==='specific'?(Array.isArray(e?.allowedDiscordIds)?e.allowedDiscordIds.map(id).filter(Boolean):[]):[];
+ const allowedDiscordIds=accessType==='specific'?(Array.isArray(e?.allowedDiscordIds)?e.allowedDiscordIds.map(v=>String(v).trim()).filter(Boolean):[]):[];
  const bannerUrl=String(e?.bannerUrl||'').trim().slice(0,1200);
  return{id:String(e?.id||('exam-'+Date.now())),title:String(e?.title||'اختبار جديد'),description:String(e?.description||''),stage:String(e?.stage||'عام'),accessType,accessToken,allowedDiscordIds,passingScore:Math.max(1,Math.min(100,Number(e?.passingScore||60))),durationMinutes:Math.max(1,Number(e?.durationMinutes||30)),attemptsAllowed:Math.max(1,Number(e?.attemptsAllowed||1)),startAt:validDate(e?.startAt)?iso(e.startAt):null,endAt:validDate(e?.endAt)?iso(e.endAt):null,active:e?.active!==false,resultPublished:e?.resultPublished===true,resultAnswersPublished:e?.resultAnswersPublished===true,bannerUrl,sections,createdAt:e?.createdAt||new Date().toISOString(),questions};
 }
@@ -135,7 +135,7 @@ app.use('/api/admin',rateLimit({windowMs:60000,max:120,keyPrefix:'admin'}));
   const qNew="function QuestionEditor({question,onChange,onDelete,collapsed=false,onToggleCollapse,sections=[]})";
   s=s.replace(qOld,qNew);
   const qField="</div>{question.type==='choice'&&<div className=\"questionChoices\">";
-  const qInject="</div>{sections.length>0&&<label className="questionSectionAssign">القسم المرتبط بالسؤال<select value={question.sectionId||''} onChange={e=>onChange({...question,sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(sec=><option key={sec.id} value={sec.id}>{sec.title||sec.id}</option>)}</select></label>}{question.type==='choice'&&<div className="questionChoices">";
+  const qInject=String.raw`</div>{sections.length>0&&<label className="questionSectionAssign">القسم المرتبط بالسؤال<select value={question.sectionId||''} onChange={e=>onChange({...question,sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(sec=><option key={sec.id} value={sec.id}>{sec.title||sec.id}</option>)}</select></label>}{question.type==='choice'&&<div className="questionChoices">`;
   if(!s.includes(qField))throw new Error("question field target missing");
   s=s.replace(qField,qInject);
   const aa=s.indexOf("function ExamAnswers("),ab=s.indexOf("function SpecificUsers(",aa);
