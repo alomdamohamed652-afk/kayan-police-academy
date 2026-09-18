@@ -605,7 +605,10 @@ app.post('/api/exams/:id/start',(req,res)=>saved(async()=>{const c=await current
   const answers={...(attempt.answers||{}),...(req.body?.answers&&typeof req.body.answers==='object'?req.body.answers:{})};
   for(const q of examForAttempt.questions||[])answers[q.id]=String(answers[q.id]??'').slice(0,5000);
   const expired=(attempt.expiresAt&&now()>=new Date(attempt.expiresAt).getTime())||(e.endAt&&now()>=new Date(e.endAt).getTime());
-  if(!expired&&!attempt.submittedAt)for(const q of examForAttempt.questions||[])if(String(answers[q.id]??'').trim()==='')return res.status(400).json({error:'REQUIRED_QUESTION_MISSING'});
+  const earlyExit=Boolean(req.body?.earlyExit);
+  const gateFailed=Array.isArray(examForAttempt.sections)&&examForAttempt.sections.some(sec=>{const gateId=String(sec?.gateQuestionId||'');if(!gateId)return false;const answer=String(answers[gateId]??'').trim();const allowed=Array.isArray(sec?.allowedAnswers)?sec.allowedAnswers.map(String).map(v=>v.trim()).filter(Boolean):[];return allowed.length>0&&!allowed.includes(answer)});
+  if(earlyExit&&!gateFailed&&!expired)return res.status(400).json({error:'EARLY_EXIT_NOT_ALLOWED'});
+  if(!expired&&!attempt.submittedAt&&!earlyExit)for(const q of examForAttempt.questions||[])if(String(answers[q.id]??'').trim()==='')return res.status(400).json({error:'REQUIRED_QUESTION_MISSING'});
   const submittedAt=attempt.submittedAt||new Date().toISOString();
   const score=attempt.score==null?scoreAttempt(examForAttempt,answers):Number(attempt.score);
   const activeBase=Math.max(0,Number(attempt.activeDurationSeconds||0));
@@ -615,7 +618,7 @@ app.post('/api/exams/:id/start',(req,res)=>saved(async()=>{const c=await current
   // Build durable copies first. Do not mutate live memory into "submitted"
   // until Supabase confirms both the attempt and the result.
   const durableAttempt={...attempt,answers,submittedAt,status:expired?'expired':'submitted',expired:Boolean(expired),score,activeDurationSeconds};
-  const result={id:'result-'+String(attempt.id),examId:e.id,userId:uid,name:attempt.name||c.police?.name||c.x.global_name||c.x.username||'متقدم',score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:Boolean(expired),attemptId:attempt.id};
+  const result={id:'result-'+String(attempt.id),examId:e.id,userId:uid,name:attempt.name||c.police?.name||c.x.global_name||c.x.username||'متقدم',score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:Boolean(expired),terminatedByRule:Boolean(earlyExit&&gateFailed),attemptId:attempt.id};
   try{await persistResultSafe(result,durableAttempt)}catch(err){
     console.error('Exam submit durability failed:',err?.message||err);
     return res.status(503).json({error:'EXAM_SUBMIT_PENDING',message:'لم يتم تأكيد حفظ الإجابات بعد. إجاباتك ما زالت محفوظة، أعد المحاولة ولا تغلق الصفحة.',retryable:true});
