@@ -144,7 +144,7 @@ const submit=async(auto=false,reason='')=>{const currentActive=activeRef.current
     }catch(_recover){}
   }
   if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED')){setActive(null);setAttempt(null);setAnswers({});setResumeAttempts(prev=>prev.filter(a=>String(a.examId)!==String(currentActive.id)));setTimeout(()=>load().catch(()=>{}),0)}else{try{const key='kayan_exam_draft_'+(user?.discord?.id||'me')+'_'+currentActive.id;localStorage.setItem(key,JSON.stringify({answers:currentAnswers,updatedAt:Date.now(),attemptId:currentAttempt.id,examId:currentActive.id,submissionPending:true}));setSyncStatus('local');setPendingSync(true)}catch{}setActive(currentActive);setAttempt(currentAttempt);setAnswers(currentAnswers);setRemaining(Math.max(0,new Date(currentAttempt.expiresAt).getTime()-Date.now()));setError('تعذر الاتصال بالخادم الآن. إجاباتك محفوظة على جهازك ولم تُفقد. أعد المحاولة عند عودة الاتصال.')}}
-}finally{submitLockRef.current=false;setSubmitting(false)}};
+finally{submitLockRef.current=false;setSubmitting(false)}};
 useEffect(()=>{if(!attempt)return;const tick=()=>{const r=Math.max(0,new Date(attempt.expiresAt).getTime()-Date.now());setRemaining(r);if(r<=0)submit(true)};tick();const t=setInterval(tick,1000);return()=>clearInterval(t)},[attempt]);
 // Crash-safe exam draft: write to the student's device immediately, then
 // sync the latest snapshot to the server. Network failure never clears answers.
