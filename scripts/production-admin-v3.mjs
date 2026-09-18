@@ -101,7 +101,7 @@ app.patch('/api/admin/exams/:examId/results/:resultId/grade',async(req,res)=>{
   /* Rate limit mutation-heavy admin routes and auth callback endpoints. */
   const rlMarker="const rateBuckets=new Map();";
   if(!s.includes(rlMarker)){
-    const cookieAnchor="app.use(express.json({limit:'8mb'});";
+    const cookieAnchor="app.use(express.json({limit:'8mb'}));";
     const pos=s.indexOf(cookieAnchor);
     if(pos<0)throw new Error('PROD_V3_RATE_LIMIT_TARGET_NOT_FOUND');
     const insert=`
