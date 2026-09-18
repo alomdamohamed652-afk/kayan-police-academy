@@ -11,7 +11,20 @@ import './action-ux-v1.mjs';
 import './production-admin-v3.mjs';
 import './exam-flow-v2.mjs';
 import fs from 'node:fs/promises';
+
 const source=await fs.readFile('src/main.jsx','utf8');
 if(!source.includes('function Applications({user}){'))throw new Error('PREPARE_BUILD_APPLICATION_FUNCTION_NOT_FOUND');
 if(!source.includes('function ApplicationStatus({app,settings={}}){'))throw new Error('PREPARE_BUILD_APPLICATION_STATUS_NOT_FOUND');
-console.log('Build preparation validation complete; source files are left untouched.');
+
+const admin=await fs.readFile('src/admin-center.jsx','utf8');
+const requiredAdminMarkers=[
+  'الأقسام ومسار الاختبار',
+  'examEditorStickySave',
+  'بانر الاختبار — رابط صورة',
+  'صورة السؤال — رابط',
+  'احتساب صحيحة'
+];
+for(const marker of requiredAdminMarkers){
+  if(!admin.includes(marker))throw new Error('PREPARE_BUILD_ADMIN_UI_MARKER_MISSING:'+marker);
+}
+console.log('Build preparation validation complete; admin UI markers verified.');
