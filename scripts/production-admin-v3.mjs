@@ -65,11 +65,10 @@ function scoreAttempt(e,answers,manualGrades={}){
 }
 `;
   s=s.slice(0,a)+model+s.slice(b);
-  const publicStart=s.indexOf("function publicExam(e){");
-  const publicEnd=s.indexOf("\n}",publicStart)+2;
-  if(publicStart<0||publicEnd<0)throw new Error('PROD_V3_PUBLIC_EXAM_TARGET_NOT_FOUND');
-  const publicFn="function publicExam(e){ const questions=(Array.isArray(e?.questions)?e.questions:[]).map(cleanQuestion).filter(q=>q.text).map(q=>({id:q.id,text:q.text,type:q.type,options:q.options||[],required:q.required!==false,points:q.points,imageUrl:q.imageUrl||'',sectionId:q.sectionId||''})); const sections=Array.isArray(e?.sections)?e.sections.map(x=>({id:x.id,title:x.title,description:x.description,gateQuestionId:x.gateQuestionId||'',allowedAnswers:x.allowedAnswers||[],failMessage:x.failMessage||'',nextSectionId:x.nextSectionId||''})):[]; return{...e,state:timeState(e?.startAt,e?.endAt),accessToken:undefined,allowedDiscordIds:undefined,sections,bannerUrl:e?.bannerUrl||'',questions}; }";
-  s=s.slice(0,publicStart)+publicFn+s.slice(publicEnd);
+  const publicOld="function publicExam(e){const questions=(Array.isArray(e?.questions)?e.questions:[]).map(cleanQuestion).filter(q=>q.text).map(q=>({id:q.id,text:q.text,type:q.type,options:q.options||[],required:q.required!==false,points:q.points}));return{...e,state:timeState(e?.startAt,e?.endAt),accessToken:undefined,allowedDiscordIds:undefined,questions}}";
+  const publicFn="function publicExam(e){const questions=(Array.isArray(e?.questions)?e.questions:[]).map(cleanQuestion).filter(q=>q.text).map(q=>({id:q.id,text:q.text,type:q.type,options:q.options||[],required:q.required!==false,points:q.points,imageUrl:q.imageUrl||'',sectionId:q.sectionId||''}));const sections=Array.isArray(e?.sections)?e.sections.map(x=>({id:x.id,title:x.title||'',description:x.description||'',gateQuestionId:x.gateQuestionId||'',allowedAnswers:Array.isArray(x.allowedAnswers)?x.allowedAnswers:[],failMessage:x.failMessage||'',nextSectionId:x.nextSectionId||''})):[];return{...e,state:timeState(e?.startAt,e?.endAt),accessToken:undefined,allowedDiscordIds:undefined,sections,bannerUrl:e?.bannerUrl||'',questions}}";
+  if(s.includes(publicOld))s=s.replace(publicOld,publicFn);
+  else if(!s.includes(publicFn))throw new Error('PROD_V3_PUBLIC_EXAM_TARGET_NOT_FOUND');
 
   /* Persist manual grade through a dedicated admin endpoint. */
   const anchor="app.get('/api/admin/state',async(req,res)=>{";
