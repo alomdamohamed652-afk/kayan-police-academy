@@ -69,6 +69,7 @@ function scoreAttempt(e,answers,manualGrades={}){
   if(s.includes(publicOld))s=s.replace(publicOld,publicFn);
   else if(!s.includes(publicFn))throw new Error('PROD_V3_PUBLIC_EXAM_TARGET_NOT_FOUND');
 
+  if(!s.includes("app.patch('/api/admin/exams/:examId/results/:resultId/grade'")){
   const anchor="app.get('/api/admin/state',async(req,res)=>{";
   const gradeRoute=`
 app.patch('/api/admin/exams/:examId/results/:resultId/grade',async(req,res)=>{
@@ -94,6 +95,7 @@ app.patch('/api/admin/exams/:examId/results/:resultId/grade',async(req,res)=>{
 });
 `;
   s=replace(s,anchor,gradeRoute+anchor,'grade-route');
+  }
 
   const rlMarker="const rateBuckets=new Map();";
   if(!s.includes(rlMarker)){
