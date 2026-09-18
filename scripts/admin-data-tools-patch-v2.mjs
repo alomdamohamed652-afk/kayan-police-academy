@@ -21,21 +21,20 @@ await replaceOnce(
 );
 
 const cleanupRoutes = `
-app.post('/api/admin/batches/:id/clear-data',async(req,res)=>{try{const c=await requireAdmin(req,res,'manage_applications');if(!c)return;const b=data.batches.find(x=>String(x.id)===String(req.params.id));if(!b)return res.status(404).json({error:'BATCH_NOT_FOUND'});const out=await clearApplicationBatchData(b.id);const clearedAt=new Date().toISOString();for(const a of data.applications||[])if(String(a.batchId)===String(b.id)){a.answers={};a.answersClearedAt=clearedAt}audit(c,'CLEAR_BATCH_APPLICATION_DATA',b.id,\`clearedApplications=\${Number(out.cleared_applications||0)}\`);try{await save()}catch(e){console.error('Batch cleanup mirror save failed:',e.message)}res.json({ok:true,batchId:b.id,clearedApplications:Number(out.cleared_applications||0),recordRetained:true})}catch(e){console.error('Batch application cleanup failed:',e);res.status(503).json({error:'DATA_CLEANUP_FAILED',retryable:true})}});
-app.post('/api/admin/exams/:id/clear-answers',async(req,res)=>{try{const c=await requireAdmin(req,res,'manage_exams');if(!c)return;const e=data.exams.find(x=>String(x.id)===String(req.params.id));if(!e)return res.status(404).json({error:'EXAM_NOT_FOUND'});const out=await clearExamAnswerData(e.id);const clearedAt=new Date().toISOString();for(const a of data.examAttempts||[])if(String(a.examId)===String(e.id)){a.answers={};a.answersClearedAt=clearedAt}for(const r of data.examResults||[])if(String(r.examId)===String(e.id)){r.answers={};r.review=[];r.answersClearedAt=clearedAt}audit(c,'CLEAR_EXAM_ANSWER_DATA',e.id,\`removedAttemptAnswers=\${Number(out.removed_attempt_answers||0)};clearedAttempts=\${Number(out.cleared_attempts||0)};clearedResults=\${Number(out.cleared_results||0)}\`);try{await save()}catch(err){console.error('Exam cleanup mirror save failed:',err.message)}res.json({ok:true,examId:e.id,removedAttemptAnswers:Number(out.removed_attempt_answers||0),clearedAttempts:Number(out.cleared_attempts||0),clearedResults:Number(out.cleared_results||0),resultsRetained:true})}catch(e){console.error('Exam answer cleanup failed:',e);res.status(503).json({error:'DATA_CLEANUP_FAILED',retryable:true})}});
+app.post('/api/admin/batches/:id/clear-data',async(req,res)=>{try{const c=await requireAdmin(req,res,'manage_applications');if(!c)return;const b=data.batches.find(x=>String(x.id)===String(req.params.id));if(!b)return res.status(404).json({error:'BATCH_NOT_FOUND'});const out=await clearApplicationBatchData(b.id);const clearedAt=new Date().toISOString();for(const a of data.applications||[])if(String(a.batchId)===String(b.id)){a.answers={};a.answersClearedAt=clearedAt}audit(c,'CLEAR_BATCH_APPLICATION_DATA',b.id,`clearedApplications=${Number(out.cleared_applications||0)}`);try{await save()}catch(e){console.error('Batch cleanup mirror save failed:',e.message)}res.json({ok:true,batchId:b.id,clearedApplications:Number(out.cleared_applications||0),recordRetained:true})}catch(e){console.error('Batch application cleanup failed:',e);res.status(503).json({error:'DATA_CLEANUP_FAILED',retryable:true})}});
+app.post('/api/admin/exams/:id/clear-answers',async(req,res)=>{try{const c=await requireAdmin(req,res,'manage_exams');if(!c)return;const e=data.exams.find(x=>String(x.id)===String(req.params.id));if(!e)return res.status(404).json({error:'EXAM_NOT_FOUND'});const out=await clearExamAnswerData(e.id);const clearedAt=new Date().toISOString();for(const a of data.examAttempts||[])if(String(a.examId)===String(e.id)){a.answers={};a.answersClearedAt=clearedAt}for(const r of data.examResults||[])if(String(r.examId)===String(e.id)){r.answers={};r.review=[];r.answersClearedAt=clearedAt}audit(c,'CLEAR_EXAM_ANSWER_DATA',e.id,`removedAttemptAnswers=${Number(out.removed_attempt_answers||0)};clearedAttempts=${Number(out.cleared_attempts||0)};clearedResults=${Number(out.cleared_results||0)}`);try{await save()}catch(err){console.error('Exam cleanup mirror save failed:',err.message)}res.json({ok:true,examId:e.id,removedAttemptAnswers:Number(out.removed_attempt_answers||0),clearedAttempts:Number(out.cleared_attempts||0),clearedResults:Number(out.cleared_results||0),resultsRetained:true})}catch(e){console.error('Exam answer cleanup failed:',e);res.status(503).json({error:'DATA_CLEANUP_FAILED',retryable:true})}});
 `;
+
 {
   const file='server/academy-production-original.mjs';
   let source=await fs.readFile(file,'utf8');
   const cleanupImport="import { clearExamAnswerData, clearApplicationBatchData } from './admin-data-actions.mjs';";
   if(!source.includes(cleanupImport)){
     const importAnchor="import { loadAcademyData, saveAcademyData, saveExamAttempt, saveExamResult } from './supabase-academy-store.mjs';";
-    if(!source.includes(importAnchor)){
-      throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:cleanup-import-anchor');
-    }
+    if(!source.includes(importAnchor)) throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:cleanup-import-anchor');
     source=source.replace(importAnchor,importAnchor+"\n"+cleanupImport);
   }
-  if(!source.includes("CLEAR_BATCH_APPLICATION_DATA")&&!source.includes("app.post('/api/admin/batches/:id/clear-data'")){
+  if(!source.includes("app.post('/api/admin/batches/:id/clear-data'")){
     const anchor="app.put('/api/admin/question-bank'";
     if(!source.includes(anchor)){
       console.log('[admin-data-tools] cleanup route anchor already transformed; skipping route insertion.');
@@ -46,34 +45,28 @@ app.post('/api/admin/exams/:id/clear-answers',async(req,res)=>{try{const c=await
   await fs.writeFile(file,source,'utf8');
 }
 
-const ui = await fs.readFile('src/admin-center.jsx','utf8');
-let __src = ui;
-__src=__src.replace("import React,{useEffect,useMemo,useState}from'react';","import React,{useEffect,useMemo,useState}from'react';import{createPortal}from'react-dom';");
-let next = __src;
+let next=await fs.readFile('src/admin-center.jsx','utf8');
+if(!next.includes("createPortal")){
+  next=next.replace("import React,{useEffect,useMemo,useState}from'react';","import React,{useEffect,useMemo,useState}from'react';import{createPortal}from'react-dom';");
+}
+
 const reviewLogicStart="const[reviewModal,setReviewModal";
 const reviewLogicEnd=";const remove=";
 const reviewStart=next.indexOf(reviewLogicStart);
 const reviewEnd=next.indexOf(reviewLogicEnd,reviewStart);
-if(reviewStart<0||reviewEnd<0)throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:review-logic');
-const reviewLogic=next.slice(reviewStart,reviewEnd);
-if(!reviewLogic.includes("setReviewModal(null);setMsg("))throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:review-message');
-const reviewLogicUpdated=reviewLogic.replace("setReviewModal(null);setMsg(","setReviewModal(null);await refreshSection('applications');setMsg(").replace("تم قبول المتقدم بنجاح.","تم قبول المتقدم وتحديث القائمة تلقائيًا.").replace("تم رفض المتقدم بنجاح.","تم رفض المتقدم وتحديث القائمة تلقائيًا.").replace("تم تحديث حالة الطلب.","تم تحديث حالة الطلب والقائمة تلقائيًا.");
-next=next.slice(0,reviewStart)+reviewLogicUpdated+next.slice(reviewEnd);
-
-
-const batchButton = `<Btn className="danger" onClick={()=>{if(busy||!confirm('مسح إجابات جميع طلبات هذه الدفعة؟ سيبقى سجل التقديم والاسم وDiscord ID والحالة والتاريخ للرجوع إليه.'))return;withBusy(async()=>{try{const d=await api(\`/api/admin/batches/\${b.id}/clear-data\`,{method:'POST'});setState(prev=>({...prev,applications:(prev.applications||[]).map(a=>String(a.batchId)===String(b.id)?{...a,answers:{},answersClearedAt:new Date().toISOString()}:a)}));setMsg(\`تم مسح بيانات الإجابات من \${d.clearedApplications||0} طلب مع الاحتفاظ بسجل التقديم.\`)}catch(e){setMsg(errText(e))}})}}><Trash2 size={14}/> مسح بيانات الطلبات</Btn>`;
-const batchAnchor = `<Btn onClick={()=>toggle(b)}>{b.status==='open'?'إغلاق':'فتح'}</Btn>`;
-if (!next.includes(batchAnchor)) throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:batch-button-anchor');
-next = next.replace(batchAnchor,batchAnchor+batchButton);
-
-const examButton = `<Btn className="danger" onClick={()=>{if(busy||!confirm('مسح إجابات جميع المشاركين في هذا الاختبار؟ النتائج والدرجات ستظل محفوظة.'))return;withBusy(async()=>{try{const d=await api(\`/api/admin/exams/\${detail.id}/clear-answers\`,{method:'POST'});const clearedAt=new Date().toISOString();setState(prev=>({...prev,examResults:(prev.examResults||[]).map(r=>String(r.examId)===String(detail.id)?{...r,answers:{},review:[],answersClearedAt:clearedAt}:r),examAttempts:(prev.examAttempts||[]).map(a=>String(a.examId)===String(detail.id)?{...a,answers:{},answersClearedAt:clearedAt}:a)}));setMsg(\`تم مسح إجابات الاختبار؛ النتائج محفوظة (\${d.clearedResults||0} نتيجة).\`)}catch(e){setMsg(errText(e))}})}}><Trash2 size={14}/> مسح الإجابات فقط</Btn>`;
-const examAnchor = `<Btn className="primary" onClick={()=>publishResults(detail,true)}>{detail.resultAnswersPublished?'إعادة إشهار النتيجة مع الإجابات':'إشهار النتيجة مع الإجابات'}</Btn>`;
-if (next.includes(examAnchor)) next = next.replace(examAnchor,examAnchor+examButton);
-
-const reviewModal = `{reviewModal&&createPortal(<div className="reviewModalOverlay" role="dialog" aria-modal="true"><div className="reviewModal"><div className="reviewModalHead"><div><span className={reviewModal.status==='accepted'?'reviewAcceptIcon':'reviewRejectIcon'}>{reviewModal.status==='accepted'?'✓':'!'}</span><h3>{reviewModal.status==='accepted'?'تأكيد قبول المتقدم':'تأكيد رفض المتقدم'}</h3></div><button type="button" onClick={()=>setReviewModal(null)}>×</button></div><p>أنت على وشك {reviewModal.status==='accepted'?'قبول':'رفض'} <b>{reviewModal.a.name||reviewModal.a.discordId}</b>.</p><label>سبب القرار <small>(اختياري)</small></label><textarea value={reviewModal.note} onChange={e=>setReviewModal({...reviewModal,note:e.target.value})} placeholder={reviewModal.status==='accepted'?'مثال: اجتاز التقييم واستوفى الشروط.':'مثال: لم يستوفِ أحد شروط القبول.'} rows={4}/><div className="reviewModalActions"><Btn onClick={()=>setReviewModal(null)}>إلغاء</Btn><Btn className={reviewModal.status==='accepted'?'primary':'reject'} disabled={busy} onClick={confirmReview}>{reviewModal.status==='accepted'?'تأكيد القبول':'تأكيد الرفض'}</Btn></div></div></div>,document.body)}`;
-const selectedReturnAnchor = `return <div className="adminSection"><div className="panel"><div className="panelHead"><div><h2>طلبات دفعة: {selectedBatch.name}</h2>`;
-if (!next.includes(selectedReturnAnchor)) throw new Error('ADMIN_PATCH_TARGET_NOT_FOUND:review-modal-anchor');
-next = next.replace(selectedReturnAnchor,`return <div className="adminSection">${reviewModal}<div className="panel"><div className="panelHead"><div><h2>طلبات دفعة: {selectedBatch.name}</h2>`);
+if(reviewStart>=0&&reviewEnd>=0){
+  const reviewLogic=next.slice(reviewStart,reviewEnd);
+  if(reviewLogic.includes("setReviewModal(null);setMsg(")){
+    const updated=reviewLogic
+      .replace("setReviewModal(null);setMsg(","setReviewModal(null);await refreshSection('applications');setMsg(")
+      .replace("تم قبول المتقدم بنجاح.","تم قبول المتقدم وتحديث القائمة تلقائيًا.")
+      .replace("تم رفض المتقدم بنجاح.","تم رفض المتقدم وتحديث القائمة تلقائيًا.")
+      .replace("تم تحديث حالة الطلب.","تم تحديث حالة الطلب والقائمة تلقائيًا.");
+    next=next.slice(0,reviewStart)+updated+next.slice(reviewEnd);
+  }
+}else{
+  console.log('[admin-data-tools] review logic anchor changed; skipping review auto-refresh patch.');
+}
 
 await fs.writeFile('src/admin-center.jsx',next,'utf8');
 console.log('Admin data tools patch v2 applied.');
