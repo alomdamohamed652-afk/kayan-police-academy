@@ -109,6 +109,8 @@ function rateLimit({windowMs=60000,max=60,keyPrefix='api'}={}){
  return (req,res,next)=>{if(['GET','HEAD','OPTIONS'].includes(req.method))return next();const key=keyPrefix+':'+requestIp(req);const t=Date.now(),old=rateBuckets.get(key);if(!old||t-old.started>=windowMs){rateBuckets.set(key,{started:t,count:1});return next()}old.count++;if(old.count>max){res.setHeader('Retry-After',String(Math.ceil((old.started+windowMs-t)/1000)));return res.status(429).json({error:'RATE_LIMITED',retryable:true})}next()};
 }
 app.use('/api/admin',rateLimit({windowMs:60000,max:120,keyPrefix:'admin'}));
+function cleanupRateBuckets(){const cutoff=Date.now()-10*60*1000;for(const [k,v] of rateBuckets){if(!v||v.started<cutoff)rateBuckets.delete(k)}}
+setInterval(cleanupRateBuckets,5*60*1000).unref?.();
 `;
     s=s.slice(0,pos)+insert+s.slice(pos);
   }
