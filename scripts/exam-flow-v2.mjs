@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 const replace=(s,a,b,l)=>{if(!s.includes(a)){if(s.includes(b))return s;throw new Error('EXAM_FLOW_TARGET_NOT_FOUND:'+l)}return s.replace(a,b)};
 let s=await fs.readFile('src/main.jsx','utf8');
-s=replace(s,"const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined})});","const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined,earlyExit:mode==='rule'})});",'submit-body');
-s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(mode==='rule'?'انتهى الاختبار حسب شرط القسم المحدد. تم حفظ إجاباتك الحالية.':mode===true?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');",'submit-message');
-s=replace(s,"if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))","if(mode===true&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))",'auto-error');
+s=replace(s,"const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined})});","const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined,earlyExit:reason==='rule'})});",'submit-body');
+s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(reason==='rule'?'انتهى الاختبار حسب شرط القسم المحدد. تم حفظ إجاباتك الحالية.':auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');",'submit-message');
+s=replace(s,"if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))","if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))",'auto-error');
 const a=s.indexOf("if(active&&attempt)return <Page title={active.title}"),b=s.indexOf("const visible=exams.filter",a);
 if(a<0||b<0)throw new Error('EXAM_FLOW_ACTIVE_RENDER_TARGET_NOT_FOUND');
 s=s.slice(0,a)+"if(active&&attempt)return <ExamFlow active={active} attempt={attempt} answers={answers} setAnswers={setAnswers} submit={submit} submitting={submitting} error={error}/>;"+s.slice(b);
@@ -22,7 +22,7 @@ const component=`function ExamFlow({active,attempt,answers,setAnswers,submit,sub
  const next=nextIndex>=0&&nextIndex<sections.length?nextIndex:-1;
  const answered=questions.filter(q=>String(answers[q.id]??'').trim()!=='').length;
  const requiredMissing=questions.some(q=>q.required!==false&&String(answers[q.id]??'').trim()==='');
- const goNext=()=>{if(requiredMissing)return;if(!gateAllowed){submit('rule');return}if(last){submit(false);return}if(next>=0)setIndex(next)};
+ const goNext=()=>{if(requiredMissing)return;if(!gateAllowed){submit(false,'rule');return}if(last){submit(false);return}if(next>=0)setIndex(next)};
  return <Page title={active.title} sub={active.description||'اختبار أكاديمي'}>
   {active.bannerUrl&&<img className="examStudentBanner" src={active.bannerUrl} alt="" loading="lazy"/>}
   <div className="examSectionStepper">{sections.map((x,i)=><div className={i===index?'active':i<index?'done':''} key={x.id}><span>{i+1}</span><b>{x.title}</b></div>)}</div>
