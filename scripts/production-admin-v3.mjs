@@ -137,7 +137,7 @@ app.use('/api/admin',rateLimit({windowMs:60000,max:120,keyPrefix:'admin'}));
   const qNew="function QuestionEditor({question,onChange,onDelete,collapsed=false,onToggleCollapse,sections=[]})";
   s=s.replace(qOld,qNew);
   const qField="</div>{question.type==='choice'&&<div className=\"questionChoices\">";
-  const qInject=String.raw`</div>{sections.length>0&&<label className="questionSectionAssign">القسم المرتبط بالسؤال<select value={question.sectionId||''} onChange={e=>onChange({...question,sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(sec=><option key={sec.id} value={sec.id}>{sec.title||sec.id}</option>)}</select></label>}{question.type==='choice'&&<div className="questionChoices">`;
+  const qInject=String.raw`</div><div className="questionImageField"><label>صورة السؤال — رابط<input value={question.imageUrl||''} onChange={e=>onChange({...question,imageUrl:e.target.value})} placeholder="https://example.com/question.webp"/><small>يفضل WebP/JPG، أقل من 2MB، وبعرض قريب من 1200px.</small>{question.imageUrl&&<img className="examQuestionImage admin" src={question.imageUrl} alt="معاينة السؤال" loading="lazy"/>}</label></div>{sections.length>0&&<label className="questionSectionAssign">القسم المرتبط بالسؤال<select value={question.sectionId||''} onChange={e=>onChange({...question,sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(sec=><option key={sec.id} value={sec.id}>{sec.title||sec.id}</option>)}</select></label>}{question.type==='choice'&&<div className="questionChoices">`;
   if(!s.includes(qField))throw new Error("question field target missing");
   s=s.replace(qField,qInject);
   const aa=s.indexOf("function ExamAnswers("),ab=s.indexOf("function SpecificUsers(",aa);
