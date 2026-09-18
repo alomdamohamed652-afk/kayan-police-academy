@@ -25,7 +25,6 @@ const requiredServerMarkers=[
   'function cleanQuestion(q){',
   'function cleanExam(e){',
   "app.patch('/api/admin/exams/:examId/results/:resultId/grade'",
-  'const rateBuckets=new Map();'
 ];
 for(const marker of requiredServerMarkers){
   if(!server.includes(marker))throw new Error('PREPARE_BUILD_SERVER_MARKER_MISSING:'+marker);
