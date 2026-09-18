@@ -140,4 +140,38 @@ grant execute
   on function public.save_exam_attempt_answers(text,jsonb,timestamptz,text,bigint)
   to service_role;
 
+drop function if exists public.save_exam_attempt_answers(text,jsonb,timestamptz,text);
+
+create function public.save_exam_attempt_answers(
+  p_legacy_id text,
+  p_answers jsonb,
+  p_answers_updated_at timestamptz,
+  p_status text
+)
+returns table(
+  id uuid,
+  legacy_id text,
+  answers jsonb,
+  answers_updated_at timestamptz,
+  answers_revision bigint,
+  status text,
+  submitted_at timestamptz
+)
+language sql
+security definer
+set search_path = public
+as $function$
+  select * from public.save_exam_attempt_answers(
+    p_legacy_id, p_answers, p_answers_updated_at, p_status, 0::bigint
+  );
+$function$;
+
+revoke execute
+  on function public.save_exam_attempt_answers(text,jsonb,timestamptz,text)
+  from public, anon, authenticated;
+
+grant execute
+  on function public.save_exam_attempt_answers(text,jsonb,timestamptz,text)
+  to service_role;
+
 commit;
