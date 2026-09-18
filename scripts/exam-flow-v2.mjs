@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-const replace=(s,a,b,l)=>{if(!s.includes(a))throw new Error('EXAM_FLOW_TARGET_NOT_FOUND:'+l);return s.replace(a,b)};
+const replace=(s,a,b,l)=>{if(!s.includes(a)){if(s.includes(b))return s;throw new Error('EXAM_FLOW_TARGET_NOT_FOUND:'+l)}return s.replace(a,b)};
 let s=await fs.readFile('src/main.jsx','utf8');
 s=replace(s,"const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined})});","const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined,earlyExit:mode==='rule'})});",'submit-body');
 s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(mode==='rule'?'انتهى الاختبار حسب شرط القسم المحدد. تم حفظ إجاباتك الحالية.':mode===true?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');",'submit-message');
