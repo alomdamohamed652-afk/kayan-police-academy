@@ -11,7 +11,7 @@ async function police(force=false){
   if(!force&&policeInFlight)return policeInFlight;
   policeInFlight=(async()=>{
 `;
-if(!s.includes(old)){if(s.includes('let policeInFlight=null;')){console.log('Police sheet request coalescing patch already applied.');process.exit(0)}throw new Error('POLICE_PATCH_TARGET_NOT_FOUND');}
+if(!s.includes(old)){if(s.includes('let policeInFlight=null;')){console.log('Police sheet request coalescing patch already applied.');}else throw new Error('POLICE_PATCH_TARGET_NOT_FOUND');}
 s=s.replace(old,replacement);
 
 const oldTail=`throw last||new Error('POLICE_SHEET_UNAVAILABLE')}\nasync function ensureSheets`;
