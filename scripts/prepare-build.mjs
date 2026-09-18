@@ -8,6 +8,8 @@ import './security-admin-hardening-v1.mjs';
 import './security-admin-ui-patch-v1.mjs';
 import './super-admin-lock-v1.mjs';
 import './action-ux-v1.mjs';
+import './production-admin-v3.mjs';
+import './exam-flow-v2.mjs';
 import fs from 'node:fs/promises';
 const source=await fs.readFile('src/main.jsx','utf8');
 if(!source.includes('function Applications({user}){'))throw new Error('PREPARE_BUILD_APPLICATION_FUNCTION_NOT_FOUND');
