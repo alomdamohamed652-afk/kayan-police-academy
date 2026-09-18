@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 
 const replace=async(file,from,to,label)=>{
   const p=await fs.readFile(file,'utf8');
-  if(!p.includes(from))throw new Error('PATCH_TARGET_NOT_FOUND:'+label);
+  if(!p.includes(from)){if(p.includes(to))return;throw new Error('PATCH_TARGET_NOT_FOUND:'+label);}
   await fs.writeFile(file,p.replace(from,to),'utf8');
 };
 
