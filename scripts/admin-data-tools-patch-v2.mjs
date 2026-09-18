@@ -50,6 +50,7 @@ const ui = await fs.readFile('src/admin-center.jsx','utf8');
 let __src = ui;
 __src=__src.replace("import React,{useEffect,useMemo,useState}from'react';","import React,{useEffect,useMemo,useState}from'react';import{createPortal}from'react-dom';");
 let next = __src;
+if(!__src.includes("[actionMsg,setActionMsg]")){__src=__src.replace("const[mode,setMode]=useState('audit'),[data,setData]=useState({audit:[],loginLogs:[],departments:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),","const[mode,setMode]=useState('audit'),[data,setData]=useState({audit:[],loginLogs:[],departments:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[actionMsg,setActionMsg]=useState(''),");}
 const reviewLogicStart="const[reviewModal,setReviewModal";
 const reviewLogicEnd=";const remove=";
 const reviewStart=next.indexOf(reviewLogicStart);
