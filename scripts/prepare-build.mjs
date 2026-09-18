@@ -23,11 +23,11 @@ if(!source.includes('function ApplicationStatus({app,settings={}}){'))throw new 
 
 const admin=await fs.readFile('src/admin-center.jsx','utf8');
 const requiredAdminMarkers=[
-  'الأقسام ومسار الاختبار',
-  'examEditorStickySave',
-  'بانر الاختبار — رابط صورة',
-  'صورة السؤال — رابط',
-  'احتساب صحيحة'
+  'function ExamEditor(',
+  'examSectionEditor',
+  'examEditorBottomSave',
+  'examImageUrlField',
+  'function ExamAnswers('
 ];
 for(const marker of requiredAdminMarkers){
   if(!admin.includes(marker))throw new Error('PREPARE_BUILD_ADMIN_UI_MARKER_MISSING:'+marker);
