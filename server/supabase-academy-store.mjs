@@ -53,7 +53,7 @@ async function attemptRowId(legacyId){const {data,error}=await supabase.from('ex
 export async function saveExamAttempt(attempt){
   if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
   const updatedAt=attempt.answersUpdatedAt||new Date().toISOString();
-  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:String(attempt.id),p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress')}));
+  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:String(attempt.id),p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),p_client_revision:Number(attempt.clientRevision||0)}));
   if(error)throw error;
   if(!Array.isArray(data)||!data.length)throw new Error('EXAM_ATTEMPT_NOT_FOUND');
   return data[0];
