@@ -7,7 +7,6 @@ import './load-stability-patch.mjs';
 import './security-admin-hardening-v1.mjs';
 import './security-admin-ui-patch-v1.mjs';
 import './super-admin-lock-v1.mjs';
-import './action-ux-v1.mjs';
 import fs from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
