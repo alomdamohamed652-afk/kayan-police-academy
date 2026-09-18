@@ -6,7 +6,7 @@ s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاخت
 s=replace(s,"if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))","if(mode===true&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))",'auto-error');
 const a=s.indexOf("if(active&&attempt)return <Page title={active.title}"),b=s.indexOf("const visible=exams.filter",a);
 if(a<0||b<0)throw new Error('EXAM_FLOW_ACTIVE_RENDER_TARGET_NOT_FOUND');
-s=s.slice(0,a)+"if(active&&attempt)return <ExamFlow active={active} attempt={attempt} answers={answers} setAnswers={setAnswers} submit={submit} submitting={submitting} error={error}/>"+s.slice(b);
+s=s.slice(0,a)+"if(active&&attempt)return <ExamFlow active={active} attempt={attempt} answers={answers} setAnswers={setAnswers} submit={submit} submitting={submitting} error={error}/>;"+s.slice(b);
 const anchor="function Exams({user}){";
 const component=`function ExamFlow({active,attempt,answers,setAnswers,submit,submitting,error}){
  const sections=Array.isArray(active.sections)&&active.sections.length?active.sections:[{id:'__all__',title:'الاختبار',description:'',gateQuestionId:'',allowedAnswers:[],failMessage:'',nextSectionId:''}];
