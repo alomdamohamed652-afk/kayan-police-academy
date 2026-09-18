@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 async function patchFile(path,patches){
   let source=await fs.readFile(path,'utf8');
   for(const {name,from,to} of patches){
-    if(!source.includes(from))throw new Error(`[stability-v2] Patch target not found: ${name} in ${path}`);
+    if(!source.includes(from)){if(source.includes(to)){console.log(`[stability-v2] skipped/already applied: ${name}`);continue;}throw new Error(`[stability-v2] Patch target not found: ${name} in ${path}`);}
     source=source.replace(from,to);
     console.log(`[stability-v2] applied: ${name}`);
   }
