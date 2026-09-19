@@ -1,0 +1,6 @@
+import { getState,createSnapshot,listSnapshots,getSnapshot,listAccess } from './dispatch-store.mjs';
+import { requireSupabase } from '../supabase.mjs';
+function snapState(s){return{regions:s.regions,locations:s.locations,unit_types:s.unitTypes,vehicles:s.vehicles,units:s.units,unit_members:s.members,unit_assignments:s.assignments,dispatchers:s.dispatchers,settings:s.settings}}
+export async function createDispatchSnapshot(ctx,name,description=''){const state=await getState();const access=await listAccess();return createSnapshot({name:String(name||'Dispatch Snapshot').trim().slice(0,160),description:String(description||'').trim().slice(0,1000),schema_version:1,snapshot_data:{...snapState(state),access},created_by:String(ctx.x.id)})}
+export async function restoreDispatchSnapshot(ctx,snapshotId){const s=await getSnapshot(snapshotId);const db=requireSupabase();const {data,error}=await db.rpc('dispatch_restore_snapshot',{p_snapshot_id:String(snapshotId),p_actor:String(ctx.x.id)});if(error)throw error;return{snapshot:s,result:data}}
+export async function snapshots(){return listSnapshots()}

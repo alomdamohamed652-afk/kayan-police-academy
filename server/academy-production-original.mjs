@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { supabaseConfigured } from './supabase.mjs';
 import { loadAcademyData, saveAcademyData, saveExamAttempt, saveExamResult } from './supabase-academy-store.mjs';
+import { registerDispatchRoutes } from './dispatch/dispatch-routes.mjs';
 import { sqliteStatus, saveSqliteSnapshot, loadSqliteSnapshot } from './local-sqlite-backup.mjs';
 
 // Academy schedule inputs are entered in Egypt local time. Render runs in UTC.
@@ -40,7 +41,7 @@ if(!SESSION_SECRET||SESSION_SECRET.length<32)throw new Error('SESSION_SECRET is 
 const BOOTSTRAP_ADMINS=new Set(String(process.env.ACADEMY_ADMIN_IDS||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x.replace(/\D/g,'')));
 const SUPER_ADMIN_ID=String(process.env.ACADEMY_SUPER_ADMIN_ID||'').replace(/\D/g,'');
 const TTL=Math.max(5000,Number(process.env.SHEET_SYNC_TTL_MS||60000));
-const PERMISSIONS={view_dashboard:'لوحة الإدارة',view_activity_logs:'الاطلاع على سجل النشاط وتسجيل الدخول',manage_members:'إدارة الأفراد',manage_roles:'إدارة الرتب',manage_admins:'إدارة الأدمن',manage_applications:'إدارة التقديمات',manage_exams:'إدارة الاختبارات',manage_hierarchy:'إدارة الهيكل',view_evaluations:'الاطلاع على التقييمات',manage_evaluations:'إدارة التقييمات',manage_settings:'الإعدادات',manage_dev_store:'إدارة متجر التطوير',manage_sessions:'إدارة جلسات الدخول'};
+const PERMISSIONS={view_dashboard:'لوحة الإدارة',view_activity_logs:'الاطلاع على سجل النشاط وتسجيل الدخول',manage_members:'إدارة الأفراد',manage_roles:'إدارة الرتب',manage_admins:'إدارة الأدمن',manage_applications:'إدارة التقديمات',manage_exams:'إدارة الاختبارات',manage_hierarchy:'إدارة الهيكل',view_evaluations:'الاطلاع على التقييمات',manage_evaluations:'إدارة التقييمات',manage_settings:'الإعدادات',manage_dev_store:'إدارة متجر التطوير',manage_sessions:'إدارة جلسات الدخول',view_dispatch:'عرض Dispatch',manage_dispatch_units:'إدارة الوحدات',manage_dispatch_members:'إدارة أفراد الوحدات',manage_dispatch_regions:'إدارة المناطق',manage_dispatch_locations:'إدارة النقاط',manage_dispatch_types:'إدارة أنواع الوحدات',manage_dispatch_vehicles:'إدارة المركبات',view_dispatch_audit:'عرض سجل Dispatch',manage_dispatch_permissions:'إدارة صلاحيات Dispatch',manage_dispatch_dispatchers:'إدارة المناوبين',manage_dispatch_snapshots:'إدارة Snapshots',manage_dispatch_settings:'إدارة إعدادات Dispatch'};
 const ALL=Object.keys(PERMISSIONS);
 const DEFAULT_HIERARCHY=[{id:'president',title:'رئيس الأكاديمية',name:'غير محدد',discordId:'',image:''},{id:'vice',title:'نائب رئيس الأكاديمية',name:'غير محدد',discordId:'',image:''},{id:'assistant',title:'مساعد نائب الرئيس',name:'غير محدد',discordId:'',image:''},{id:'commander',title:'قائد الشرطة',name:'غير محدد',discordId:'',image:''}];
 const DEFAULT={version:18,settings:{academyName:'أكاديمية شرطة كيان',applicationsTitle:'التقديم الأولي للشرطة',applicationsDescription:'نموذج التقديم الرسمي للانضمام إلى شرطة كيان.',passingScore:60,logoUrl:'',acceptedMessage:'🎉 مبروك! تم قبولك في «{{batchName}}»\nتم اعتماد طلبك للانضمام إلى أكاديمية شرطة كيان. الخطوة التالية هي الانضمام إلى سيرفر الأكاديمية على Discord لاستكمال إجراءات القبول والتوجيه.',rejectedMessage:'تم رفض طلبك في «{{batchName}}»\nنعتذر، لم يتم قبول طلبك في هذه الدفعة. يمكنك المحاولة مرة أخرى عند فتح دفعة تقديم جديدة، ونتمنى لك التوفيق.',acceptedDiscordUrl:'https://discord.gg/su8PsTY5gJ',sessionEpoch:0,evaluationTrainerRanks:[],evaluationTraineeRanks:[],devStore:{guildId:'1516201999488647248',inviteUrl:'https://discord.gg/Vm5DZXbzb3',promptIntervalHours:3,promptResetAt:0}},applicationQuestions:[],questionBank:[],batches:[],applications:[],exams:[],examResults:[],examAttempts:[],evaluations:[],hierarchy:DEFAULT_HIERARCHY,admins:[],audit:[],loginLogs:[],loginCount:0,memberImages:{},memberSettings:{},memberBadges:{},badges:[],devStoreTokens:{},applicationDrafts:{},roleOverrides:{}};
@@ -828,6 +829,7 @@ app.post('/api/logout',(_q,res)=>{res.clearCookie('kayan_session',{path:'/'});re
 // Render can probe the service immediately after boot; serving DEFAULT during
 // that window made a healthy database appear empty to the first visitors.
 await load();
+registerDispatchRoutes(app,{current,police});
 if(storageReady)try{saveSqliteSnapshot(data)}catch(e){console.error('SQLite startup snapshot failed:',e.message)}
 if(supabaseActive&&DATA_SHEET_ID)queueGoogleMirror('startup');
 app.listen(PORT,'0.0.0.0',()=>console.log('Kayan Academy server listening on '+PORT));
