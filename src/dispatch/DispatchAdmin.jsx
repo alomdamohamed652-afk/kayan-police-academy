@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=isAdmin;const canOperate=Boolean(viewer?.police||isAdmin);
+ const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=Boolean(viewer?.police||isAdmin);const canOperate=Boolean(viewer?.police||isAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!isAdmin)return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(isAdmin)loadSnapshots()},[isAdmin]);
@@ -39,7 +39,7 @@ export function DispatchAdmin({user:viewer={}}){
     <div className="dispatchPanelHead"><div><strong>إضافة وحدة</strong><span>الكود · النوع · الحالة · الأفراد</span></div><div className="rowActions">{canManage&&<><button className="secondary" onClick={()=>setTab('types')}><Plus size={15}/> إضافة نوع وحدة</button><button className="secondary" onClick={()=>setTab('vehicles')}><Car size={15}/> إضافة مركبة</button></>}</div></div>
     <div className="dispatchFormGrid">
      <input disabled={!canManage} placeholder="كود الوحدة · 12" value={form.unit_code||''} onChange={e=>setForm(f=>({...f,unit_code:e.target.value}))}/>
-     <select disabled={!canManage} value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select>
+     <select disabled={!canManage} value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><select disabled={!canManage} value={form.vehicle_id||''} onChange={e=>setForm(f=>({...f,vehicle_id:e.target.value||null}))}><option value="">بدون مركبة</option>{vehicles.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}{x.call_sign?' · '+x.call_sign:''}</option>)}</select>
      <select disabled={!canOperate} value={form.status||'available'} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value="available">متاحة</option><option value="active">نشطة</option><option value="busy">مشغولة</option><option value="break">استراحة</option></select>
      <label><input disabled={!canOperate} type="checkbox" checked={Boolean(form.is_shared)} onChange={e=>setForm(f=>({...f,is_shared:e.target.checked}))}/> وحدة مشتركة</label>
     </div>
@@ -79,7 +79,7 @@ function Manager({title,items,form,setForm,isAdmin,onCreate,onUpdate,onArchive,f
   </div>
   <div className="panel">
    <div className="dispatchPanelHead"><div><strong>EXISTING</strong><span>{items.length}</span></div></div>
-   {items.map(x=><div className="adminEntityRow" key={x.id}><div>{x.image_url&&<img className="adminThumb" src={x.image_url} alt=""/>}<strong>{x.color&&<span className="entityColorDot" style={{backgroundColor:x.color}}/>}{x.name||x.code}</strong><small>{x.code||x.type||x.category||''} · {x.active?'ACTIVE':'DISABLED'}{x.color?' · '+x.color:''}</small></div><div className="rowActions">{isAdmin?<><button className="textBtn" onClick={()=>setForm({...x})}>تعديل</button><button className="textBtn" onClick={()=>onUpdate(x.id,{active:!x.active})}>{x.active?'تعطيل':'تفعيل'}</button>{onArchive&&!disableOnly&&<button className="danger" onClick={()=>onArchive(x.id)}><Trash2 size={14}/> حذف</button>}</>:<span className="readOnlyBadge">عرض فقط</span>}</div></div>)}
+   {items.map(x=><div className="adminEntityRow" key={x.id}><div>{x.image_url&&<img className="adminThumb" src={x.image_url} alt=""/>}<strong>{x.color&&<span className="entityColorDot" style={{backgroundColor:x.color}}/>}{x.name||x.code}</strong><small>{x.code||x.type||x.category||''} · {x.active?'ACTIVE':'DISABLED'}{x.color?' · '+x.color:''}</small></div><div className="rowActions">{isAdmin?<><button className="textBtn" onClick={()=>setForm({...x})}>تعديل</button>{hardDeleteOnly?<button className="danger" onClick={()=>{if(confirm(`حذف ${x.name||x.code||'هذا العنصر'} نهائيًا؟`))onArchive&&onArchive(x.id)}}><Trash2 size={14}/> حذف نهائي</button>:<><button className="textBtn" onClick={()=>onUpdate(x.id,{active:!x.active})}>{x.active?'تعطيل':'تفعيل'}</button>{onArchive&&!disableOnly&&<button className="danger" onClick={()=>{if(confirm(`حذف ${x.name||x.code||'هذا العنصر'} نهائيًا؟`))onArchive(x.id)}}><Trash2 size={14}/> حذف</button>}</>}</>:<span className="readOnlyBadge">عرض فقط</span>}</div></div>)}
   </div>
  </section>;
 }
