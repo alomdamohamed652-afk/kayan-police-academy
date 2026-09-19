@@ -96,13 +96,14 @@ function ExamAnswers({result,exam,close}){const s=examAnswerStats(result,exam);r
     {!sections.length&&<div className="emptyMini">ابدأ بإضافة القسم الأول، ثم أضف أسئلته تحته.</div>}
     {sections.map((sec,si)=>{
       const qs=sectionQuestions(sec.id);
-      const gateOptions=qs;
+      const previousSection=sections[si-1]||null;
+      const gateOptions=previousSection?sectionQuestions(previousSection.id):[];
       return <div className="examSectionBlock" key={sec.id}>
        <div className="examSectionBlockHead"><div><span className="sectionNumber">القسم {si+1}</span><h3>{sec.title||'قسم بدون عنوان'}</h3><small>{qs.length} سؤال · التالي تلقائيًا: {sections[si+1]?.title||'تسليم الاختبار'}</small></div><Btn className="danger" onClick={()=>removeSection(sec.id)}><Trash2 size={14}/> حذف القسم</Btn></div>
        <div className="formGrid sectionMetaGrid">
         <label>عنوان القسم<input value={sec.title||''} onChange={e=>updateSection(sec.id,{title:e.target.value})} placeholder="مثال: الأساسيات"/></label>
         <label>وصف القسم<textarea value={sec.description||''} onChange={e=>updateSection(sec.id,{description:e.target.value})} placeholder="وصف مختصر للقسم"/></label>
-        <label>سؤال البوابة — اختياري<select value={sec.gateQuestionId||''} onChange={e=>updateSection(sec.id,{gateQuestionId:e.target.value})}><option value="">بدون شرط انتقال</option>{gateOptions.map(q=><option key={q.id} value={q.id}>{q.text||q.id}</option>)}</select></label>
+        <label>سؤال فتح هذا القسم — اختياري<select value={sec.gateQuestionId||''} onChange={e=>updateSection(sec.id,{gateQuestionId:e.target.value})}><option value="">بدون شرط</option>{gateOptions.map(q=><option key={q.id} value={q.id}>{q.text||q.id}</option>)}</select><small>{previousSection?'يتم اختيار السؤال من '+(previousSection.title||'القسم السابق')+'، وتُستخدم إجابته لفتح هذا القسم.':'القسم الأول لا يحتاج إلى سؤال بوابة.'}</small></label>
         <div className="allowedAnswersField"><label>الإجابات المسموحة — اختياري</label>{(()=>{const gate=gateOptions.find(q=>String(q.id)===String(sec.gateQuestionId||''));const opts=gate?.type==='choice'?(gate.options||[]):gate?.type==='yesno'?['نعم','لا']:[];const selected=Array.isArray(sec.allowedAnswers)?sec.allowedAnswers:[];return gate&&opts.length?<div className="allowedAnswersChoices">{opts.map(opt=>{const checked=selected.includes(opt);return <label className="allowedAnswerChoice" key={opt}><input type="checkbox" checked={checked} onChange={e=>updateSection(sec.id,{allowedAnswers:e.target.checked?[...new Set([...selected,opt])]:selected.filter(v=>v!==opt)})}/><span>{opt}</span></label>})}</div>:<div className="emptyMini">اختر سؤال البوابة أولًا. ستظهر هنا اختيارات نفس السؤال ويمكنك تحديد أكثر من إجابة مسموحة للانتقال.</div>})()}</div>
         <label>رسالة عند عدم السماح<textarea value={sec.failMessage||''} onChange={e=>updateSection(sec.id,{failMessage:e.target.value})} placeholder="تظهر عند مخالفة شرط الانتقال"/></label>
        </div>
