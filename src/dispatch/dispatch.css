@@ -76,3 +76,25 @@
 .adminEntityRow .textBtn,.adminEntityRow .danger{font-size:13px}
 .dispatchAdminPage .primary,.dispatchAdminPage .secondary{font-size:14px;padding:10px 14px}
 .dispatchAdminPage .personnelPicker{margin-top:4px}
+
+/* Dispatch admin readability */
+.dispatchAdminPage,.dispatchAdminPage input,.dispatchAdminPage select,.dispatchAdminPage textarea,.dispatchAdminPage button{font-size:14px}
+.dispatchAdminPage .pageTitle h1{font-size:32px}
+.dispatchAdminPage .pageTitle p{font-size:15px}
+.dispatchAdminPage .dispatchAdminTabs button{font-size:14px;min-height:44px;padding:10px 15px}
+.dispatchAdminPage .panel{padding:18px}
+.dispatchAdminPage .dispatchPanelHead strong{font-size:15px}
+.dispatchAdminPage .dispatchPanelHead span,.dispatchAdminPage .adminEntityRow small{font-size:12px}
+.dispatchAdminPage .adminEntityRow{min-height:64px;padding:11px 13px}
+.dispatchAdminPage .adminEntityRow>div:first-child strong{font-size:15px}
+.dispatchAdminPage .adminEntityRow .rowActions{gap:7px}
+.dispatchAdminPage .adminEntityRow .textBtn,.dispatchAdminPage .adminEntityRow .danger{font-size:12px;min-height:34px;padding:7px 10px}
+.dispatchAdminPage .dispatchFormGrid{gap:10px}
+.dispatchAdminPage .dispatchFormGrid input,.dispatchAdminPage .dispatchFormGrid select,.dispatchAdminPage .dispatchFormGrid textarea{min-height:44px;padding:10px 12px}
+.dispatchAdminPage .dispatchFormGrid textarea{min-height:90px}
+.readOnlyBadge{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:6px 10px;border:1px solid #33465d;border-radius:8px;color:#91a0b2;font-size:11px;background:#0b1724}
+.personnelResults{max-height:390px;overflow:auto;padding-right:2px}
+.personnelResults::-webkit-scrollbar{width:7px}.personnelResults::-webkit-scrollbar-thumb{background:#30465e;border-radius:99px}
+.personnelResult{font-size:13px;min-height:52px}
+.personnelResultInfo strong{font-size:13px}
+.personnelResultInfo small{font-size:11px}
