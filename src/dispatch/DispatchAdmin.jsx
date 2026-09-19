@@ -36,12 +36,12 @@ export function DispatchAdmin({user:viewer={}}){
 
   {tab==='units'&&<section className="dispatchAdminGrid">
    <div className="panel">
-    <div className="dispatchPanelHead"><div><strong>إضافة وحدة</strong><span>الكود · النوع · الحالة · الأفراد</span></div><div className="rowActions"><button className="secondary" onClick={()=>setTab('types')}><Plus size={15}/> إضافة نوع وحدة</button><button className="secondary" onClick={()=>setTab('vehicles')}><Car size={15}/> إضافة مركبة</button></div></div>
+    <div className="dispatchPanelHead"><div><strong>إضافة وحدة</strong><span>الكود · النوع · الحالة · الأفراد</span></div><div className="rowActions">{canManage&&<><button className="secondary" onClick={()=>setTab('types')}><Plus size={15}/> إضافة نوع وحدة</button><button className="secondary" onClick={()=>setTab('vehicles')}><Car size={15}/> إضافة مركبة</button></>}</div></div>
     <div className="dispatchFormGrid">
      <input disabled={!canManage} placeholder="كود الوحدة · 12" value={form.unit_code||''} onChange={e=>setForm(f=>({...f,unit_code:e.target.value}))}/>
-     <select value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select>
-     <select value={form.status||'available'} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value="available">متاحة</option><option value="active">نشطة</option><option value="busy">مشغولة</option><option value="break">استراحة</option></select>
-     <label><input type="checkbox" checked={Boolean(form.is_shared)} onChange={e=>setForm(f=>({...f,is_shared:e.target.checked}))}/> وحدة مشتركة</label>
+     <select disabled={!canManage} value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select>
+     <select disabled={!canOperate} value={form.status||'available'} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value="available">متاحة</option><option value="active">نشطة</option><option value="busy">مشغولة</option><option value="break">استراحة</option></select>
+     <label><input disabled={!canOperate} type="checkbox" checked={Boolean(form.is_shared)} onChange={e=>setForm(f=>({...f,is_shared:e.target.checked}))}/> وحدة مشتركة</label>
     </div>
     <PersonnelPicker people={people} selected={unitPeople} onChange={setUnitPeople} label="أفراد الوحدة"/>
     {canManage&&<button className="primary" disabled={saving||!form.unit_code||!form.type_id} onClick={()=>mutate(createUnit)}><Plus size={16}/> إنشاء الوحدة</button>}
@@ -51,7 +51,7 @@ export function DispatchAdmin({user:viewer={}}){
     <div className="dispatchPanelHead"><div><strong>UNIT STRUCTURE</strong><span>{units.filter(u=>u.active).length} وحدة نشطة</span></div></div>
     {units.filter(u=>u.active).map(u=><div className="adminEntityRow" key={u.id}>
      <div><strong>#{u.unit_code}</strong><small>{typeBy.get(u.type_id)?.name||'—'} · {u.status}</small></div>
-     <div className="rowActions"><button className="textBtn" onClick={()=>mutate(()=>dispatchApi.updateUnit(u.id,{status:u.status==='active'?'available':'active'}))}>{u.status==='active'?'متاحة':'تفعيل'}</button>{canManage&&<button className="danger" onClick={()=>{if(confirm(`حذف الوحدة #${u.unit_code} من التشغيل؟`))mutate(()=>dispatchApi.archiveUnit(u.id))}}><Trash2 size={14}/> حذف</button>}</div>
+     <div className="rowActions"><button className="textBtn" onClick={()=>mutate(()=>dispatchApi.updateUnit(u.id,{status:u.status==='active'?'available':'active'}))}>{u.status==='active'?'متاحة':'تفعيل'}</button>{canManage&&<button className="danger" onClick={()=>{if(confirm(`حذف الوحدة #${u.unit_code} نهائيًا؟ سيتم حذف أعضائها وتكليفاتها أيضًا.`))mutate(()=>dispatchApi.archiveUnit(u.id))}}><Trash2 size={14}/> حذف</button>}</div>
     </div>)}
     {!units.some(u=>u.active)&&<div className="emptyMini">لا توجد وحدات نشطة حاليًا.</div>}
    </div>
