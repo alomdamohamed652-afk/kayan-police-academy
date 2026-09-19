@@ -427,7 +427,7 @@ function sess(req){try{const token=jwt.verify(req.cookies.kayan_session,SESSION_
 function admin(uid){return data.admins.find(a=>id(a.discordId)===id(uid))}
 function isSuperAdmin(uid){return Boolean(SUPER_ADMIN_ID&&id(uid)===SUPER_ADMIN_ID)}
 function hasEnabledAdmins(){return Array.isArray(data.admins)&&data.admins.some(a=>a?.enabled===true)}
-function isBootstrapAdmin(uid){return !hasEnabledAdmins()&&BOOTSTRAP_ADMINS.has(id(uid))}
+function isBootstrapAdmin(uid){return !SUPER_ADMIN_ID&&!hasEnabledAdmins()&&BOOTSTRAP_ADMINS.has(id(uid))}
 function perms(uid){const a=admin(uid);return isSuperAdmin(uid)?ALL:(a?.enabled?(Array.isArray(a.permissions)?a.permissions.filter(x=>ALL.includes(x)):[]):(isBootstrapAdmin(uid)?ALL:[]))}
 const withTimeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('POLICE_SHEET_TIMEOUT')),ms))]);
 const DEV_STORE_GUILD_ID='1516201999488647248';
