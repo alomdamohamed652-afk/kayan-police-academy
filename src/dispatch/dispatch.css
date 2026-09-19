@@ -120,3 +120,18 @@
 .dispatchAdminPage .personnelResultInfo small{font-size:12px}
 .dispatchAdminPage .rowActions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 @media(max-width:900px){.dispatchAdminPage .dispatchAdminGrid>.panel{padding:16px}}
+
+/* Readability pass for Dispatch Command */
+.dispatchAdminPage,.dispatchPage{font-size:16px}
+.dispatchAdminPage .pageTitle h1{font-size:30px;line-height:1.25}
+.dispatchAdminPage .pageTitle p{font-size:16px;line-height:1.7}
+.dispatchAdminPage .panel,.dispatchAdminPage .dispatchAdminGrid{font-size:16px}
+.dispatchAdminPage .dispatchPanelHead strong{font-size:16px}
+.dispatchAdminPage .dispatchPanelHead span{font-size:13px}
+.dispatchAdminPage input,.dispatchAdminPage select,.dispatchAdminPage textarea{font-size:15px;min-height:44px}
+.dispatchAdminPage button{font-size:14px}
+.dispatchAdminPage .adminEntityRow strong{font-size:15px}
+.dispatchAdminPage .adminEntityRow small{font-size:12px;line-height:1.5}
+.dispatchAdminPage .dispatchAdminTabs button{font-size:14px;padding:10px 14px}
+.dispatchAdminPage .personnelPicker{font-size:15px}
+.personnelResults{max-height:420px;overflow:auto}
