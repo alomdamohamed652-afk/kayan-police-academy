@@ -99,16 +99,17 @@ function ApplicationStatus({app,settings={}}){const accepted=app?.status==='acce
  const allQuestions=Array.isArray(active.questions)?active.questions:[];
  const sectionQuestions=sec=>sec.id==='__all__'?allQuestions:allQuestions.filter(q=>String(q.sectionId||'')===String(sec.id));
  const currentQuestions=sectionQuestions(current);
- const hasGate=Boolean(current.gateQuestionId);
- const gateAnswer=String(answers[current.gateQuestionId]??'').trim();
- const gateAllowed=!hasGate||!current.allowedAnswers?.length||current.allowedAnswers.map(String).includes(gateAnswer);
  const last=index>=sections.length-1;
  const nextId=current.nextSectionId;
  const nextIndex=nextId?sections.findIndex(x=>String(x.id)===String(nextId)):index+1;
  const next=nextIndex>=0&&nextIndex<sections.length?nextIndex:-1;
+ const nextSection=next>=0?sections[next]:null;
+ const nextGateId=String(nextSection?.gateQuestionId||'');
+ const nextGateAnswer=String(answers[nextGateId]??'').trim();
+ const nextGateAllowed=!nextSection||!nextGateId||!Array.isArray(nextSection.allowedAnswers)||!nextSection.allowedAnswers.length||nextSection.allowedAnswers.map(String).includes(nextGateAnswer);
  const answered=currentQuestions.filter(q=>String(answers[q.id]??'').trim()!=='').length;
  const requiredMissing=currentQuestions.some(q=>q.required!==false&&String(answers[q.id]??'').trim()==='');
- const goNext=()=>{if(requiredMissing)return;if(!gateAllowed){submit(false,'rule',current.id);return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
+ const goNext=()=>{if(requiredMissing)return;if(!nextGateAllowed){submit(false,'rule',current.id);return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
  return <Page title={active.title} sub={active.description||'اختبار أكاديمي'}>
   {active.bannerUrl&&<img className="examStudentBanner" src={active.bannerUrl} alt="" loading="lazy"/>}
   <div className="examSectionStepper">{sections.map((x,i)=><div className={i===index?'active':i<index?'done':''} key={String(x.id||'section-'+i)}><span>{i+1}</span><b>{x.title||('القسم '+(i+1))}</b></div>)}</div>
@@ -120,9 +121,9 @@ function ApplicationStatus({app,settings={}}){const accepted=app?.status==='acce
     return <div className="examSectionBlock" key={'exam-section-'+String(sec.id||si)} style={{display:visible?'block':'none'}}>
       <div className="examSectionHero"><span>القسم {si+1} من {sections.length}</span><h2>{sec.title||('القسم '+(si+1))}</h2>{sec.description&&<p>{sec.description}</p>}</div>
       {qs.length?qs.map((q,qi)=><div className="examQuestionNumbered" key={'exam-question-'+String(q.id||qi)}><span className="questionNumber">السؤال {qi+1}</span><Question q={q} value={answers[q.id]} setValue={v=>setAnswers(a=>({...a,[q.id]:v}))}/></div>):<div className="examSectionEmpty">لا توجد أسئلة مضافة إلى هذا القسم حاليًا.</div>}
-      {visible&&hasGate&&gateAnswer&&!gateAllowed&&<div className="errorBox">{sec.failMessage||'لم تستوفِ شرط الانتقال في هذا القسم. سيتم إنهاء الاختبار عند المتابعة.'}</div>}
+      {visible&&index<sections.length-1&&!nextGateAllowed&&<div className="errorBox">{nextSection?.failMessage||'لم تستوفِ شرط فتح القسم التالي. سيتم إنهاء الاختبار عند المتابعة.'}</div>}
       {visible&&requiredMissing&&<div className="statusNote">أكمل الأسئلة المطلوبة في هذا القسم للانتقال.</div>}
-      {visible&&<div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{!gateAllowed?'إنهاء الاختبار':last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>}
+      {visible&&<div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{!nextGateAllowed?'إنهاء الاختبار':last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>}
     </div>
    })}
    {error&&<div className="errorBox">{error}</div>}
