@@ -92,7 +92,7 @@ export async function saveExamAttempt(attempt){
     resume_duration_minutes:attempt.resumeDurationMinutes==null?null:Number(attempt.resumeDurationMinutes),
     answers:json(attempt.answers),
     question_order:questionOrder,
-    status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),
+    status:attempt.submittedAt?'submitted':(String(attempt.status||'in_progress')==='active'?'in_progress':(String(attempt.status||'in_progress')==='paused'?'in_progress':String(attempt.status||'in_progress'))),
     auto_submitted:Boolean(attempt.autoSubmitted),
     answers_updated_at:attempt.answersUpdatedAt||new Date().toISOString(),
     answers_revision:Number(attempt.answersRevision||attempt.clientRevision||0),
@@ -122,10 +122,17 @@ export async function saveExamAttempt(attempt){
   }
   const canonicalLegacyId=String(persistedRow?.legacy_id||legacyId);
   const updatedAt=attempt.answersUpdatedAt||new Date().toISOString();
-  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:canonicalLegacyId,p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),p_client_revision:Number(attempt.clientRevision||0)}));
+  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:canonicalLegacyId,p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(String(attempt.status||'in_progress')==='active'?'in_progress':(String(attempt.status||'in_progress')==='paused'?'in_progress':String(attempt.status||'in_progress'))),p_client_revision:Number(attempt.clientRevision||0)}));
   if(error)throw error;
   if(!Array.isArray(data)||!data.length)throw new Error('EXAM_ATTEMPT_NOT_FOUND');
-  return data[0];
+  // Supabase stores the canonical lifecycle value in_progress; the legacy
+  // runtime uses active/paused. Do not leak the DB status into the runtime.
+  const saved=data[0];
+  return {
+    ...saved,
+    status:attempt.submittedAt?'submitted':(String(attempt.status||'active')==='paused'?'paused':'active'),
+    legacy_data:attempt
+  };
 }
 export async function saveExamResult(result,attemptLegacyId=null){if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');const exam_id=await examRowId(result.examId);if(!exam_id)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);if(!attempt_id)throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error})}
 
