@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=Boolean(viewer?.police||isAdmin);const canOperate=Boolean(viewer?.police||isAdmin);
+ const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=isAdmin;const canOperate=Boolean(viewer?.police||isAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!isAdmin)return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(isAdmin)loadSnapshots()},[isAdmin]);
