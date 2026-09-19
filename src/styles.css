@@ -2512,3 +2512,5 @@ input,textarea,select{max-width:100%;min-width:0}
 .examQuestionSectionLabel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.examQuestionSectionLabel span{font-size:12px;opacity:.65}.examQuestionSectionLabel select{max-width:230px}
 .sectionAddActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.unassignedSection{border-style:dashed}
 .examSaveBar{position:sticky;bottom:12px;z-index:5;display:flex;justify-content:flex-end;margin-top:18px;padding:10px;border-radius:14px;background:rgba(8,17,29,.94);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
+
+.allowedAnswersField{display:flex;flex-direction:column;gap:8px}.allowedAnswersChoices{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.02)}.allowedAnswerChoice{display:flex!important;flex-direction:row!important;align-items:center;gap:8px!important;padding:8px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer}.allowedAnswerChoice input{accent-color:#e7bd4d}
