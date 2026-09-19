@@ -8,23 +8,25 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=isAdmin;const canOperate=Boolean(viewer?.police||isAdmin);
+ const globalAdmin=Boolean(viewer?.permissions?.isAdmin);const dp=new Set(viewer?.permissions?.dispatchPermissions||[]);const can=(p)=>globalAdmin||dp.has(p);const canPanel=globalAdmin||[...dp].some(p=>p.startsWith('manage_dispatch_'));const canManage=can('manage_dispatch_units');const canOperate=Boolean(viewer?.police||globalAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
- const loadSnapshots=async()=>{if(!isAdmin)return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
- useEffect(()=>{load();if(isAdmin)loadSnapshots()},[isAdmin]);
- const mutate=async(fn)=>{setSaving(true);try{await fn();await load();if(isAdmin)await loadSnapshots()}catch(e){setError(msg(e))}finally{setSaving(false)}};
+ const loadSnapshots=async()=>{if(!can('manage_dispatch_snapshots'))return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
+ useEffect(()=>{load();if(can('manage_dispatch_snapshots'))loadSnapshots()},[canPanel]);
+ const mutate=async(fn)=>{setSaving(true);try{await fn();await load();if(can('manage_dispatch_snapshots'))await loadSnapshots()}catch(e){setError(msg(e))}finally{setSaving(false)}};
  if(!data)return <div className="dispatchLoading"><RefreshCw className="spin"/> جاري تحميل الإدارة...</div>;
  const units=data.units||[],types=data.unitTypes||[],regions=data.regions||[],locations=data.locations||[],vehicles=data.vehicles||[],dispatchers=data.dispatchers||[],people=data.people||[];
  const typeBy=new Map(types.map(x=>[x.id,x]));
  const createUnit=async()=>{const r=await dispatchApi.createUnit(form);for(const id of unitPeople)await dispatchApi.join(r.item.id,id,'member');setForm({});setUnitPeople([])};
  const tabs=[
-  ['units','الوحدات',Shield],
-  ['regions','المناطق',MapPin],
-  ['locations','النقاط',MapPin],
-  ['types','أنواع الوحدات',Settings2],
-  ['vehicles','المركبات',Car],
-  ['dispatchers','المناوبون',Radio],
-  ...(isAdmin?[['snapshots','النسخ الاحتياطية',Camera],['audit','سجل النشاط',Radio]]:[])
+  ...(can('manage_dispatch_units')?[['units','الوحدات',Shield]]:[]),
+  ...(can('manage_dispatch_regions')?[['regions','المناطق',MapPin]]:[]),
+  ...(can('manage_dispatch_locations')?[['locations','النقاط',MapPin]]:[]),
+  ...(can('manage_dispatch_types')?[['types','أنواع الوحدات',Settings2]]:[]),
+  ...(can('manage_dispatch_vehicles')?[['vehicles','المركبات',Car]]:[]),
+  ...(can('manage_dispatch_dispatchers')?[['dispatchers','المناوبون',Radio]]:[]),
+  ...(can('manage_dispatch_snapshots')?[['snapshots','النسخ الاحتياطية',Camera]]:[]),
+  ...(can('view_dispatch_audit')?[['audit','سجل النشاط',Radio]]:[]),
+  ...(globalAdmin?[['permissions','صلاحيات Dispatch',Shield]]:[])
  ];
  return <div className="dispatchPage dispatchAdminPage">
   <section className="pageTitle"><span className="eyebrow">DISPATCH COMMAND</span><h1>إدارة منظومة Dispatch</h1><p>الوحدات · الأفراد · المناطق · النقاط · المركبات · المناوبون</p></section>
@@ -62,8 +64,9 @@ export function DispatchAdmin({user:viewer={}}){
   {tab==='types'&&<Manager title="أنواع الوحدات" items={types} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.type({...form,code:String(form.code||'').toUpperCase()}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateType(id,b))} fields={['code','name','category','color','sort_order']} disableOnly/>}
   {tab==='vehicles'&&<Manager title="المركبات" items={vehicles} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.vehicle({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateVehicle(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveVehicle(id))} fields={['name','model','type','image_url','call_sign','plate_code','status','notes']} hardDeleteOnly/>}
   {tab==='dispatchers'&&<DispatcherManager people={people} dispatchers={dispatchers} form={form} setForm={setForm} isAdmin={canManage} mutate={mutate}/>}
-  {tab==='snapshots'&&isAdmin&&<SnapshotManager snapshots={snapshots} form={form} setForm={setForm} mutate={mutate}/>}
-  {tab==='audit'&&isAdmin&&<Audit/>}
+  {tab==='snapshots'&&can('manage_dispatch_snapshots')&&<SnapshotManager snapshots={snapshots} form={form} setForm={setForm} mutate={mutate}/>} 
+  {tab==='audit'&&can('view_dispatch_audit')&&<Audit/>}
+  {tab==='permissions'&&globalAdmin&&<AccessManager people={people} mutate={mutate}/>} 
  </div>;
 }
 
