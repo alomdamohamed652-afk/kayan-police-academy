@@ -3,7 +3,7 @@ const replace=(s,a,b,l)=>{if(!s.includes(a)){if(s.includes(b))return s;throw new
 let s=await fs.readFile('src/main.jsx','utf8');
 s=replace(s,"const submit=async(auto=false)=>{","const submit=async(auto=false,reason='')=>{",'submit-signature');
 s=replace(s,"const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined})});","const d=await api('/api/exams/'+currentActive.id+'/submit',{method:'POST',body:JSON.stringify({answers:currentAnswers,accessToken:inviteToken||undefined,earlyExit:reason==='rule'})});",'submit-body');
-s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(reason==='rule'?'انتهى الاختبار حسب شرط القسم المحدد. تم حفظ إجاباتك الحالية.':auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');",'submit-message');
+s=replace(s,"setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم تسليم الاختبار بنجاح، والنتيجة الآن قيد المراجعة من الإدارة.');","setSuccess(auto?'انتهى الوقت وتم تسليم الاختبار تلقائيًا للمراجعة.':'تم إنهاء الاختبار وحفظ إجاباتك بنجاح.');",'submit-message');
 s=replace(s,"if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))","if(auto&&String(e?.message||'').includes('EXAM_TIME_EXPIRED'))",'auto-error');
 const a=s.indexOf("if(active&&attempt)return <Page title={active.title}"),b=s.indexOf("const visible=exams.filter",a);
 if(a<0||b<0)throw new Error('EXAM_FLOW_ACTIVE_RENDER_TARGET_NOT_FOUND');
@@ -32,9 +32,8 @@ const component=`function ExamFlow({active,attempt,answers,setAnswers,submit,sub
   <div className="panel examForm">
    <div className="examSectionHero"><span>القسم {index+1} من {sections.length}</span><h2>{current.title}</h2>{current.description&&<p>{current.description}</p>}</div>
    {questions.length?questions.map((q,i)=><div className="examQuestionNumbered" key={q.id}><span className="questionNumber">السؤال {i+1}</span><Question q={q} value={answers[q.id]} setValue={v=>setAnswers(a=>({...a,[q.id]:v}))}/></div>):<div className="examSectionEmpty">لا توجد أسئلة مضافة إلى هذا القسم حاليًا.</div>}
-   {index<sections.length-1&&!nextGateAllowed&&<div className="errorBox">{nextSection?.failMessage||'لم تستوفِ شرط فتح القسم التالي. سيتم إنهاء الاختبار عند المتابعة.'}</div>}
    {requiredMissing&&<div className="statusNote">أكمل الأسئلة المطلوبة في هذا القسم للانتقال.</div>}
-   <div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{!nextGateAllowed?'إنهاء الاختبار':last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>
+   <div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>
    {error&&<div className="errorBox">{error}</div>}
   </div>
  </Page>
