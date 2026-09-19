@@ -65,7 +65,7 @@ function ExamAnswers({result,exam,close}){const s=examAnswerStats(result,exam);r
  const availableBank=bank.filter(q=>!usedBankIds.has(String(q.id)));
  const sectionQuestions=sid=>questions.filter(q=>String(q.sectionId||'')===String(sid));
  const unassigned=questions.filter(q=>!q.sectionId);
- const newQuestion={text:'سؤال جديد',type:'choice',options:['اختيار 1','اختيار 2'],correct:'',required:true,points:1};
+ const newQuestion={text:'سؤال جديد',type:'choice',options:['اختيار 1','اختيار 2'],correct:'اختيار 1',required:true,points:1};
  const questionCard=(q,i)=> <div className="examQuestionWrap" key={q.id}>
    <div className="examQuestionSectionLabel"><span>السؤال {i+1}</span><select value={q.sectionId||''} onChange={e=>updateQuestion(q.id,{sectionId:e.target.value})}><option value="">بدون قسم</option>{sections.map(s=><option key={s.id} value={s.id}>{s.title||'قسم'}</option>)}</select></div>
    <QuestionEditor question={q} onChange={v=>updateQuestion(q.id,v)}/>
