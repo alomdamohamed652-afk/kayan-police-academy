@@ -135,3 +135,10 @@
 .dispatchAdminPage .dispatchAdminTabs button{font-size:14px;padding:10px 14px}
 .dispatchAdminPage .personnelPicker{font-size:15px}
 .personnelResults{max-height:420px;overflow:auto}
+
+.assignmentContext{display:grid;grid-template-columns:1fr 1fr;gap:10px;grid-column:1/-1;padding:10px 12px;background:#0d1b2b;border:1px solid #263d55;border-radius:9px}
+.assignmentContext>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.assignmentContext small{font-size:11px;color:#7e91a6}
+.assignmentContext strong{font-size:14px;color:#fff}
+.assignmentContext select{width:100%}
+@media(max-width:700px){.assignmentContext{grid-template-columns:1fr}}
