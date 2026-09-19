@@ -10,6 +10,8 @@ if(!source.includes('function ApplicationStatus({app,settings={}}){'))throw new 
 const admin=await fs.readFile('src/admin-center.jsx','utf8');
 const server=await fs.readFile('server/academy-production-original.mjs','utf8');
 for(const marker of ['function cleanQuestion(q){','function cleanExam(e){',"app.patch('/api/admin/exams/:examId/results/:resultId/grade'"]){
+const examRuntimeMarkers=["sectionId:String(q.sectionId||'')","imageUrl:String(q.imageUrl||'').trim()||undefined","bannerUrl:String(e?.bannerUrl||'').trim()"];
+for(const marker of examRuntimeMarkers){if(!server.includes(marker))throw new Error('PREPARE_BUILD_EXAM_RUNTIME_MARKER_MISSING:'+marker)}
  if(!server.includes(marker))throw new Error('PREPARE_BUILD_SERVER_MARKER_MISSING:'+marker);
 }
 await execFileAsync(process.execPath,['--check','server/academy-production-original.mjs'],{stdio:'inherit'});
