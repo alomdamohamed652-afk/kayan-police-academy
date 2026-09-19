@@ -1,0 +1,2 @@
+create index if not exists dispatch_locations_region_idx on public.dispatch_locations(region_id) where active;
+create index if not exists dispatch_unit_assignments_unit_idx on public.dispatch_unit_assignments(unit_id) where active;
