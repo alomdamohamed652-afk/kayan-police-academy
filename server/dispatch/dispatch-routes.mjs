@@ -1,8 +1,8 @@
-import { getAccess,listAccess } from './dispatch-store.mjs';
+import { getAccess,listAccess,getState } from './dispatch-store.mjs';
 import { requireDispatchAccess,requireOperation,requireAdminPermission } from './dispatch-permissions.mjs';
 import * as svc from './dispatch-service.mjs';
 import { createDispatchSnapshot,restoreDispatchSnapshot,snapshots } from './dispatch-snapshots.mjs';
-import { readAudit } from './dispatch-audit.mjs';
+import { readAudit,recordAudit } from './dispatch-audit.mjs';
 const opError=(e,res)=>{const code=String(e?.message||e?.code||'STORAGE_ERROR');const map={UNAUTHENTICATED:401,FORBIDDEN:403,INSUFFICIENT_PERMISSION:403,DISPATCH_ACCESS_DENIED:403,DISPATCH_PERSONNEL_REQUIRED:403,DISPATCH_PERSONNEL_NOT_FOUND:400,DISPATCH_MEMBER_NOT_FOUND:404,DISPATCH_MEMBER_A_NOT_ASSIGNED:409,DISPATCH_MEMBER_B_NOT_ASSIGNED:409,DISPATCH_SAME_UNIT:409,DISPATCH_UNIT_NOT_ACTIVE:409,DISPATCH_ASSIGNMENT_TARGET_REQUIRED:400,DISPATCH_INVALID_CODE:400,DISPATCH_INVALID_URL:400,DISPATCH_UNIT_REQUIRED:400,DISPATCH_UNIT_TYPE_INACTIVE:409,DISPATCH_VEHICLE_INACTIVE:409,DISPATCH_UNIT_INACTIVE:409,DISPATCH_REGION_INACTIVE:409,DISPATCH_LOCATION_INACTIVE:409,DISPATCH_RESTORE_CONFIRM_REQUIRED:400};let status=map[code]||500;if(String(e?.code)==='23505')status=409;if(String(e?.code)==='23503')status=409;if(String(e?.code)==='23514')status=400;console.error('Dispatch API error:',e);return res.status(status).json({error:code,retryable:status>=500})};
 const asyncRoute=fn=>(req,res)=>Promise.resolve().then(()=>fn(req,res)).catch(e=>opError(e,res));
 export function registerDispatchRoutes(app,{current,police}){const ctx=async req=>current(req);const access=async req=>{const c=await ctx(req);if(!c.x)return{c,access:null};return{c,access:await getAccess(c.x.id)}};
@@ -37,7 +37,7 @@ app.patch('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=aw
 app.delete('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_dispatchers');res.json({ok:true,item:await svc.removeDispatcher(c,req.params.id)})}));
 app.get('/api/dispatch/snapshots',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');res.json({items:await snapshots()})}));
 app.post('/api/dispatch/snapshots',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');res.json({ok:true,item:await createDispatchSnapshot(c,req.body?.name,req.body?.description)})}));
-app.post('/api/dispatch/snapshots/:id/restore',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');if(req.body?.confirm!==true)throw new Error('DISPATCH_RESTORE_CONFIRM_REQUIRED');const result=await restoreDispatchSnapshot(c,req.params.id);res.json({ok:true,...result})}));
+app.post('/api/dispatch/snapshots/:id/restore',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');if(req.body?.confirm!==true)throw new Error('DISPATCH_RESTORE_CONFIRM_REQUIRED');const before=await getState();const result=await restoreDispatchSnapshot(c,req.params.id);const after=await getState();await recordAudit(c,'SNAPSHOT_RESTORED','snapshot',req.params.id,before,after);res.json({ok:true,...result})}));
 app.patch('/api/dispatch/settings',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_settings');res.json({ok:true,item:await svc.updateSettings(c,req.body||{})})}));
 setInterval(()=>import('./dispatch-store.mjs').then(m=>m.cleanupAudit()).catch(e=>console.error('Dispatch audit cleanup failed:',e.message)),15*60*1000).unref?.();import('./dispatch-store.mjs').then(m=>m.cleanupAudit()).catch(()=>{});
 }
