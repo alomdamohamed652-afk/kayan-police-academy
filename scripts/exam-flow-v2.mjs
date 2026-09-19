@@ -14,16 +14,17 @@ const component=`function ExamFlow({active,attempt,answers,setAnswers,submit,sub
  const [index,setIndex]=useState(0);
  const current=sections[Math.min(index,sections.length-1)]||sections[0];
  const questions=useMemo(()=>{const all=Array.isArray(active.questions)?active.questions:[];return current.id==='__all__'?all:all.filter(q=>String(q.sectionId||'')===String(current.id))},[active.questions,current.id]);
- const hasGate=Boolean(current.gateQuestionId);
- const gateAnswer=String(answers[current.gateQuestionId]??'').trim();
- const gateAllowed=!hasGate||!current.allowedAnswers?.length||current.allowedAnswers.map(String).includes(gateAnswer);
  const last=index>=sections.length-1;
  const nextId=current.nextSectionId;
  const nextIndex=nextId?sections.findIndex(x=>String(x.id)===String(nextId)):index+1;
  const next=nextIndex>=0&&nextIndex<sections.length?nextIndex:-1;
+ const nextSection=next>=0?sections[next]:null;
+ const nextGateId=String(nextSection?.gateQuestionId||'');
+ const nextGateAnswer=String(answers[nextGateId]??'').trim();
+ const nextGateAllowed=!nextSection||!nextGateId||!Array.isArray(nextSection.allowedAnswers)||!nextSection.allowedAnswers.length||nextSection.allowedAnswers.map(String).includes(nextGateAnswer);
  const answered=questions.filter(q=>String(answers[q.id]??'').trim()!=='').length;
  const requiredMissing=questions.some(q=>q.required!==false&&String(answers[q.id]??'').trim()==='');
- const goNext=()=>{if(requiredMissing)return;if(!gateAllowed){submit(false,'rule');return}if(last){submit(false);return}if(next>=0)setIndex(next)};
+ const goNext=()=>{if(requiredMissing)return;if(!nextGateAllowed){submit(false,'rule',current.id);return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
  return <Page title={active.title} sub={active.description||'اختبار أكاديمي'}>
   {active.bannerUrl&&<img className="examStudentBanner" src={active.bannerUrl} alt="" loading="lazy"/>}
   <div className="examSectionStepper">{sections.map((x,i)=><div className={i===index?'active':i<index?'done':''} key={x.id}><span>{i+1}</span><b>{x.title}</b></div>)}</div>
@@ -31,9 +32,9 @@ const component=`function ExamFlow({active,attempt,answers,setAnswers,submit,sub
   <div className="panel examForm">
    <div className="examSectionHero"><span>القسم {index+1} من {sections.length}</span><h2>{current.title}</h2>{current.description&&<p>{current.description}</p>}</div>
    {questions.length?questions.map((q,i)=><div className="examQuestionNumbered" key={q.id}><span className="questionNumber">السؤال {i+1}</span><Question q={q} value={answers[q.id]} setValue={v=>setAnswers(a=>({...a,[q.id]:v}))}/></div>):<div className="examSectionEmpty">لا توجد أسئلة مضافة إلى هذا القسم حاليًا.</div>}
-   {hasGate&&gateAnswer&&!gateAllowed&&<div className="errorBox">{current.failMessage||'لم تستوفِ شرط الانتقال في هذا القسم. سيتم إنهاء الاختبار عند المتابعة.'}</div>}
+   {index<sections.length-1&&!nextGateAllowed&&<div className="errorBox">{nextSection?.failMessage||'لم تستوفِ شرط فتح القسم التالي. سيتم إنهاء الاختبار عند المتابعة.'}</div>}
    {requiredMissing&&<div className="statusNote">أكمل الأسئلة المطلوبة في هذا القسم للانتقال.</div>}
-   <div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{!gateAllowed?'إنهاء الاختبار':last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>
+   <div className="examFlowActions">{index>0&&<Btn onClick={()=>setIndex(index-1)}>السابق</Btn>}<Btn className="primary" disabled={submitting||requiredMissing} onClick={goNext}>{!nextGateAllowed?'إنهاء الاختبار':last?'تسليم الاختبار':'القسم التالي'} <ArrowLeft size={17}/></Btn></div>
    {error&&<div className="errorBox">{error}</div>}
   </div>
  </Page>
