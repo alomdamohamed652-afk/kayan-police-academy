@@ -540,7 +540,6 @@ function recoverSubmittedExamResults(){
   }
   data.examResults=results;
   return changed;
-  return changed;
 }
 
 let expiryJobRunning=false;
