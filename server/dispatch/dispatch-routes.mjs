@@ -20,7 +20,7 @@ app.post('/api/dispatch/swap',asyncRoute(async(req,res)=>{const {c,access:a}=awa
 app.post('/api/dispatch/units/:id/assignments',asyncRoute(async(req,res)=>{const {c,access:a}=await access(req);requireOperation(c,a);res.json({ok:true,item:await svc.createAssignment(c,{...(req.body||{}),unit_id:req.params.id})})}));
 app.patch('/api/dispatch/assignments/:id',asyncRoute(async(req,res)=>{const {c,access:a}=await access(req);requireOperation(c,a);res.json({ok:true,item:await svc.updateAssignment(c,req.params.id,req.body||{})})}));
 app.delete('/api/dispatch/assignments/:id',asyncRoute(async(req,res)=>{const {c,access:a}=await access(req);requireOperation(c,a);res.json({ok:true,item:await svc.deleteAssignment(c,req.params.id)})}));
-const struct=(perm,fn)=>asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,perm);res.json({ok:true,item:await fn(c,req)})});
+const struct=(perm,fn)=>asyncRoute(async(req,res)=>{const c=await ctx(req);await requireDispatchManager(c);res.json({ok:true,item:await fn(c,req)})});
 app.post('/api/dispatch/regions',struct('manage_dispatch_regions',(c,r)=>svc.createRegion(c,r.body||{})));
 app.patch('/api/dispatch/regions/:id',struct('manage_dispatch_regions',(c,r)=>svc.updateRegion(c,r.params.id,r.body||{})));
 app.delete('/api/dispatch/regions/:id',struct('manage_dispatch_regions',(c,r)=>svc.archiveRegion(c,r.params.id)));
@@ -33,8 +33,8 @@ app.post('/api/dispatch/vehicles',struct('manage_dispatch_vehicles',(c,r)=>svc.c
 app.patch('/api/dispatch/vehicles/:id',struct('manage_dispatch_vehicles',(c,r)=>svc.updateVehicle(c,r.params.id,r.body||{})));
 app.delete('/api/dispatch/vehicles/:id',struct('manage_dispatch_vehicles',(c,r)=>svc.archiveVehicle(c,r.params.id)));
 app.post('/api/dispatch/dispatchers',asyncRoute(async(req,res)=>{const c=await ctx(req);await requireDispatchManager(c);res.json({ok:true,item:await svc.assignDispatcher(c,req.body?.discordId,req.body?.note||'',police)})}));
-app.patch('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_dispatchers');res.json({ok:true,item:await svc.setDispatcherStatus(c,req.params.id,req.body?.status)})}));
-app.delete('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_dispatchers');res.json({ok:true,item:await svc.removeDispatcher(c,req.params.id)})}));
+app.patch('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=await ctx(req);await requireDispatchManager(c);res.json({ok:true,item:await svc.setDispatcherStatus(c,req.params.id,req.body?.status)})}));
+app.delete('/api/dispatch/dispatchers/:id',asyncRoute(async(req,res)=>{const c=await ctx(req);await requireDispatchManager(c);res.json({ok:true,item:await svc.removeDispatcher(c,req.params.id)})}));
 app.get('/api/dispatch/snapshots',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');res.json({items:await snapshots()})}));
 app.post('/api/dispatch/snapshots',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');res.json({ok:true,item:await createDispatchSnapshot(c,req.body?.name,req.body?.description)})}));
 app.post('/api/dispatch/snapshots/:id/restore',asyncRoute(async(req,res)=>{const c=await ctx(req);requireAdminPermission(c,'manage_dispatch_snapshots');if(req.body?.confirm!==true)throw new Error('DISPATCH_RESTORE_CONFIRM_REQUIRED');const before=Object.assign(await getState(),{access:await listAccess()});const result=await restoreDispatchSnapshot(c,req.params.id);const after=Object.assign(await getState(),{access:await listAccess()});await recordAudit(c,'SNAPSHOT_RESTORED','snapshot',req.params.id,before,after);res.json({ok:true,...result})}));
