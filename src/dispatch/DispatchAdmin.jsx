@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState('units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));
+ const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=Boolean(viewer?.police||isAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!isAdmin)return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(isAdmin)loadSnapshots()},[isAdmin]);
@@ -45,7 +45,7 @@ export function DispatchAdmin({user:viewer={}}){
     </div>
     <PersonnelPicker people={people} selected={unitPeople} onChange={setUnitPeople} label="أفراد الوحدة"/>
     {isAdmin&&<button className="primary" disabled={saving||!form.unit_code||!form.type_id} onClick={()=>mutate(createUnit)}><Plus size={16}/> إنشاء الوحدة</button>}
-    {!isAdmin&&<div className="readOnlyBadge">أنت في وضع العرض — إدارة إنشاء الوحدات للأدمن فقط</div>}
+    {}
    </div>
    <div className="panel">
     <div className="dispatchPanelHead"><div><strong>UNIT STRUCTURE</strong><span>{units.filter(u=>u.active).length} وحدة نشطة</span></div></div>
@@ -57,7 +57,7 @@ export function DispatchAdmin({user:viewer={}}){
    </div>
   </section>}
 
-  {tab==='regions'&&<Manager title="المناطق" items={regions} form={form} setForm={setForm} isAdmin={isAdmin} onCreate={()=>mutate(()=>dispatchApi.region({...form,code:`REGION-${Date.now()}` }))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateRegion(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveRegion(id))} fields={['name','description','color']}/>}
+  {tab==='regions'&&<Manager title="المناطق" items={regions} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.region({...form,code:`REGION-${Date.now()}` }))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateRegion(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveRegion(id))} fields={['name','description','color']}/>}
   {tab==='locations'&&<Manager title="النقاط" items={locations} form={form} setForm={setForm} isAdmin={isAdmin} onCreate={()=>mutate(()=>dispatchApi.location({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateLocation(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveLocation(id))} fields={['name','description','region_id','type','notes']} regions={regions}/>}
   {tab==='types'&&<Manager title="أنواع الوحدات" items={types} form={form} setForm={setForm} isAdmin={isAdmin} onCreate={()=>mutate(()=>dispatchApi.type({...form,code:String(form.code||'').toUpperCase()}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateType(id,b))} fields={['code','name','category','color','sort_order']} disableOnly/>}
   {tab==='vehicles'&&<Manager title="المركبات" items={vehicles} form={form} setForm={setForm} isAdmin={isAdmin} onCreate={()=>mutate(()=>dispatchApi.vehicle({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateVehicle(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveVehicle(id))} fields={['name','model','type','image_url','call_sign','plate_code','status','notes']}/>}
