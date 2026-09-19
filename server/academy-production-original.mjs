@@ -38,7 +38,7 @@ if(!SESSION_SECRET||SESSION_SECRET.length<32)throw new Error('SESSION_SECRET is 
 // Database is the single source of truth for administrators and permissions.
 // ENV IDs are bootstrap-only: they are used only when the database has no enabled admin yet.
 const BOOTSTRAP_ADMINS=new Set(String(process.env.ACADEMY_ADMIN_IDS||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>x.replace(/\D/g,'')));
-const SUPER_ADMIN_ID=id(String(process.env.ACADEMY_SUPER_ADMIN_ID||''));
+const SUPER_ADMIN_ID=String(process.env.ACADEMY_SUPER_ADMIN_ID||'').replace(/\D/g,'');
 const TTL=Math.max(5000,Number(process.env.SHEET_SYNC_TTL_MS||60000));
 const PERMISSIONS={view_dashboard:'لوحة الإدارة',view_activity_logs:'الاطلاع على سجل النشاط وتسجيل الدخول',manage_members:'إدارة الأفراد',manage_roles:'إدارة الرتب',manage_admins:'إدارة الأدمن',manage_applications:'إدارة التقديمات',manage_exams:'إدارة الاختبارات',manage_hierarchy:'إدارة الهيكل',view_evaluations:'الاطلاع على التقييمات',manage_evaluations:'إدارة التقييمات',manage_settings:'الإعدادات',manage_dev_store:'إدارة متجر التطوير',manage_sessions:'إدارة جلسات الدخول'};
 const ALL=Object.keys(PERMISSIONS);
