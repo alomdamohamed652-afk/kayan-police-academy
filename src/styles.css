@@ -2516,3 +2516,6 @@ input,textarea,select{max-width:100%;min-width:0}
 .allowedAnswersField{display:flex;flex-direction:column;gap:8px}.allowedAnswersChoices{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.02)}.allowedAnswerChoice{display:flex!important;flex-direction:row!important;align-items:center;gap:8px!important;padding:8px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer}.allowedAnswerChoice input{accent-color:#e7bd4d}
 
 .examGateResultBadge{display:flex;flex-direction:column;gap:4px;margin:14px 0;padding:12px 14px;border:1px solid rgba(211,175,90,.35);border-radius:12px;background:rgba(211,175,90,.08);color:#e8c96f}.examGateResultBadge span{font-size:12px;color:#9eacbc}.examGateResultBadge.examGatePassed{border-color:rgba(111,214,160,.28);background:rgba(111,214,160,.06);color:#9fd9bc}
+
+/* Google Translate compatibility: translated English pages must switch out of the Arabic RTL canvas. */
+html.translated-ltr,html.translated-ltr body{direction:ltr!important}html.translated-ltr .app,html.translated-ltr main{direction:ltr}html.translated-rtl,html.translated-rtl body{direction:rtl!important}
