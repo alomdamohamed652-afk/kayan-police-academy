@@ -63,8 +63,66 @@ async function attemptRowId(legacyId){const {data,error}=await supabase.from('ex
 
 export async function saveExamAttempt(attempt){
   if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const legacyId=String(attempt.id);
+  const examId=await examRowId(attempt.examId);
+  if(!examId)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
+  const discordId=str(attempt.discordId||attempt.userId);
+  if(!discordId)throw new Error('EXAM_DISCORD_ID_REQUIRED');
+  // The answer RPC is intentionally update-only. A newly started attempt must
+  // exist in exam_attempts first, otherwise the very first Start click returns
+  // EXAM_SAVE_PENDING even though the in-memory attempt was created.
+  const qOrder=cleanRows(attempt.questionOrder).map(str).filter(Boolean);
+  const {data:qRows,error:qError}=await withRetry('read exam question ids',async()=>{
+    const {data,error}=await supabase.from('exam_questions').select('id,legacy_id').eq('exam_id',examId);
+    if(error)throw error;
+    return {data:data||[],error:null};
+  });
+  if(qError)throw qError;
+  const questionIdByLegacy=new Map((qRows||[]).map(q=>[String(q.legacy_id),String(q.id)]));
+  const questionOrder=qOrder.map(id=>questionIdByLegacy.get(id)||id).filter(id=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  const row={
+    legacy_id:legacyId,
+    exam_id:examId,
+    discord_id:discordId,
+    started_at:attempt.startedAt||new Date().toISOString(),
+    expires_at:attempt.expiresAt||new Date().toISOString(),
+    submitted_at:attempt.submittedAt||null,
+    resume_at:attempt.resumeAt||null,
+    resume_until:attempt.resumeUntil||null,
+    resume_duration_minutes:attempt.resumeDurationMinutes==null?null:Number(attempt.resumeDurationMinutes),
+    answers:json(attempt.answers),
+    question_order:questionOrder,
+    status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),
+    auto_submitted:Boolean(attempt.autoSubmitted),
+    answers_updated_at:attempt.answersUpdatedAt||new Date().toISOString(),
+    answers_revision:Number(attempt.answersRevision||attempt.clientRevision||0),
+    legacy_data:attempt
+  };
+  let persistedRow;
+  try{
+    const {data,error}=await withRetry('create exam attempt',async()=>{
+      const {data,error}=await supabase.from('exam_attempts').upsert(row,{onConflict:'legacy_id'}).select('*').single();
+      if(error)throw error;
+      return {data,error:null};
+    });
+    persistedRow=data;
+  }catch(error){
+    // Two devices can race to start the same exam. The DB's partial unique
+    // index permits only one in-progress attempt; reuse the winner.
+    const msg=String(error?.message||error?.details||error||'');
+    if(/duplicate key|one_active_exam_attempt_per_user|exam_attempts_exam_id_discord_id/i.test(msg)){
+      const {data,error:lookupError}=await withRetry('find active exam attempt',async()=>{
+        const {data,error}=await supabase.from('exam_attempts').select('*').eq('exam_id',examId).eq('discord_id',discordId).eq('status','in_progress').maybeSingle();
+        if(error)throw error;
+        return {data,error:null};
+      });
+      if(lookupError||!data)throw error;
+      persistedRow=data;
+    }else throw error;
+  }
+  const canonicalLegacyId=String(persistedRow?.legacy_id||legacyId);
   const updatedAt=attempt.answersUpdatedAt||new Date().toISOString();
-  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:String(attempt.id),p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),p_client_revision:Number(attempt.clientRevision||0)}));
+  const {data,error}=await withRetry('save exam answers',async()=>supabase.rpc('save_exam_attempt_answers',{p_legacy_id:canonicalLegacyId,p_answers:json(attempt.answers),p_answers_updated_at:updatedAt,p_status:attempt.submittedAt?'submitted':(attempt.status||'in_progress'),p_client_revision:Number(attempt.clientRevision||0)}));
   if(error)throw error;
   if(!Array.isArray(data)||!data.length)throw new Error('EXAM_ATTEMPT_NOT_FOUND');
   return data[0];
