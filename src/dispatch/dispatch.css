@@ -19,3 +19,43 @@
 .personnelPicker .pickerLabel{font-size:13px}
 .personnelSearch input,.personnelResult{font-size:13px}
 .personnelResult small,.selectedPerson small{font-size:11px}
+
+/* Dispatch UX refinement */
+.personnelPicker{margin:0 15px 12px;padding:12px;background:#081321;border:1px solid #22364e;border-radius:12px}
+.pickerTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.pickerLabel{display:block;color:#fff;font-weight:700}
+.pickerCount{font-size:11px;color:#d5b45e}
+.personnelSearch{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#0d1b2b;border:1px solid #2a4059;border-radius:9px;color:#7f91a6}
+.personnelSearch:focus-within{border-color:#d5b45e}
+.personnelSearch input{width:100%;background:transparent;border:0;outline:0;color:#fff}
+.pickerClear{display:grid;place-items:center;border:0;background:transparent;color:#718399;padding:2px;cursor:pointer}
+.selectedPeople{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.selectedPerson{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 8px;background:#102238;border:1px solid #2b4662;border-radius:9px}
+.selectedPersonAvatar,.personAvatar{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:#1a2f47;color:#d5b45e;font-weight:800}
+.selectedPerson>div{min-width:0}
+.selectedPerson strong,.selectedPerson small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selectedPerson strong{font-size:12px;color:#fff}
+.selectedPerson small{font-size:10px;color:#8192a6;margin-top:2px}
+.selectedPerson button{display:grid;place-items:center;border:0;background:transparent;color:#788ba0;cursor:pointer}
+.personnelResults{margin-top:9px}
+.pickerHint{display:grid;justify-items:center;gap:4px;padding:22px 12px;border:1px dashed #29415b;border-radius:9px;color:#73859a;text-align:center}
+.pickerHint strong{color:#b9c6d4;font-size:12px}
+.pickerHint span{font-size:10px}
+.personnelResult{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;background:#0d1b2b;border:1px solid #1e3349;border-radius:8px;color:#fff;text-align:right;cursor:pointer;margin-top:6px}
+.personnelResult:hover{background:#12253a;border-color:#36516d}
+.personnelResult.selected{border-color:#d5b45e;background:#15263a}
+.personnelResultInfo{min-width:0;flex:1}
+.personnelResult strong,.personnelResult small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.personnelResult strong{font-size:12px}
+.personnelResult small{font-size:10px;color:#8292a5;margin-top:2px}
+.dispatchUnitRow.hasRegionColor{border-right:4px solid var(--region-color)}
+.dispatchUnitRow.hasRegionColor .unitDot{background:var(--region-color)}
+.regionBadge{display:inline-flex!important;width:max-content;margin-top:5px!important;padding:2px 6px;border:1px solid;border-radius:999px;font-size:9px!important;background:#091522}
+.dispatchDetailHead{border-right:4px solid var(--region-color)}
+.assignmentRegionSelect{display:flex;align-items:center;gap:7px;flex:1;min-width:160px}
+.assignmentRegionSelect select{min-width:0}
+.assignmentColorPreview{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 9px;border-radius:8px;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+.colorField{display:flex;align-items:center;gap:8px;grid-column:1/-1}
+.colorField input[type=color]{width:46px;height:42px;padding:3px;flex:0 0 46px;cursor:pointer}
+.colorCodeInput{flex:1}
+.entityColorDot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:7px;vertical-align:middle;border:1px solid #ffffff55}
