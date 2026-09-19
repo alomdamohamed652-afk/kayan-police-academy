@@ -59,3 +59,20 @@
 .colorField input[type=color]{width:46px;height:42px;padding:3px;flex:0 0 46px;cursor:pointer}
 .colorCodeInput{flex:1}
 .entityColorDot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:7px;vertical-align:middle;border:1px solid #ffffff55}
+
+/* Dispatch admin clarity */
+.dispatchAdminPage .pageTitle h1{font-size:34px;line-height:1.25}
+.dispatchAdminPage .pageTitle p{font-size:15px}
+.dispatchAdminTabs button{font-size:14px;padding:12px 15px}
+.dispatchAdminGrid{gap:18px}
+.dispatchAdminGrid>.panel{min-height:120px}
+.dispatchAdminGrid>.panel .dispatchPanelHead strong{font-size:16px}
+.dispatchAdminGrid>.panel .dispatchPanelHead span{font-size:12px}
+.dispatchFormGrid input,.dispatchFormGrid select,.dispatchFormGrid label,
+.dispatchAdminGrid>.panel>input,.dispatchAdminGrid>.panel>textarea,.dispatchAdminGrid>.panel>select{font-size:14px;min-height:44px}
+.adminEntityRow{padding:13px 15px}
+.adminEntityRow strong{font-size:15px}
+.adminEntityRow small{font-size:12px}
+.adminEntityRow .textBtn,.adminEntityRow .danger{font-size:13px}
+.dispatchAdminPage .primary,.dispatchAdminPage .secondary{font-size:14px;padding:10px 14px}
+.dispatchAdminPage .personnelPicker{margin-top:4px}
