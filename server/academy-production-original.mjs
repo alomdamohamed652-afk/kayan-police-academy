@@ -454,6 +454,7 @@ async function recoverStorage(){
           if(remote){
             const base=structuredClone(DEFAULT);
             data={...base,...remote,settings:{...base.settings,...(remote.settings||{})}};
+            if(!Number.isFinite(Number(remote.loginCount)))data.loginCount=Array.isArray(remote.loginLogs)?remote.loginLogs.length:0;
             data.memberImages=data.memberImages&&typeof data.memberImages==='object'&&!Array.isArray(data.memberImages)?data.memberImages:{};
             data.memberSettings=data.memberSettings&&typeof data.memberSettings==='object'&&!Array.isArray(data.memberSettings)?data.memberSettings:{};
             data.applicationDrafts=data.applicationDrafts&&typeof data.applicationDrafts==='object'&&!Array.isArray(data.applicationDrafts)?data.applicationDrafts:{};
