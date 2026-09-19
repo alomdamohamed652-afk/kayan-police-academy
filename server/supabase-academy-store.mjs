@@ -86,6 +86,54 @@ return data;
 async function examRowId(legacyId){const {data,error}=await supabase.from('exams').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
 async function attemptRowId(legacyId){const {data,error}=await supabase.from('exam_attempts').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
 
+export async function saveExam(exam){
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const legacyId=String(exam.id);
+  const accessType=exam.accessType==='link'?'invite':(exam.accessType||'all');
+  const examRow={
+    legacy_id:legacyId,title:str(exam.title)||'اختبار',description:exam.description||null,stage:exam.stage||null,
+    status:exam.active===false?'closed':'open',active:exam.active!==false,start_at:exam.startAt||null,end_at:exam.endAt||null,
+    duration_minutes:Number(exam.durationMinutes||30),passing_score:Number(exam.passingScore||60),attempts_allowed:Number(exam.attemptsAllowed||1),
+    access_type:accessType,access_users:Array.isArray(exam.allowedDiscordIds)?exam.allowedDiscordIds.map(str):[],
+    invite_token_hash:exam.inviteTokenHash||null,publish_results:Boolean(exam.resultPublished),
+    show_answers:Boolean(exam.resultAnswersPublished),resume_enabled:exam.resumeEnabled!==false,
+    resume_minutes:exam.resumeMinutes?Number(exam.resumeMinutes):null,created_by:exam.createdBy||null,updated_by:exam.updatedBy||null,
+    legacy_data:exam
+  };
+  const {data:stored,error:examError}=await withRetry('save exam',async()=>{
+    const {data,error}=await supabase.from('exams').upsert(examRow,{onConflict:'legacy_id'}).select('*').single();
+    if(error)throw error; return {data,error:null};
+  });
+  const examDbId=stored?.id;
+  if(!examDbId)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
+  const bankRows=await all('question_bank');
+  const bankMap=new Map(bankRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
+  const questions=cleanRows(exam.questions);
+  const rows=questions.map((q,i)=>({
+    legacy_id:String(q.id),exam_id:examDbId,question_bank_id:q.questionBankId?bankMap.get(String(q.questionBankId))||null:null,
+    text:str(q.text),type:['text','choice','yesno'].includes(q.type)?q.type:'text',options:Array.isArray(q.options)?q.options:[],
+    correct:q.correct??null,required:q.required!==false,points:Number(q.points||1),position:i,legacy_data:q
+  }));
+  const keep=new Set(rows.map(x=>x.legacy_id));
+  const existing=await all('exam_questions');
+  const stale=existing.filter(x=>String(x.exam_id)===String(examDbId)&&x.legacy_id&&!keep.has(String(x.legacy_id)));
+  if(stale.length){
+    const staleIds=stale.map(x=>x.id).filter(Boolean),referenced=new Set();
+    for(let i=0;i<staleIds.length;i+=200){
+      const chunk=staleIds.slice(i,i+200);
+      const {data,error}=await withRetry('check exam question references',async()=>{
+        const {data,error}=await supabase.from('attempt_answers').select('question_id').in('question_id',chunk);
+        if(error)throw error; return {data:data||[],error:null};
+      });
+      for(const x of data||[])if(x?.question_id)referenced.add(String(x.question_id));
+    }
+    const deletable=stale.filter(x=>!referenced.has(String(x.id))).map(x=>String(x.legacy_id));
+    if(deletable.length)await pruneExamQuestions(deletable);
+  }
+  if(rows.length)await upsert('exam_questions',rows,'legacy_id');
+  return exam;
+}
+
 export async function saveExamAttempt(attempt){
   if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
   const legacyId=String(attempt.id);
