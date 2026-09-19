@@ -2498,3 +2498,17 @@ input,textarea,select{max-width:100%;min-width:0}
 
 /* APPLICATION REVIEW LAYOUT */
 .applicationRow{display:block!important}.applicationRowHead{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}.applicationRowHead>div:first-child{flex:1;min-width:0}.applicationRowHead .rowActions{justify-content:flex-start;flex:0 0 auto}.applicationRow>.answerDetail{width:100%;margin-top:12px}@media(max-width:760px){.applicationRowHead{flex-direction:column;align-items:stretch}.applicationRowHead .rowActions{width:100%}}
+
+/* EXAM SECTION BUILDER */
+.examSectionsBuilder{margin-top:18px;display:flex;flex-direction:column;gap:14px}
+.sectionBuilderHead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.025)}
+.sectionBuilderHead h3{margin:4px 0}.examSectionBlock{border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px;background:rgba(255,255,255,.018)}
+.examSectionBlockHead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.examSectionBlockHead h3{margin:4px 0}.examSectionBlockHead small{opacity:.65}
+.sectionNumber{display:inline-flex;padding:4px 9px;border-radius:999px;background:rgba(232,187,71,.12);font-size:12px;font-weight:700}
+.sectionMetaGrid label{display:flex;flex-direction:column;gap:7px}.sectionMetaGrid textarea{min-height:82px;resize:vertical}
+.examSectionQuestions{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)}
+.sectionQuestionsHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.sectionQuestionsHead h4{margin:0}.sectionQuestionsHead span{opacity:.65}
+.examQuestionWrap{padding:12px;border:1px solid rgba(255,255,255,.06);border-radius:14px;margin:10px 0;background:rgba(0,0,0,.08)}
+.examQuestionSectionLabel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.examQuestionSectionLabel span{font-size:12px;opacity:.65}.examQuestionSectionLabel select{max-width:230px}
+.sectionAddActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.unassignedSection{border-style:dashed}
+.examSaveBar{position:sticky;bottom:12px;z-index:5;display:flex;justify-content:flex-end;margin-top:18px;padding:10px;border-radius:14px;background:rgba(8,17,29,.94);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
