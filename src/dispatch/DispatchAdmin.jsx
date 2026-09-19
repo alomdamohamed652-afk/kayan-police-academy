@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=Boolean(viewer?.police||isAdmin);
+ const isAdmin=Boolean(viewer?.permissions?.isAdmin||viewer?.permissions?.adminPermissions?.includes('manage_dispatch_units'));const canManage=isAdmin;const canOperate=Boolean(viewer?.police||isAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!isAdmin)return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(isAdmin)loadSnapshots()},[isAdmin]);
@@ -60,14 +60,14 @@ export function DispatchAdmin({user:viewer={}}){
   {tab==='regions'&&<Manager title="المناطق" items={regions} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.region({...form,code:`REGION-${Date.now()}` }))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateRegion(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveRegion(id))} fields={['name','description','color']}/>}
   {tab==='locations'&&<Manager title="النقاط" items={locations} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.location({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateLocation(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveLocation(id))} fields={['name','description','region_id','type','notes']} regions={regions}/>}
   {tab==='types'&&<Manager title="أنواع الوحدات" items={types} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.type({...form,code:String(form.code||'').toUpperCase()}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateType(id,b))} fields={['code','name','category','color','sort_order']} disableOnly/>}
-  {tab==='vehicles'&&<Manager title="المركبات" items={vehicles} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.vehicle({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateVehicle(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveVehicle(id))} fields={['name','model','type','image_url','call_sign','plate_code','status','notes']}/>}
+  {tab==='vehicles'&&<Manager title="المركبات" items={vehicles} form={form} setForm={setForm} isAdmin={canManage} onCreate={()=>mutate(()=>dispatchApi.vehicle({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateVehicle(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveVehicle(id))} fields={['name','model','type','image_url','call_sign','plate_code','status','notes']} hardDeleteOnly/>}
   {tab==='dispatchers'&&<DispatcherManager people={people} dispatchers={dispatchers} form={form} setForm={setForm} isAdmin={canManage} mutate={mutate}/>}
   {tab==='snapshots'&&isAdmin&&<SnapshotManager snapshots={snapshots} form={form} setForm={setForm} mutate={mutate}/>}
   {tab==='audit'&&isAdmin&&<Audit/>}
  </div>;
 }
 
-function Manager({title,items,form,setForm,isAdmin,onCreate,onUpdate,onArchive,fields,regions=[],disableOnly=false}){
+function Manager({title,items,form,setForm,isAdmin,onCreate,onUpdate,onArchive,fields,regions=[],disableOnly=false,hardDeleteOnly=false}){
  const editing=Boolean(form.id);
  const labels={name:'الاسم',model:'الموديل',type:'النوع',image_url:'رابط صورة المركبة',call_sign:'النداء',plate_code:'رقم اللوحة',status:'الحالة',notes:'ملاحظات',description:'الوصف',region_id:'المنطقة',category:'التصنيف',code:'الكود',sort_order:'الترتيب'};
  const save=()=>{if(!isAdmin)return;if(editing){const{id,...body}=form;onUpdate(id,body)}else onCreate()};
