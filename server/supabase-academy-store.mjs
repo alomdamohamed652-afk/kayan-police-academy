@@ -128,7 +128,7 @@ export async function saveExam(exam){
       for(const x of data||[])if(x?.question_id)referenced.add(String(x.question_id));
     }
     const deletable=stale.filter(x=>!referenced.has(String(x.id))).map(x=>String(x.legacy_id));
-    if(deletable.length)await pruneExamQuestions(deletable);
+    for(let i=0;i<deletable.length;i+=200){const chunk=deletable.slice(i,i+200);await withRetry('delete stale exam questions',async()=>{const {error}=await supabase.from('exam_questions').delete().in('legacy_id',chunk);if(error)throw error})}
   }
   if(rows.length)await upsert('exam_questions',rows,'legacy_id');
   return exam;
