@@ -98,3 +98,25 @@
 .personnelResult{font-size:13px;min-height:52px}
 .personnelResultInfo strong{font-size:13px}
 .personnelResultInfo small{font-size:11px}
+
+/* Final Dispatch admin readability */
+.dispatchAdminPage{zoom:1}
+.dispatchAdminPage .dispatchAdminGrid>.panel{padding:20px}
+.dispatchAdminPage .dispatchPanelHead{padding:0 0 15px}
+.dispatchAdminPage .dispatchPanelHead strong{font-size:18px}
+.dispatchAdminPage .dispatchPanelHead span{font-size:13px}
+.dispatchAdminPage .dispatchFormGrid{padding:0 0 14px;gap:12px}
+.dispatchAdminPage .dispatchFormGrid input,.dispatchAdminPage .dispatchFormGrid select,.dispatchAdminPage .dispatchFormGrid label{font-size:15px;min-height:48px;padding:12px 14px}
+.dispatchAdminPage .adminEntityRow{padding:14px 0}
+.dispatchAdminPage .adminEntityRow strong{font-size:16px}
+.dispatchAdminPage .adminEntityRow small{font-size:13px}
+.dispatchAdminPage .adminEntityRow .textBtn,.dispatchAdminPage .adminEntityRow .danger{font-size:13px;min-height:38px;padding:8px 12px}
+.dispatchAdminPage .primary,.dispatchAdminPage .secondary,.dispatchAdminPage .danger{font-size:14px;min-height:42px;padding:9px 14px}
+.dispatchAdminPage .personnelPicker{margin-left:0;margin-right:0}
+.dispatchAdminPage .personnelSearch{min-height:46px}
+.dispatchAdminPage .personnelSearch input{font-size:15px}
+.dispatchAdminPage .personnelResult{min-height:58px}
+.dispatchAdminPage .personnelResultInfo strong{font-size:14px}
+.dispatchAdminPage .personnelResultInfo small{font-size:12px}
+.dispatchAdminPage .rowActions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+@media(max-width:900px){.dispatchAdminPage .dispatchAdminGrid>.panel{padding:16px}}
