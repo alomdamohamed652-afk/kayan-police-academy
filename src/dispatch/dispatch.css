@@ -478,3 +478,178 @@
 .swapSelected strong{color:#e8eef5}
 .swapForm .rowActions{margin-top:10px}
 @media(max-width:600px){.swapUnit{display:none}.swapResult{min-height:56px}}
+
+/* =========================================================
+   Members + Activity Log polish
+   ========================================================= */
+.dispatchMemberRow{
+  min-height:58px;
+  padding:11px 0;
+}
+.dispatchMemberRow>div:first-child{
+  min-width:0;
+}
+.dispatchMemberRow strong{
+  font-size:13px;
+  color:#edf2f7;
+}
+.dispatchMemberRow small{
+  font-size:10px;
+  color:#7e90a5;
+}
+.dispatchMemberRow .rowActions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.dispatchMemberRow .danger,
+.dispatchMemberRow .textBtn{
+  min-height:34px;
+  padding:7px 10px;
+  font-size:11px;
+  border-radius:8px;
+}
+.dispatchMemberRow .danger{
+  color:#ff9da8;
+  background:#28151b;
+  border:1px solid #71313d;
+}
+.dispatchMemberRow .danger:hover{
+  background:#351a21;
+  border-color:#a14452;
+}
+.dispatchMemberRow .dangerBtn{
+  color:#ff9da8;
+}
+.dispatchMemberRow .textBtn{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.auditFilters{
+  grid-template-columns:repeat(5,minmax(130px,1fr)) auto;
+  gap:9px;
+  padding:13px 15px;
+  background:#091522;
+  border-bottom:1px solid #1d3044;
+}
+.auditFilters input,.auditFilters select{
+  min-height:42px;
+  padding:9px 11px;
+  background:#0d1b2b;
+  color:#dfe7ef;
+  border:1px solid #293f57;
+  border-radius:9px;
+  font-size:12px;
+  outline:0;
+}
+.auditFilters input:focus,.auditFilters select:focus{
+  border-color:#8f7842;
+}
+.auditFilters .rowActions{
+  display:flex;
+  gap:7px;
+}
+.auditFilters .primary,.auditFilters .secondary{
+  min-height:42px;
+  padding:9px 13px;
+  font-size:12px;
+  white-space:nowrap;
+}
+.auditRow{
+  position:relative;
+  display:grid;
+  grid-template-columns:105px minmax(0,1fr);
+  gap:14px;
+  min-height:86px;
+  padding:14px 16px;
+  border-top:1px solid #17283a;
+  background:#0a1726;
+}
+.auditRow:hover{
+  background:#0d1b2b;
+}
+.auditRow time{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  color:#d5b45e;
+  font-size:10px;
+  line-height:1.6;
+  direction:rtl;
+  text-align:right;
+}
+.auditMain{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.auditHeadline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.auditHeadline strong{
+  color:#f0f4f8;
+  font-size:14px;
+  font-weight:800;
+}
+.auditHeadline b{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:2px 7px;
+  border-radius:999px;
+  background:#122237;
+  border:1px solid #29415a;
+  color:#91a4b8;
+  font-size:10px;
+  font-weight:700;
+}
+.auditMeta{
+  margin-top:5px;
+  color:#8395aa;
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.auditMain small{
+  margin-top:4px;
+  color:#64778c;
+  font-size:10px;
+}
+.auditRow:before{
+  content:'';
+  position:absolute;
+  top:16px;
+  bottom:16px;
+  right:0;
+  width:3px;
+  border-radius:3px 0 0 3px;
+  background:#34485e;
+}
+.audit-success:before{background:#36c98a}
+.audit-success .auditHeadline strong{color:#d9f6e8}
+.audit-danger:before{background:#e15d6c}
+.audit-danger .auditHeadline strong{color:#ffdfe2}
+.audit-info:before{background:#5ba7e8}
+.audit-neutral:before{background:#d5b45e}
+.audit-success .auditHeadline b{border-color:#27664c;background:#0d291f;color:#73dca7}
+.audit-danger .auditHeadline b{border-color:#66303a;background:#2a171c;color:#ff9da8}
+.audit-info .auditHeadline b{border-color:#2b5375;background:#10263a;color:#83c3f2}
+.audit-empty{padding:28px}
+@media(max-width:1000px){
+  .auditFilters{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .auditFilters .rowActions{grid-column:1/-1}
+}
+@media(max-width:650px){
+  .auditFilters{grid-template-columns:1fr}
+  .auditFilters .rowActions{grid-column:auto}
+  .auditRow{grid-template-columns:1fr;gap:5px}
+  .auditRow time{align-items:flex-start}
+}
