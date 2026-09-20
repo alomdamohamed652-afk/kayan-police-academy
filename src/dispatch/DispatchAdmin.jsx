@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const globalAdmin=Boolean(viewer?.permissions?.isSuperAdmin);const dp=new Set(viewer?.permissions?.dispatchPermissions||[]);const can=(p)=>globalAdmin||dp.has(p);const canPanel=globalAdmin||[...dp].some(p=>p.startsWith('manage_dispatch_'));const canManage=can('manage_dispatch_units');const canOperate=Boolean(viewer?.police||globalAdmin);
+ const globalAdmin=Boolean(viewer?.permissions?.isSuperAdmin);const dp=new Set(viewer?.permissions?.dispatchPermissions||[]);const can=(p)=>globalAdmin||dp.has(p);const canPanel=globalAdmin||[...dp].some(p=>p.startsWith('manage_dispatch_'));const canManage=can('manage_dispatch_units');const canOperate=Boolean(viewer?.police||viewer?.permissions?.isOfficer||globalAdmin||viewer?.permissions?.dispatchAccessEnabled);const canManageUnits=canOperate;
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!can('manage_dispatch_snapshots'))return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(can('manage_dispatch_snapshots'))loadSnapshots()},[canPanel]);
@@ -40,20 +40,20 @@ export function DispatchAdmin({user:viewer={}}){
    <div className="panel">
     <div className="dispatchPanelHead"><div><strong>إضافة وحدة</strong><span>الكود · النوع · الحالة · الأفراد</span></div><div className="rowActions">{canManage&&<><button className="secondary" onClick={()=>setTab('types')}><Plus size={15}/> إضافة نوع وحدة</button><button className="secondary" onClick={()=>setTab('vehicles')}><Car size={15}/> إضافة مركبة</button></>}</div></div>
     <div className="dispatchFormGrid">
-     <input disabled={!canManage} placeholder="كود الوحدة · 12" value={form.unit_code||''} onChange={e=>setForm(f=>({...f,unit_code:e.target.value}))}/>
-     <select disabled={!canManage} value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><select disabled={!canManage} value={form.vehicle_id||''} onChange={e=>setForm(f=>({...f,vehicle_id:e.target.value||null}))}><option value="">بدون مركبة</option>{vehicles.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}{x.call_sign?' · '+x.call_sign:''}</option>)}</select>
+     <input disabled={!canManageUnits} placeholder="كود الوحدة · 12" value={form.unit_code||''} onChange={e=>setForm(f=>({...f,unit_code:e.target.value}))}/>
+     <select disabled={!canManageUnits} value={form.type_id||''} onChange={e=>setForm(f=>({...f,type_id:e.target.value}))}><option value="">نوع الوحدة</option>{types.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><select disabled={!canManageUnits} value={form.vehicle_id||''} onChange={e=>setForm(f=>({...f,vehicle_id:e.target.value||null}))}><option value="">بدون مركبة</option>{vehicles.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}{x.call_sign?' · '+x.call_sign:''}</option>)}</select>
      <select disabled={!canOperate} value={form.status||'available'} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value="available">متاحة</option><option value="active">نشطة</option><option value="busy">مشغولة</option><option value="break">استراحة</option></select>
      <label><input disabled={!canOperate} type="checkbox" checked={Boolean(form.is_shared)} onChange={e=>setForm(f=>({...f,is_shared:e.target.checked}))}/> وحدة مشتركة</label>
     </div>
     <PersonnelPicker people={people} selected={unitPeople} onChange={setUnitPeople} label="أفراد الوحدة"/>
-    {canManage&&<button className="primary" disabled={saving||!form.unit_code||!form.type_id} onClick={()=>mutate(createUnit)}><Plus size={16}/> إنشاء الوحدة</button>}
+    {canManageUnits&&<button className="primary" disabled={saving||!form.unit_code||!form.type_id} onClick={()=>mutate(createUnit)}><Plus size={16}/> إنشاء الوحدة</button>}
     {}
    </div>
    <div className="panel">
     <div className="dispatchPanelHead"><div><strong>UNIT STRUCTURE</strong><span>{units.filter(u=>u.active).length} وحدة نشطة</span></div></div>
     {units.filter(u=>u.active).map(u=><div className="adminEntityRow" key={u.id}>
      <div><strong>#{u.unit_code}</strong><small>{typeBy.get(u.type_id)?.name||'—'} · {u.status}</small></div>
-     <div className="rowActions"><button className="textBtn" onClick={()=>mutate(()=>dispatchApi.updateUnit(u.id,{status:u.status==='active'?'available':'active'}))}>{u.status==='active'?'متاحة':'تفعيل'}</button>{canManage&&<button className="danger" onClick={()=>{if(confirm(`حذف الوحدة #${u.unit_code} نهائيًا؟ سيتم حذف أعضائها وتكليفاتها أيضًا.`))mutate(()=>dispatchApi.archiveUnit(u.id))}}><Trash2 size={14}/> حذف</button>}</div>
+     <div className="rowActions"><button className="textBtn" onClick={()=>mutate(()=>dispatchApi.updateUnit(u.id,{status:u.status==='active'?'available':'active'}))}>{u.status==='active'?'متاحة':'تفعيل'}</button>{canManageUnits&&<button className="danger" onClick={()=>{if(confirm(`حذف الوحدة #${u.unit_code} نهائيًا؟ سيتم حذف أعضائها وتكليفاتها أيضًا.`))mutate(()=>dispatchApi.archiveUnit(u.id))}}><Trash2 size={14}/> حذف</button>}</div>
     </div>)}
     {!units.some(u=>u.active)&&<div className="emptyMini">لا توجد وحدات نشطة حاليًا.</div>}
    </div>
@@ -63,7 +63,7 @@ export function DispatchAdmin({user:viewer={}}){
   {tab==='locations'&&<Manager title="النقاط" items={locations} form={form} setForm={setForm} isAdmin={can('manage_dispatch_locations')} onCreate={()=>mutate(()=>dispatchApi.location({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateLocation(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveLocation(id))} fields={['name','description','region_id','type','notes']} regions={regions}/>}
   {tab==='types'&&<Manager title="أنواع الوحدات" items={types} form={form} setForm={setForm} isAdmin={can('manage_dispatch_types')} onCreate={()=>mutate(()=>dispatchApi.type({...form,code:String(form.code||'').toUpperCase()}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateType(id,b))} fields={['code','name','category','color','sort_order']} disableOnly/>}
   {tab==='vehicles'&&<Manager title="المركبات" items={vehicles} form={form} setForm={setForm} isAdmin={can('manage_dispatch_vehicles')} onCreate={()=>mutate(()=>dispatchApi.vehicle({...form}))} onUpdate={(id,b)=>mutate(()=>dispatchApi.updateVehicle(id,b))} onArchive={id=>mutate(()=>dispatchApi.archiveVehicle(id))} fields={['name','model','type','image_url','call_sign','plate_code','status','notes']} hardDeleteOnly/>}
-  {tab==='dispatchers'&&<DispatcherManager people={people} dispatchers={dispatchers} form={form} setForm={setForm} isAdmin={can('manage_dispatch_dispatchers')} mutate={mutate}/>}
+  {tab==='dispatchers'&&<DispatcherManager people={people} dispatchers={dispatchers} form={form} setForm={setForm} isAdmin={canOperate} mutate={mutate}/>}
   {tab==='snapshots'&&can('manage_dispatch_snapshots')&&<SnapshotManager snapshots={snapshots} form={form} setForm={setForm} mutate={mutate}/>} 
   {tab==='audit'&&can('view_dispatch_audit')&&<Audit/>}
   {tab==='permissions'&&globalAdmin&&<AccessManager people={people} mutate={mutate}/>} 
