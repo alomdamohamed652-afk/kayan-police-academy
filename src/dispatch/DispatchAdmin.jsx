@@ -18,12 +18,12 @@ export function DispatchAdmin({user:viewer={}}){
  const typeBy=new Map(types.map(x=>[x.id,x]));
  const createUnit=async()=>{const r=await dispatchApi.createUnit(form);for(const id of unitPeople)await dispatchApi.join(r.item.id,id,'member');setForm({});setUnitPeople([])};
  const tabs=[
-  ...(can('manage_dispatch_units')?[['units','الوحدات',Shield]]:[]),
+  ...((canOperate||can('manage_dispatch_units'))?[['units','الوحدات',Shield]]:[]),
   ...(can('manage_dispatch_regions')?[['regions','المناطق',MapPin]]:[]),
   ...(can('manage_dispatch_locations')?[['locations','النقاط',MapPin]]:[]),
   ...(can('manage_dispatch_types')?[['types','أنواع الوحدات',Settings2]]:[]),
   ...(can('manage_dispatch_vehicles')?[['vehicles','المركبات',Car]]:[]),
-  ...(can('manage_dispatch_dispatchers')?[['dispatchers','المناوبون',Radio]]:[]),
+  ...((canOperate||can('manage_dispatch_dispatchers'))?[['dispatchers','المناوبون',Radio]]:[]),
   ...(can('manage_dispatch_snapshots')?[['snapshots','النسخ الاحتياطية',Camera]]:[]),
   ...(can('view_dispatch_audit')?[['audit','سجل النشاط',Radio]]:[]),
   ...(globalAdmin?[['permissions','صلاحيات Dispatch',Shield]]:[])
