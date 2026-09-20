@@ -161,3 +161,5 @@
 .dispatchAdminPage .primary,.dispatchAdminPage .secondary,.dispatchAdminPage .danger{min-height:44px;font-size:15px!important}
 .dispatchAdminPage .readOnlyBadge{font-size:12px}
 .dispatchAdminPage .dispatchPanelHead{margin-bottom:14px}
+
+.auditFilters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;padding:12px 15px;border-bottom:1px solid #19283a}.auditFilters input,.auditFilters select{min-width:0}.auditFilters .rowActions{grid-column:span 2}.auditRow small{display:block;font-size:8px;color:#64758a;margin-top:4px}.auditRow time{min-width:72px;line-height:1.5}.auditRow div{min-width:0}@media(max-width:1000px){.auditFilters{grid-template-columns:repeat(3,1fr)}.auditFilters .rowActions{grid-column:span 3}}@media(max-width:650px){.auditFilters{grid-template-columns:1fr}.auditFilters .rowActions{grid-column:auto}.auditRow{gap:8px}.auditRow time{min-width:58px}}
