@@ -8,7 +8,7 @@ const msg=e=>String(e?.message||'تعذر تنفيذ العملية.');
 
 export function DispatchAdmin({user:viewer={}}){
  const[data,setData]=useState(null),[tab,setTab]=useState(()=>new URLSearchParams(location.search).get('tab')||'units'),[error,setError]=useState(''),[form,setForm]=useState({}),[snapshots,setSnapshots]=useState([]),[saving,setSaving]=useState(false),[unitPeople,setUnitPeople]=useState([]);
- const globalAdmin=Boolean(viewer?.permissions?.isAdmin);const dp=new Set(viewer?.permissions?.dispatchPermissions||[]);const can=(p)=>globalAdmin||dp.has(p);const canPanel=globalAdmin||[...dp].some(p=>p.startsWith('manage_dispatch_'));const canManage=can('manage_dispatch_units');const canOperate=Boolean(viewer?.police||globalAdmin);
+ const globalAdmin=Boolean(viewer?.permissions?.isSuperAdmin);const dp=new Set(viewer?.permissions?.dispatchPermissions||[]);const can=(p)=>globalAdmin||dp.has(p);const canPanel=globalAdmin||[...dp].some(p=>p.startsWith('manage_dispatch_'));const canManage=can('manage_dispatch_units');const canOperate=Boolean(viewer?.police||globalAdmin);
  const load=async()=>{try{setData(await dispatchApi.state());setError('')}catch(e){setError(msg(e))}};
  const loadSnapshots=async()=>{if(!can('manage_dispatch_snapshots'))return;try{setSnapshots((await dispatchApi.snapshots()).items||[])}catch(e){setError(msg(e))}};
  useEffect(()=>{load();if(can('manage_dispatch_snapshots'))loadSnapshots()},[canPanel]);
@@ -113,8 +113,41 @@ function SnapshotManager({snapshots,form,setForm,mutate}){
 }
 
 function Audit(){
- const[items,setItems]=useState([]),[loading,setLoading]=useState(false);
- const load=async()=>{setLoading(true);try{setItems((await dispatchApi.activity()).items||[])}catch{}finally{setLoading(false)}};
+ const[items,setItems]=useState([]),[loading,setLoading]=useState(false),[filters,setFilters]=useState({action:'',entityType:'',actor:'',from:'',to:''});
+ const actions={
+  UNIT_CREATED:'إنشاء وحدة',UNIT_UPDATED:'تعديل وحدة',UNIT_DELETED:'حذف وحدة',MEMBER_JOINED:'إضافة فرد للوحدة',MEMBER_LEFT:'إخراج فرد من الوحدة',MEMBERS_SWAPPED:'تبديل أفراد',
+  UNIT_ASSIGNMENT_REPLACED:'استبدال تكليف',UNIT_ASSIGNMENT_CREATED:'إنشاء تكليف',UNIT_ASSIGNMENT_UPDATED:'تعديل تكليف',UNIT_ASSIGNMENT_REMOVED:'حذف تكليف',
+  REGION_CREATED:'إنشاء منطقة',REGION_UPDATED:'تعديل منطقة',REGION_ARCHIVED:'أرشفة منطقة',
+  LOCATION_CREATED:'إنشاء نقطة',LOCATION_UPDATED:'تعديل نقطة',LOCATION_DELETED:'حذف نقطة',
+  UNIT_TYPE_CREATED:'إنشاء نوع وحدة',UNIT_TYPE_UPDATED:'تعديل نوع وحدة',VEHICLE_CREATED:'إضافة مركبة',VEHICLE_UPDATED:'تعديل مركبة',VEHICLE_DELETED:'حذف مركبة',
+  DISPATCHER_ASSIGNED:'إضافة مناوب',DISPATCHER_ACTIVATED:'تفعيل مناوب',DISPATCHER_OFFLINED:'إيقاف مناوب',DISPATCHER_REMOVED:'حذف مناوب',
+  DISPATCH_ACCESS_GRANTED:'منح صلاحيات Dispatch',DISPATCH_ACCESS_REVOKED:'تعطيل صلاحيات Dispatch',DISPATCH_ACCESS_REMOVED:'إزالة صلاحيات Dispatch',
+  DISPATCH_SETTINGS_UPDATED:'تعديل إعدادات Dispatch'
+ };
+ const entities={unit:'وحدة',assignment:'تكليف',region:'منطقة',location:'نقطة',unit_type:'نوع وحدة',vehicle:'مركبة',dispatcher:'مناوب',access:'صلاحيات',settings:'إعدادات'};
+ const load=async()=>{setLoading(true);try{setItems((await dispatchApi.activity({limit:500,...filters})).items||[])}catch{}finally{setLoading(false)}};
  useEffect(()=>{load()},[]);
- return <section className="panel"><div className="dispatchPanelHead"><div><strong>DISPATCH ACTIVITY</strong><span>آخر 48 ساعة فقط</span></div><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button></div>{loading&&<div className="emptyMini">جاري التحميل...</div>}{items.map(x=><div className="auditRow" key={x.id}><time>{new Date(x.created_at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</time><div><strong>{x.actor_name||x.actor_discord_id}</strong><span>{x.action} · {x.entity_type} · {x.entity_id||'—'}</span></div></div>)}</section>;
+ const clear=()=>setFilters({action:'',entityType:'',actor:'',from:'',to:''});
+ return <section className="panel">
+  <div className="dispatchPanelHead"><div><strong>سجل نشاط Dispatch</strong><span>{items.length} سجل · يتم الاحتفاظ بالسجلات المتاحة فقط</span></div><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button></div>
+  <div className="auditFilters">
+   <select value={filters.entityType} onChange={e=>setFilters(f=>({...f,entityType:e.target.value}))}><option value="">كل الأنواع</option>{Object.entries(entities).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
+   <select value={filters.action} onChange={e=>setFilters(f=>({...f,action:e.target.value}))}><option value="">كل العمليات</option>{Object.entries(actions).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
+   <input placeholder="اسم المنفذ" value={filters.actor} onChange={e=>setFilters(f=>({...f,actor:e.target.value}))}/>
+   <input type="date" value={filters.from} onChange={e=>setFilters(f=>({...f,from:e.target.value}))}/>
+   <input type="date" value={filters.to} onChange={e=>setFilters(f=>({...f,to:e.target.value}))}/>
+   <div className="rowActions"><button className="primary" onClick={load}>تطبيق الفلاتر</button><button className="secondary" onClick={()=>{clear();setTimeout(load,0)}}>مسح</button></div>
+  </div>
+  {loading&&<div className="emptyMini">جاري تحميل السجل...</div>}
+  {!loading&&!items.length&&<div className="emptyMini">لا توجد سجلات مطابقة للفلاتر.</div>}
+  {items.map(x=>{
+   const action=actions[x.action]||x.action||'عملية غير معروفة',entity=entities[x.entity_type]||x.entity_type||'—';
+   const at=new Date(x.created_at);
+   const details=x.after_data&&Object.keys(x.after_data||{}).length?'تم تنفيذ العملية وتحديث البيانات.':x.before_data&&Object.keys(x.before_data||{}).length?'تم تنفيذ العملية على السجل.':'عملية تشغيلية.';
+   return <div className="auditRow" key={x.id}>
+    <time>{at.toLocaleDateString('ar-EG')}<br/>{at.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</time>
+    <div><strong>{action}</strong><span>{entity} · {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div>
+   </div>
+  })}
+ </section>;
 }
