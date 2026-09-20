@@ -473,7 +473,7 @@
 .swapResultInfo strong,.swapResultInfo small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .swapResultInfo strong{font-size:13px}
 .swapResultInfo small{margin-top:2px;color:#8293a7;font-size:10px}
-.swapUnit{flex:0 0 auto;padding:4px 7px;border:1px solid #31475f;border-radius:999px;color:#91a1b3;font-size:10px}
+.swapUnit{flex:0 0 auto;padding:4px 7px;border:1px solid #31475f;border-radius:999px;color:#91a1b3;font-size:10px}.swapUnit.unassigned{border-color:#526b86;color:#c3d1df}.swapAddBtn{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;min-height:30px;padding:5px 9px;border:1px solid #6d5c31;border-radius:7px;background:#1b1a13;color:#e2c873;font-size:10px;font-weight:700;cursor:pointer}.swapAddBtn:hover{background:#272316;border-color:#d5b45e}
 .swapSelected{margin-top:8px;padding:9px 10px;background:#0a1726;border:1px solid #223850;border-radius:8px;color:#8192a6;font-size:11px}
 .swapSelected strong{color:#e8eef5}
 .swapForm .rowActions{margin-top:10px}
