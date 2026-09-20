@@ -141,12 +141,12 @@ function Audit(){
   {loading&&<div className="emptyMini">جاري تحميل السجل...</div>}
   {!loading&&!items.length&&<div className="emptyMini">لا توجد سجلات مطابقة للفلاتر.</div>}
   {items.map(x=>{
-   const action=actions[x.action]||x.action||'عملية غير معروفة',entity=entities[x.entity_type]||x.entity_type||'—';
+   const action=actions[x.action]||x.action||'عملية غير معروفة',entity=entities[x.entity_type]||x.entity_type||'—',tone=/DELETED|REMOVED|REVOKED|LEFT|ARCHIVED/.test(String(x.action))?'danger':/CREATED|JOINED|GRANTED|ASSIGNED|ACTIVATED/.test(String(x.action))?'success':/UPDATED|REPLACED|SWAPPED|OFFLINED/.test(String(x.action))?'info':'neutral';
    const at=new Date(x.created_at);
    const details=x.after_data&&Object.keys(x.after_data||{}).length?'تم تنفيذ العملية وتحديث البيانات.':x.before_data&&Object.keys(x.before_data||{}).length?'تم تنفيذ العملية على السجل.':'عملية تشغيلية.';
-   return <div className="auditRow" key={x.id}>
+   return <div className={`auditRow audit-${tone}`} key={x.id}>
     <time>{at.toLocaleDateString('ar-EG')}<br/>{at.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</time>
-    <div><strong>{action}</strong><span>{entity} · {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div>
+    <div className="auditMain"><div className="auditHeadline"><strong>{action}</strong><b>{entity}</b></div><span className="auditMeta">بواسطة {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div>
    </div>
   })}
  </section>;
