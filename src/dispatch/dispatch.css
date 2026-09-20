@@ -462,7 +462,7 @@
 .swapFormHead strong,.swapFormHead span{display:block}
 .swapFormHead strong{font-size:15px;color:#fff}
 .swapFormHead span{margin-top:3px;font-size:11px;color:#7f90a5}
-.swapSearch{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 11px;background:#0d1b2b;border:1px solid #2a4059;border-radius:9px;color:#7f91a6}
+.swapModes{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.swapModes button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:7px 9px;background:#0b1827;border:1px solid #263c54;border-radius:8px;color:#8293a7;font-size:11px;font-weight:700;cursor:pointer}.swapModes button:hover{border-color:#6d5c31;color:#dfe7ef}.swapModes button.active{background:#1b1a13;border-color:#d5b45e;color:#e2c873}.swapSearch{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 11px;background:#0d1b2b;border:1px solid #2a4059;border-radius:9px;color:#7f91a6}
 .swapSearch:focus-within{border-color:#d5b45e;box-shadow:0 0 0 3px #d5b45e0d}
 .swapSearch input{width:100%;min-width:0;background:transparent;border:0;outline:0;color:#fff;font-size:13px}
 .swapSearch input::placeholder{color:#667a90}
