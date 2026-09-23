@@ -110,10 +110,12 @@ function ApplicationStatus({app,settings={}}){const accepted=app?.status==='acce
  const answered=currentQuestions.filter(q=>String(answers[q.id]??'').trim()!=='').length;
  const requiredMissing=currentQuestions.some(q=>q.required!==false&&String(answers[q.id]??'').trim()==='');
  const goNext=()=>{if(requiredMissing)return;if(!nextGateAllowed){setGateMessage(nextSection?.failMessage||'لا يمكنك الانتقال إلى القسم التالي بهذه الإجابة.');return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
- return <Page title={active.title} sub={active.description||'اختبار أكاديمي'}>
+ return <div className="examStage">
   {active.bannerUrl&&<img className="examStudentBanner" src={active.bannerUrl} alt="" loading="lazy"/>}
-  <div className="examSectionStepper">{sections.map((x,i)=><div className={i===index?'active':i<index?'done':''} key={String(x.id||'section-'+i)}><span>{i+1}</span><b>{x.title||('القسم '+(i+1))}</b></div>)}</div>
-  <div className="examTimerHero"><div><span>الوقت المتبقي</span><strong>{timeLabelLocal(Math.max(0,new Date(attempt.expiresAt).getTime()-Date.now()))}</strong></div><div className="examTimerMeta"><b>{answered}/{currentQuestions.length}</b> تمت الإجابة · <span className="autosaveTiny saved">الحفظ يعمل تلقائيًا</span></div></div>
+  <div className="examFloatingBar">
+   <div className="examSectionStepper">{sections.map((x,i)=><div className={i===index?'active':i<index?'done':''} key={String(x.id||'section-'+i)}><span>{i+1}</span><b>{x.title||('القسم '+(i+1))}</b></div>)}</div>
+   <div className="examTimerHero"><div><span>الوقت المتبقي</span><strong>{timeLabelLocal(Math.max(0,new Date(attempt.expiresAt).getTime()-Date.now()))}</strong></div><div className="examTimerMeta"><b>{answered}/{currentQuestions.length}</b> تمت الإجابة · <span className="autosaveTiny saved">الحفظ يعمل تلقائيًا</span></div></div>
+  </div>
   <div className="panel examForm">
    {sections.map((sec,si)=>{
     const qs=sectionQuestions(sec);
@@ -128,7 +130,7 @@ function ApplicationStatus({app,settings={}}){const accepted=app?.status==='acce
    {gateMessage&&<div className="examGateOverlay" role="alert"><div className="examGateCard"><div className="examGateIcon">!</div><span className="eyebrow">UNIT ELIGIBILITY</span><h3>غير مؤهل للانتقال إلى القسم التالي</h3><p>{gateMessage}</p><small>يمكنك اكتساب الخبرة المطلوبة ثم التقديم في الدفعة القادمة.</small><div className="examGateActions"><Btn onClick={()=>setGateMessage('')}>العودة إلى الإجابة</Btn><Btn className="primary" disabled={submitting} onClick={()=>{setGateMessage('');submit(false,'rule',current.id)}}>إنهاء التقديم</Btn></div></div></div>}
    {error&&<div className="errorBox">{error}</div>}
   </div>
- </Page>
+ </div>
 }
 const timeLabelLocal=ms=>{const sec=Math.max(0,Math.floor(ms/1000)),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return(h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')};
 
