@@ -2701,3 +2701,41 @@ html.translated-ltr,html.translated-ltr body{direction:ltr!important}html.transl
 .infoOnlyQuestion{padding:16px 18px!important;border:1px dashed #66552d!important;background:linear-gradient(135deg,#111c29,#0b1521)!important;border-radius:12px!important}
 .infoOnlyBadge{display:inline-flex;padding:4px 8px;border-radius:6px;background:#211e14;border:1px solid #5c4c28;color:#d7b65e;font-size:8px;font-weight:800;margin-bottom:8px}
 .infoOnlyText{color:#e8edf3;font-size:13px;line-height:1.8;font-weight:700}
+
+/* Aviation exam UI refresh */
+.examSectionStepper{display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:thin}
+.examSectionStepper>div{display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid #22364e;border-radius:11px;background:#0a1624;color:#8392a5;white-space:nowrap}
+.examSectionStepper>div span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#15253a;color:#9eacbc;font-size:10px;font-weight:800}
+.examSectionStepper>div b{font-size:10px;font-weight:700}
+.examSectionStepper>div.active{border-color:#d5b45e;background:#171c24;color:#f2f5f8}
+.examSectionStepper>div.active span,.examSectionStepper>div.done span{background:#d5b45e;color:#07111d}
+.examSectionStepper>div.done{border-color:#53623f;color:#c5d1bf}
+.examSectionHero{padding:22px 4px 8px}
+.examSectionHero>span{display:inline-block;color:#d5b45e;font-size:10px;font-weight:800;letter-spacing:.8px}
+.examSectionHero h2{margin:7px 0 6px;color:#f3f5f8;font-size:24px}
+.examSectionHero p{max-width:760px;margin:0;color:#8291a4;font-size:11px;line-height:1.9}
+.examIntroShell{min-height:70vh;display:grid;place-items:center;padding:28px 12px 60px}
+.examIntroCard{width:min(900px,100%);padding:34px;border:1px solid rgba(213,180,94,.34);border-radius:26px;background:radial-gradient(circle at 80% 0%,rgba(213,180,94,.08),transparent 32%),linear-gradient(145deg,#0d1a29,#07111d);box-shadow:0 28px 90px rgba(0,0,0,.38)}
+.examIntroTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.examIntroBadge{padding:7px 11px;border-radius:999px;background:#171d26;border:1px solid #33445b;color:#d5b45e;font-size:10px;font-weight:800}
+.examIntroCard h1{margin:18px 0 10px;font-size:clamp(27px,4vw,44px);line-height:1.25;color:#f6f7f9}
+.examIntroDescription{max-width:760px;margin:0;color:#9eacbc;font-size:14px;line-height:2}
+.examIntroStats{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:25px 0}
+.examIntroStats>div{padding:15px 9px;border:1px solid #24364d;border-radius:14px;background:#091522;text-align:center}
+.examIntroStats strong{display:block;color:#f0d477;font-size:22px;font-family:monospace}
+.examIntroStats span{display:block;margin-top:5px;color:#8090a4;font-size:9px}
+.examIntroRules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.examIntroRules>div{padding:16px;border:1px solid #1e3047;border-radius:15px;background:#0a1624}
+.examIntroRules b{color:#e8edf3;font-size:12px}
+.examIntroRules p{margin:7px 0 0;color:#8292a6;font-size:10px;line-height:1.9}
+.examIntroActions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}
+.examCountdown{margin-top:22px;padding:24px;border:1px solid rgba(213,180,94,.35);border-radius:18px;background:#091522;text-align:center}
+.examCountdown span{display:block;color:#9aa8b8;font-size:11px}
+.examCountdown strong{display:block;margin:5px 0;color:#f0d477;font-size:64px;line-height:1;font-family:monospace}
+.examCountdown small{color:#d5b45e;font-size:10px}
+.examFloatingBar{position:sticky;top:72px;z-index:80;margin:0 0 14px;padding:9px;border:1px solid rgba(62,82,108,.9);border-radius:18px;background:rgba(7,17,29,.91);box-shadow:0 16px 40px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+.examFloatingBar .examSectionStepper{margin:0 0 8px;padding:0;border:0;background:transparent}
+.examFloatingBar .examTimerHero{position:static;margin:0;border-radius:12px;box-shadow:none}
+.examStage{padding-bottom:30px}
+@media(max-width:850px){.examIntroStats{grid-template-columns:repeat(3,1fr)}.examIntroRules{grid-template-columns:1fr}.examIntroCard{padding:24px}}
+@media(max-width:600px){.examIntroShell{padding:15px 0 35px}.examIntroCard{padding:20px;border-radius:20px}.examIntroTop{align-items:flex-start;flex-direction:column}.examIntroStats{grid-template-columns:repeat(2,1fr)}.examIntroActions{flex-direction:column-reverse}.examIntroActions button{width:100%}.examFloatingBar{top:64px;margin:0 6px 10px;padding:7px}.examFloatingBar .examSectionStepper{justify-content:flex-start;flex-wrap:nowrap}.examFloatingBar .examSectionStepper>div{min-width:max-content}.examFloatingBar .examTimerHero{padding:9px}.examFloatingBar .examTimerHero strong{font-size:23px}}
