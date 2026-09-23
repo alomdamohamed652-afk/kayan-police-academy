@@ -734,3 +734,15 @@
 
 /* Officer card readability */
 .dispatchMemberCard{padding:13px;gap:11px}.memberAvatar{width:44px;height:44px;border-radius:12px;font-size:17px}.memberIdentity>strong{font-size:14px;line-height:1.35;color:#f7f9fc}.memberBadges{gap:6px;margin-top:6px}.memberRank{font-size:9px;padding:4px 7px;font-weight:700}.memberBadge{display:inline-flex;align-items:center;gap:6px;padding:4px 7px;border-radius:6px;background:#241f12;border:1px solid #6a5929;color:#f0c75e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.memberBadge b{font-size:7px;letter-spacing:.8px;color:#a98c43}.memberBadge strong{font-size:10px;letter-spacing:.4px;color:#f6d36c}.memberIdentity small{font-size:8px;margin-top:6px}.memberActions{gap:5px}.iconAction{width:30px;height:30px}
+
+.dispatchDangerZone{border-color:rgba(239,68,68,.24)!important;background:rgba(80,12,18,.12)}
+.dispatchDangerZone .dispatchPanelHead{align-items:center}
+.dispatchDangerZone .danger{display:inline-flex;align-items:center;gap:7px}
+.dispatchCreateUnitModal{width:min(680px,94vw)}
+.dispatchCreateUnitModal .dispatchInlineForm{display:grid;gap:13px}
+.dispatchCreateUnitModal label{display:grid;gap:7px;color:#cbd5e1;font-size:13px}
+.dispatchCreateUnitModal input,.dispatchCreateUnitModal select,.dispatchCreateUnitModal textarea{width:100%;box-sizing:border-box;background:#0a1522;border:1px solid rgba(255,255,255,.1);color:#eef2f7;border-radius:10px;padding:11px 12px;outline:none}
+.dispatchCreateUnitModal textarea{min-height:90px;resize:vertical}
+.dispatchCreateUnitModal .checkRow{display:flex;align-items:center;gap:9px;cursor:pointer}
+.dispatchCreateUnitModal .checkRow input{width:17px;height:17px}
+.optionalLabel{font-size:11px;color:#7d8b9e}
