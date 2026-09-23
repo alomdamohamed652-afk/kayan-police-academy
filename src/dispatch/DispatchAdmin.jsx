@@ -113,7 +113,7 @@ function SnapshotManager({snapshots,form,setForm,mutate}){
 }
 
 function Audit(){
- const[items,setItems]=useState([]),[loading,setLoading]=useState(false),[filters,setFilters]=useState({action:'',entityType:'',actor:'',from:'',to:''});
+ const[items,setItems]=useState([]),[loading,setLoading]=useState(false),[filters,setFilters]=useState({action:'',entityType:'',actor:'',from:'',to:''}),[selectedLog,setSelectedLog]=useState(null);
  const actions={
   UNIT_CREATED:'إنشاء وحدة',UNIT_UPDATED:'تعديل وحدة',UNIT_DELETED:'حذف وحدة',MEMBER_JOINED:'إضافة فرد للوحدة',MEMBER_LEFT:'إخراج فرد من الوحدة',MEMBERS_SWAPPED:'تبديل أفراد',
   UNIT_ASSIGNMENT_REPLACED:'استبدال تكليف',UNIT_ASSIGNMENT_CREATED:'إنشاء تكليف',UNIT_ASSIGNMENT_UPDATED:'تعديل تكليف',UNIT_ASSIGNMENT_REMOVED:'حذف تكليف',
@@ -129,7 +129,7 @@ function Audit(){
  useEffect(()=>{load()},[]);
  const clear=()=>setFilters({action:'',entityType:'',actor:'',from:'',to:''});
  return <section className="panel">
-  <div className="dispatchPanelHead"><div><strong>سجل نشاط Dispatch</strong><span>{items.length} سجل · آخر عملية مسح محفوظة دائمًا</span></div><div className="rowActions"><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button><button className="danger" onClick={async()=>{if(!confirm('مسح سجل النشاط بالكامل؟ سيتم حذف السجلات الحالية والاحتفاظ بسجل واحد يوضح من قام بالمسح وعدد السجلات المحذوفة.'))return;try{await dispatchApi.clearActivity();await load()}catch(e){alert(e?.message||'تعذر مسح السجل')}}}>مسح السجل</button></div></div>
+  <div className="dispatchPanelHead"><div><strong>سجل نشاط Dispatch</strong><span>{items.length} سجل · اضغط على أي سجل لعرض التفاصيل</span></div><div className="rowActions"><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button><button className="danger" onClick={async()=>{if(!confirm('مسح سجل النشاط بالكامل؟ سيتم حذف السجلات الحالية والاحتفاظ بسجل واحد يوضح من قام بالمسح وعدد السجلات المحذوفة.'))return;try{await dispatchApi.clearActivity();await load()}catch(e){alert(e?.message||'تعذر مسح السجل')}}}>مسح السجل</button></div></div>
   <div className="auditFilters">
    <select value={filters.entityType} onChange={e=>setFilters(f=>({...f,entityType:e.target.value}))}><option value="">كل الأنواع</option>{Object.entries(entities).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
    <select value={filters.action} onChange={e=>setFilters(f=>({...f,action:e.target.value}))}><option value="">كل العمليات</option>{Object.entries(actions).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
@@ -144,10 +144,13 @@ function Audit(){
    const action=actions[x.action]||x.action||'عملية غير معروفة',entity=entities[x.entity_type]||x.entity_type||'—',tone=/DELETED|REMOVED|REVOKED|LEFT|ARCHIVED/.test(String(x.action))?'danger':/CREATED|JOINED|GRANTED|ASSIGNED|ACTIVATED/.test(String(x.action))?'success':/UPDATED|REPLACED|SWAPPED|OFFLINED/.test(String(x.action))?'info':'neutral';
    const at=new Date(x.created_at);
    const before=x.before_data||{},after=x.after_data||{};const named=before.unit_code||before.name||before.code||after.unit_code||after.name||after.code;const details=x.action==='AUDIT_CLEARED'?'تم مسح '+Number(after.deletedCount||before.deletedCount||0)+' سجل. هذا السجل محفوظ لتوثيق عملية المسح.':named?(String(named)+(before.name&&before.unit_code?' · '+String(before.name):'')):x.action==='MEMBERS_SWAPPED'?'تم تبديل الفردين بين الوحدات.':after&&Object.keys(after).length?'تم تنفيذ العملية وتحديث البيانات.':before&&Object.keys(before).length?'تم تنفيذ العملية على السجل.':'عملية تشغيلية.';
-   return <div className={`auditRow audit-${tone}`} key={x.id}>
+   return <button className={`auditRow audit-${tone}`} key={x.id} onClick={()=>setSelectedLog(x)}>
     <time>{at.toLocaleDateString('ar-EG')}<br/>{at.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</time>
-    <div className="auditMain"><div className="auditHeadline"><strong>{action}</strong><b>{entity}</b></div><span className="auditMeta">بواسطة {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div>
-   </div>
+    <div className="auditMain"><div className="auditHeadline"><strong>{action}</strong><b>{entity}</b></div><span className="auditMeta">بواسطة {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div><ChevronDown size={15}/>
+   </button>
   })}
+  {selectedLog&&<AuditDetails item={selectedLog} actions={actions} entities={entities} onClose={()=>setSelectedLog(null)}/>} 
  </section>;
 }
+
+function AuditDetails({item,actions,entities,onClose}){const action=actions[item.action]||item.action||'عملية',entity=entities[item.entity_type]||item.entity_type||'—';return <div className="dispatchConfirmOverlay" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="auditDetails"><div className="dispatchPanelHead"><div><strong>{action}</strong><span>{entity} · {new Date(item.created_at).toLocaleString('ar-EG')}</span></div><button className="textBtn" onClick={onClose}><X size={18}/></button></div><div className="auditDetailMeta"><div><span>المنفذ</span><strong>{item.actor_name||item.actor_discord_id||'غير معروف'}</strong></div><div><span>العنصر</span><strong>{item.entity_id||'—'}</strong></div></div><div className="auditJsonGrid"><div><b>قبل العملية</b><pre>{JSON.stringify(item.before_data||{},null,2)}</pre></div><div><b>بعد العملية</b><pre>{JSON.stringify(item.after_data||{},null,2)}</pre></div></div></div></div>}
