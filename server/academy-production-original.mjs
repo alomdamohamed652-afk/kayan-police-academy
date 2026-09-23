@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { supabaseConfigured } from './supabase.mjs';
-import { loadAcademyData, saveAcademyData, saveExam, deleteExam, saveExamAttempt, saveExamResult } from './supabase-academy-store.mjs';
+import { loadAcademyData, saveAcademyData, saveExam, deleteExam, saveExamAttempt, saveExamResult, finalizeExamSubmission } from './supabase-academy-store.mjs';
 import { registerDispatchRoutes } from './dispatch/dispatch-routes.mjs';
 import { getAccess } from './dispatch/dispatch-store.mjs';
 import { sqliteStatus, saveSqliteSnapshot, loadSqliteSnapshot } from './local-sqlite-backup.mjs';
@@ -526,8 +526,7 @@ function persitedAttemptShape(persisted,fallback){
 }
 async function persistResultSafe(result,attempt){
   if(!supabaseActive){await persistExamStorage(['results','attempts']);return {ok:true};}
-  await saveExamAttempt(attempt); // attempt first: result FK depends on it
-  await saveExamResult(result,attempt.id);
+  await finalizeExamSubmission(result.examId,attempt.id,attempt,result);
   return {ok:true};
 }
 function cleanQuestion(q){const type=['choice','yesno','text'].includes(q?.type)?q.type:'text';const options=Array.isArray(q?.options)?q.options.map(v=>String(v).trim()).filter(Boolean):[];let correct=q?.correct==null?'':String(q.correct);if(type==='choice'&&!options.includes(correct))correct='';if(type==='yesno'&&!['نعم','لا'].includes(correct))correct='';if(type==='text')correct='';const questionBankId=q?.questionBankId?String(q.questionBankId).trim():'';const imageUrl=String(q?.imageUrl||'').trim();const sectionId=String(q?.sectionId||'').trim();return{id:String(q?.id||`q-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),text:String(q?.text||'').trim(),type,options,correct,required:q?.required!==false,points:Math.max(0,Number(q?.points??1)),...(questionBankId?{questionBankId}:{}),...(imageUrl?{imageUrl}:{}),...(sectionId?{sectionId}:{})}}
