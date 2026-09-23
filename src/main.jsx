@@ -109,7 +109,7 @@ function ApplicationStatus({app,settings={}}){const accepted=app?.status==='acce
  const nextGateAllowed=!nextSection||!nextGateId||!Array.isArray(nextSection.allowedAnswers)||!nextSection.allowedAnswers.length||nextSection.allowedAnswers.map(String).includes(nextGateAnswer);
  const answered=currentQuestions.filter(q=>String(answers[q.id]??'').trim()!=='').length;
  const requiredMissing=currentQuestions.some(q=>q.required!==false&&String(answers[q.id]??'').trim()==='');
- const goNext=()=>{if(requiredMissing)return;if(!nextGateAllowed){submit(false,'rule',current.id);return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
+ const goNext=()=>{if(requiredMissing)return;if(!nextGateAllowed){submit(false,'rule',nextSection?.id||current.id);return}if(last){submit(false,'',current.id);return}if(next>=0)setIndex(next)};
  return <div className="examStage">
   {active.bannerUrl&&<img className="examStudentBanner" src={active.bannerUrl} alt="" loading="lazy"/>}
   <div className="examFloatingBar">
