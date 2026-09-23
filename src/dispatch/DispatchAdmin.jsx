@@ -117,7 +117,7 @@ function Audit(){
  const actions={
   UNIT_CREATED:'إنشاء وحدة',UNIT_UPDATED:'تعديل وحدة',UNIT_DELETED:'حذف وحدة',MEMBER_JOINED:'إضافة فرد للوحدة',MEMBER_LEFT:'إخراج فرد من الوحدة',MEMBERS_SWAPPED:'تبديل أفراد',
   UNIT_ASSIGNMENT_REPLACED:'استبدال تكليف',UNIT_ASSIGNMENT_CREATED:'إنشاء تكليف',UNIT_ASSIGNMENT_UPDATED:'تعديل تكليف',UNIT_ASSIGNMENT_REMOVED:'حذف تكليف',
-  REGION_CREATED:'إنشاء منطقة',REGION_UPDATED:'تعديل منطقة',REGION_ARCHIVED:'أرشفة منطقة',
+  REGION_CREATED:'إنشاء منطقة',REGION_UPDATED:'تعديل منطقة',REGION_DELETED:'حذف منطقة',REGION_ARCHIVED:'أرشفة منطقة',AUDIT_CLEARED:'مسح سجل النشاط',
   LOCATION_CREATED:'إنشاء نقطة',LOCATION_UPDATED:'تعديل نقطة',LOCATION_DELETED:'حذف نقطة',
   UNIT_TYPE_CREATED:'إنشاء نوع وحدة',UNIT_TYPE_UPDATED:'تعديل نوع وحدة',VEHICLE_CREATED:'إضافة مركبة',VEHICLE_UPDATED:'تعديل مركبة',VEHICLE_DELETED:'حذف مركبة',
   DISPATCHER_ASSIGNED:'إضافة مناوب',DISPATCHER_ACTIVATED:'تفعيل مناوب',DISPATCHER_OFFLINED:'إيقاف مناوب',DISPATCHER_REMOVED:'حذف مناوب',
@@ -129,7 +129,7 @@ function Audit(){
  useEffect(()=>{load()},[]);
  const clear=()=>setFilters({action:'',entityType:'',actor:'',from:'',to:''});
  return <section className="panel">
-  <div className="dispatchPanelHead"><div><strong>سجل نشاط Dispatch</strong><span>{items.length} سجل · يتم الاحتفاظ بالسجلات المتاحة فقط</span></div><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button></div>
+  <div className="dispatchPanelHead"><div><strong>سجل نشاط Dispatch</strong><span>{items.length} سجل · آخر عملية مسح محفوظة دائمًا</span></div><div className="rowActions"><button className="secondary" onClick={load}><RefreshCw size={15}/> تحديث</button><button className="danger" onClick={async()=>{if(!confirm('مسح سجل النشاط بالكامل؟ سيتم حذف السجلات الحالية والاحتفاظ بسجل واحد يوضح من قام بالمسح وعدد السجلات المحذوفة.'))return;try{await dispatchApi.clearActivity();await load()}catch(e){alert(e?.message||'تعذر مسح السجل')}}}>مسح السجل</button></div></div>
   <div className="auditFilters">
    <select value={filters.entityType} onChange={e=>setFilters(f=>({...f,entityType:e.target.value}))}><option value="">كل الأنواع</option>{Object.entries(entities).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
    <select value={filters.action} onChange={e=>setFilters(f=>({...f,action:e.target.value}))}><option value="">كل العمليات</option>{Object.entries(actions).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>
@@ -143,7 +143,7 @@ function Audit(){
   {items.map(x=>{
    const action=actions[x.action]||x.action||'عملية غير معروفة',entity=entities[x.entity_type]||x.entity_type||'—',tone=/DELETED|REMOVED|REVOKED|LEFT|ARCHIVED/.test(String(x.action))?'danger':/CREATED|JOINED|GRANTED|ASSIGNED|ACTIVATED/.test(String(x.action))?'success':/UPDATED|REPLACED|SWAPPED|OFFLINED/.test(String(x.action))?'info':'neutral';
    const at=new Date(x.created_at);
-   const details=x.after_data&&Object.keys(x.after_data||{}).length?'تم تنفيذ العملية وتحديث البيانات.':x.before_data&&Object.keys(x.before_data||{}).length?'تم تنفيذ العملية على السجل.':'عملية تشغيلية.';
+   const before=x.before_data||{},after=x.after_data||{};const named=before.unit_code||before.name||before.code||after.unit_code||after.name||after.code;const details=x.action==='AUDIT_CLEARED'?'تم مسح '+Number(after.deletedCount||before.deletedCount||0)+' سجل. هذا السجل محفوظ لتوثيق عملية المسح.':named?(String(named)+(before.name&&before.unit_code?' · '+String(before.name):'')):x.action==='MEMBERS_SWAPPED'?'تم تبديل الفردين بين الوحدات.':after&&Object.keys(after).length?'تم تنفيذ العملية وتحديث البيانات.':before&&Object.keys(before).length?'تم تنفيذ العملية على السجل.':'عملية تشغيلية.';
    return <div className={`auditRow audit-${tone}`} key={x.id}>
     <time>{at.toLocaleDateString('ar-EG')}<br/>{at.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</time>
     <div className="auditMain"><div className="auditHeadline"><strong>{action}</strong><b>{entity}</b></div><span className="auditMeta">بواسطة {x.actor_name||x.actor_discord_id||'غير معروف'}{x.entity_id?' · '+String(x.entity_id).slice(0,12):''}</span><small>{details}</small></div>
