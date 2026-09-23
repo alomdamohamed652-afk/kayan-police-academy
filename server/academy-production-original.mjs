@@ -659,7 +659,7 @@ app.post('/api/exams/:id/submit',(req,res)=>saved(async()=>{
   // Build durable copies first. Do not mutate live memory into "submitted"
   // until Supabase confirms both the attempt and the result.
   const durableAttempt={...attempt,answers,submittedAt,status:expired?'expired':'submitted',expired:Boolean(expired),score,activeDurationSeconds};
-  const result={id:'result-'+String(attempt.id),examId:e.id,userId:uid,name:attempt.name||c.police?.name||c.x.global_name||c.x.username||'متقدم',score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:Boolean(expired),terminatedByRule:Boolean(earlyExit&&gateFailed),attemptId:attempt.id};
+  const result={id:'result-'+String(attempt.id),examId:e.id,userId:uid,name:attempt.name||c.police?.name||c.x.global_name||c.x.username||'متقدم',score,passed:score>=Number(e.passingScore||60),submittedAt,answers,durationSeconds:activeDurationSeconds,autoSubmitted:Boolean(expired),terminatedByRule:Boolean(earlyExit&&gateFailed),terminationMessage:earlyExit&&gateFailed?String(gateSection?.failMessage||'لم تستوفِ شرط الانتقال المحدد لهذا القسم.').slice(0,1000):'',attemptId:attempt.id};
   try{await persistResultSafe(result,durableAttempt)}catch(err){
     console.error('Exam submit durability failed:',err?.message||err);
     return res.status(503).json({error:'EXAM_SUBMIT_PENDING',message:'لم يتم تأكيد حفظ الإجابات بعد. إجاباتك ما زالت محفوظة، أعد المحاولة ولا تغلق الصفحة.',retryable:true});
