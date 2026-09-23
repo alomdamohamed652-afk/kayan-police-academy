@@ -130,7 +130,7 @@ function row(headers,r){const b=hidx(headers,['Badge #','Badge','البادج','
 let policeLoadPromise=null;
 async function police(force=false){
   if(!POLICE_SHEET_ID)throw new Error('POLICE_SHEET_NOT_CONFIGURED');
-  if(!force&&!cache.rows.length===false&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;
+  if(!force&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;
   if(!force&&policeLoadPromise)return policeLoadPromise;
   policeLoadPromise=(async()=>{
     let last=null;
