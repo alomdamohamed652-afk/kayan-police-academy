@@ -2739,3 +2739,34 @@ html.translated-ltr,html.translated-ltr body{direction:ltr!important}html.transl
 .examStage{padding-bottom:30px}
 @media(max-width:850px){.examIntroStats{grid-template-columns:repeat(3,1fr)}.examIntroSectionList{grid-template-columns:1fr}.examIntroRules{grid-template-columns:1fr}.examIntroCard{padding:24px}}
 @media(max-width:600px){.examIntroShell{padding:15px 0 35px}.examIntroCard{padding:20px;border-radius:20px}.examIntroTop{align-items:flex-start;flex-direction:column}.examIntroStats{grid-template-columns:repeat(2,1fr)}.examIntroActions{flex-direction:column-reverse}.examIntroActions button{width:100%}.examFloatingBar{top:64px;margin:0 6px 10px;padding:7px}.examFloatingBar .examSectionStepper{justify-content:flex-start;flex-wrap:nowrap}.examFloatingBar .examSectionStepper>div{min-width:max-content}.examFloatingBar .examTimerHero{padding:9px}.examFloatingBar .examTimerHero strong{font-size:23px}}
+
+.codesPage{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+.codesHero{position:relative;overflow:hidden;padding:34px;border:1px solid rgba(218,180,82,.28);border-radius:24px;background:linear-gradient(135deg,#091522,#0d1b2a 55%,#111c2b);box-shadow:0 18px 50px rgba(0,0,0,.22)}
+.codesHero:after{content:"";position:absolute;width:280px;height:280px;right:-100px;top:-130px;border-radius:50%;background:rgba(218,180,82,.08);filter:blur(2px)}
+.codesHero h1{margin:8px 0 10px;font-size:clamp(28px,4vw,44px);color:#f5f7fb}
+.codesHero p{max-width:760px;margin:0;color:#aeb9c8;font-size:16px;line-height:1.8}
+.codesHeroMeta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.codesHeroMeta span{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:rgba(255,255,255,.035);color:#dce3ec;font-size:13px}
+.codesToolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:22px 0 16px}
+.codesToolbar>span{color:#9caabd;font-size:13px;white-space:nowrap}
+.codesSearch{display:flex;align-items:center;gap:10px;flex:1;max-width:620px;padding:12px 15px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:#0b1724;color:#8e9caf}
+.codesSearch input{width:100%;border:0;outline:0;background:transparent;color:#fff;font:inherit}
+.codesGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.codeGroup{overflow:hidden;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:#091522;box-shadow:0 12px 30px rgba(0,0,0,.16)}
+.codeGroup header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.codeGroupIcon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.06)}
+.codeGroup h2{margin:0;color:#f4f6fa;font-size:19px}.codeGroup small{color:#8492a5}
+.codeItems{padding:9px}
+.codeItem{display:grid;grid-template-columns:86px 1fr 34px;align-items:center;gap:10px;padding:9px;border-radius:12px;color:#d9e0e8}
+.codeItem+ .codeItem{border-top:1px solid rgba(255,255,255,.045)}
+.codeItem b{font-size:14px;color:#fff;text-align:center;padding:7px 8px;border-radius:9px;background:rgba(255,255,255,.07)}
+.codeItem span{font-size:14px;line-height:1.5}
+.codeItem button{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:#7f8da1;cursor:pointer}.codeItem button:hover{background:rgba(255,255,255,.07);color:#fff}
+.codeGroup.blue{border-color:rgba(0,153,255,.38)}.codeGroup.blue .codeGroupIcon,.codeGroup.blue .codeItem b{color:#52b7ff;background:rgba(0,153,255,.1)}
+.codeGroup.green{border-color:rgba(34,197,94,.35)}.codeGroup.green .codeGroupIcon,.codeGroup.green .codeItem b{color:#57db83;background:rgba(34,197,94,.09)}
+.codeGroup.orange{border-color:rgba(245,158,11,.4)}.codeGroup.orange .codeGroupIcon,.codeGroup.orange .codeItem b{color:#ffbe45;background:rgba(245,158,11,.1)}
+.codeGroup.red{border-color:rgba(239,68,68,.38)}.codeGroup.red .codeGroupIcon,.codeGroup.red .codeItem b{color:#ff6b75;background:rgba(239,68,68,.09)}
+.codeGroup.purple{border-color:rgba(168,85,247,.4)}.codeGroup.purple .codeGroupIcon,.codeGroup.purple .codeItem b{color:#c58aff;background:rgba(168,85,247,.1)}
+.codeGroup.slate{border-color:rgba(148,163,184,.28)}.codeGroup.slate .codeGroupIcon,.codeGroup.slate .codeItem b{color:#c7d1df;background:rgba(148,163,184,.08)}
+.codesEmpty{padding:35px;text-align:center;color:#8d9bad;border:1px dashed rgba(255,255,255,.1);border-radius:16px}
+@media(max-width:800px){.codesGrid{grid-template-columns:1fr}.codesHero{padding:25px 20px}.codesToolbar{align-items:stretch;flex-direction:column}.codesSearch{max-width:none}}
