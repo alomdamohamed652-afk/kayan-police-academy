@@ -127,7 +127,33 @@ async function service(){
 }
 function hidx(h,cs,f){const a=h.map(norm);for(const c0 of cs){const c=norm(c0),i=a.findIndex(x=>x===c||x.includes(c)||c.includes(x));if(i>=0)return i}return f}
 function row(headers,r){const b=hidx(headers,['Badge #','Badge','البادج','الكود'],0),n=hidx(headers,['الاسم','name'],1),l=hidx(headers,['الإجازة','الاجازة','leave'],2),k=hidx(headers,['الرتبة','الرتبه','rank'],3),s=hidx(headers,['الحالة','status'],4),q=hidx(headers,['المسؤولية','المسؤوليه','responsibility'],5),d=hidx(headers,['ديسكورد','discord','discord id','discordid','discord_id'],6),dep=hidx(headers,['القسم','القسم التابع','القطاع','الإدارة','الادارة','الوحدة','الوحده','department','division','sector','unit'],7);const responsibility=String(r[q]??'').trim();return{badge:String(r[b]??'').trim(),code:String(r[b]??'').trim(),name:String(r[n]??'').trim(),leave:String(r[l]??'').trim(),rank:String(r[k]??'').trim(),status:String(r[s]??'').trim().toUpperCase(),responsibility,department:String(r[dep]??'').trim()||responsibility,discordId:id(r[d])}}
-async function police(force=false){if(!POLICE_SHEET_ID)throw new Error('POLICE_SHEET_NOT_CONFIGURED');if(!force&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;let last=null;try{const s=await service(),r=await s.spreadsheets.values.get({spreadsheetId:POLICE_SHEET_ID,range:POLICE_RANGE});const v=r.data.values||[],headers=v[0]||[],rows=v.slice(1).map(x=>row(headers,x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}last=new Error('POLICE_SHEET_EMPTY')}catch(e){last=e}if(cache.rows.length)return cache.rows;if(API_KEY)try{const u=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${POLICE_SHEET_ID}/values/${encodeURIComponent(POLICE_RANGE)}`);u.searchParams.set('key',API_KEY);const r=await fetch(u,{signal:AbortSignal.timeout(10000)});if(r.ok){const v=(await r.json()).values||[],rows=v.slice(1).map(x=>row(v[0]||[],x)).filter(x=>x.discordId||x.name);if(rows.length){cache={at:now(),rows};return rows}}}catch(e){last=e}throw last||new Error('POLICE_SHEET_UNAVAILABLE')}
+let policeLoadPromise=null;
+async function police(force=false){
+  if(!POLICE_SHEET_ID)throw new Error('POLICE_SHEET_NOT_CONFIGURED');
+  if(!force&&!cache.rows.length===false&&cache.rows.length&&now()-cache.at<TTL)return cache.rows;
+  if(!force&&policeLoadPromise)return policeLoadPromise;
+  policeLoadPromise=(async()=>{
+    let last=null;
+    try{
+      const s=await service(),r=await s.spreadsheets.values.get({spreadsheetId:POLICE_SHEET_ID,range:POLICE_RANGE});
+      const v=r.data.values||[],headers=v[0]||[],rows=v.slice(1).map(x=>row(headers,x)).filter(x=>x.discordId||x.name);
+      if(rows.length){cache={at:now(),rows};return rows}
+      last=new Error('POLICE_SHEET_EMPTY')
+    }catch(e){last=e}
+    if(cache.rows.length)return cache.rows;
+    if(API_KEY)try{
+      const u=new URL(`https://sheets.googleapis.com/v4/spreadsheets/${POLICE_SHEET_ID}/values/${encodeURIComponent(POLICE_RANGE)}`);
+      u.searchParams.set('key',API_KEY);
+      const r=await fetch(u,{signal:AbortSignal.timeout(10000)});
+      if(r.ok){
+        const v=(await r.json()).values||[],rows=v.slice(1).map(x=>row(v[0]||[],x)).filter(x=>x.discordId||x.name);
+        if(rows.length){cache={at:now(),rows};return rows}
+      }
+    }catch(e){last=e}
+    throw last||new Error('POLICE_SHEET_UNAVAILABLE')
+  })();
+  try{return await policeLoadPromise}finally{policeLoadPromise=null}
+}
 async function ensureSheets(s,names=[DATA_SHEET]){if(!DATA_SHEET_ID)throw new Error('ACADEMY_GOOGLE_SHEET_ID_NOT_CONFIGURED');const m=await s.spreadsheets.get({spreadsheetId:DATA_SHEET_ID,fields:'sheets.properties'});const have=new Set((m.data.sheets||[]).map(x=>x.properties?.title));const requests=names.filter(n=>n&&!have.has(n)).map(n=>({addSheet:{properties:{title:n}}}));if(requests.length)try{await s.spreadsheets.batchUpdate({spreadsheetId:DATA_SHEET_ID,requestBody:{requests}})}catch(e){if(!/already exists|alreadyExists|duplicate/i.test(String(e?.message||e)))throw e}}
 async function ensureData(s){return ensureSheets(s,[DATA_SHEET])}
 async function recoverMissingLegacyCollections(remote){
