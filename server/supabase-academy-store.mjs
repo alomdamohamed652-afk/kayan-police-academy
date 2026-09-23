@@ -220,6 +220,20 @@ export async function saveExamAttempt(attempt){
     legacy_data:attempt
   };
 }
+export async function finalizeExamSubmission(examLegacyId,attemptLegacyId,attempt,result){
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const {data,error}=await withRetry('finalize exam submission',async()=>{
+    const {data,error}=await supabase.rpc('finalize_exam_submission',{
+      p_exam_legacy_id:String(examLegacyId),
+      p_attempt_legacy_id:String(attemptLegacyId),
+      p_attempt:json(attempt),
+      p_result:json(result)
+    });
+    if(error)throw error;
+    return {data,error:null};
+  });
+  return data;
+}
 export async function saveExamResult(result,attemptLegacyId=null){if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');const exam_id=await examRowId(result.examId);if(!exam_id)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);if(!attempt_id)throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error})}
 
 export { saveAcademyData, loadAcademyData };
