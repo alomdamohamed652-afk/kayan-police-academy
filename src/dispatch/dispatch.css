@@ -654,3 +654,45 @@
   .auditRow time{align-items:flex-start}
 }
 @media(max-width:760px){.dispatchPage{width:100%;max-width:100%;overflow-x:hidden}.dispatchPage .pageTitle{padding:0 16px}.dispatchPage .pageTitle h1{font-size:24px;line-height:1.25}.dispatchPage .pageTitle p{font-size:12px;line-height:1.6}.dispatchAdminTabs{margin:0 12px 12px;padding-bottom:3px;gap:6px}.dispatchAdminGrid{display:flex;flex-direction:column;margin:0 12px 16px;gap:12px;min-width:0}.dispatchAdminGrid>.panel{width:100%;min-width:0;box-sizing:border-box}.dispatchAdminGrid>.panel>input,.dispatchAdminGrid>.panel>textarea,.dispatchAdminGrid>.panel>select{box-sizing:border-box;width:calc(100% - 24px);max-width:calc(100% - 24px);min-width:0}.dispatchFormGrid{grid-template-columns:1fr;min-width:0}.dispatchFormGrid>*{min-width:0;max-width:100%;box-sizing:border-box}.adminEntityRow{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:12px}.adminEntityRow>div:first-child{width:100%;min-width:0;overflow:hidden}.adminEntityRow>div:first-child strong,.adminEntityRow>div:first-child small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.adminEntityRow .rowActions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px}.adminEntityRow .rowActions>*{width:100%;min-width:0;box-sizing:border-box;justify-content:center}.adminEntityRow .rowActions .danger{min-height:42px}.dispatchPanelHead{padding:12px}.dispatchAdminPage .dispatchPanelHead .rowActions{width:auto;display:flex;flex-wrap:wrap}.dispatchAdminPage .dispatchPanelHead .rowActions>*{width:auto}.dispatchAdminPage input,.dispatchAdminPage select,.dispatchAdminPage textarea{box-sizing:border-box;max-width:100%;min-width:0}.dispatchAdminPage .panel{overflow:hidden}.dispatchAdminPage .dispatchNotice{margin-left:12px;margin-right:12px}.swapModes{grid-template-columns:1fr}.dispatchInlineForm{min-width:0;overflow:hidden}.dispatchInlineForm select,.dispatchInlineForm input{min-width:0;max-width:100%}}
+/* Dispatch admin productivity + mobile refinement */
+.adminSearch{display:flex;align-items:center;gap:8px;margin:0 15px 10px;padding:9px 11px;background:#07111e;border:1px solid #263950;border-radius:9px;color:#718399}
+.adminSearch:focus-within{border-color:#d5b45e;box-shadow:0 0 0 2px #d5b45e14}
+.adminSearch input{flex:1!important;width:auto!important;min-width:0!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;outline:0;color:#fff}
+.adminSearch button{display:grid;place-items:center;border:0;background:transparent;color:#718399;cursor:pointer;padding:2px}
+.adminSearch button:hover{color:#fff}
+.dispatchConfirmOverlay{position:fixed;inset:0;z-index:300;background:#000b;display:grid;place-items:center;padding:18px}
+.dispatchConfirm{width:min(430px,94vw);background:#0a1726;border:1px solid #344961;border-radius:15px;padding:20px;box-shadow:0 25px 80px #000c;text-align:right}
+.dispatchConfirmIcon{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;background:#4a2029;color:#ff9eaa;margin-bottom:12px}
+.dispatchConfirm h3{margin:0;color:#fff;font-size:18px}
+.dispatchConfirm p{margin:8px 0 18px;color:#93a2b4;font-size:12px;line-height:1.7}
+.dispatchConfirm .rowActions{display:flex;justify-content:flex-start;gap:8px}
+.auditRow{width:100%;font:inherit;text-align:right;background:transparent;color:inherit;cursor:pointer;border-left:0;border-right:0}
+.auditRow:hover{background:#0d1d2f}
+.auditRow>svg{flex:0 0 auto;color:#63758a;transition:transform .18s}
+.auditRow:hover>svg{transform:translateY(2px);color:#d5b45e}
+.auditDetails{width:min(850px,96vw);max-height:88vh;overflow:auto;background:#091522;border:1px solid #2b4059;border-radius:16px;box-shadow:0 30px 100px #000d}
+.auditDetailMeta{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 15px 15px}
+.auditDetailMeta>div{padding:10px;background:#0d1c2d;border:1px solid #20344c;border-radius:9px}
+.auditDetailMeta span,.auditDetailMeta strong{display:block}
+.auditDetailMeta span{font-size:9px;color:#718399}
+.auditDetailMeta strong{margin-top:4px;font-size:12px;color:#fff;word-break:break-word}
+.auditJsonGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 15px 15px}
+.auditJsonGrid>div{min-width:0;background:#07111e;border:1px solid #20344c;border-radius:9px;overflow:hidden}
+.auditJsonGrid b{display:block;padding:9px 11px;border-bottom:1px solid #20344c;color:#d5b45e;font-size:11px}
+.auditJsonGrid pre{margin:0;padding:11px;max-height:360px;overflow:auto;color:#aebdcd;font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left}
+@media(max-width:760px){
+ .adminSearch{margin:0 12px 10px}
+ .dispatchConfirm{padding:16px}
+ .auditDetailMeta,.auditJsonGrid{grid-template-columns:1fr}
+ .auditDetails{width:calc(100vw - 20px);max-height:92vh}
+ .auditRow{gap:8px;padding:11px 12px}
+ .auditRow time{min-width:58px}
+ .auditMain{min-width:0}
+ .auditHeadline{gap:5px}
+ .auditHeadline strong,.auditHeadline b{font-size:11px}
+ .auditMeta,.auditMain small{font-size:10px;line-height:1.5}
+ .adminEntityRow{align-items:stretch}
+ .adminEntityRow .rowActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .adminEntityRow .rowActions>*{min-width:0}
+ .dispatchConfirm .rowActions{display:grid;grid-template-columns:1fr 1fr}
+}
