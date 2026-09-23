@@ -2696,3 +2696,8 @@ html.translated-ltr,html.translated-ltr body{direction:ltr!important}html.transl
 .examGateCard small{display:block;margin-top:12px;color:#d5b45e;font-size:10px;line-height:1.7}
 .examGateActions{display:flex;justify-content:center;gap:8px;margin-top:20px}
 @media(max-width:520px){.examGateCard{padding:25px 20px}.examGateActions{flex-direction:column}.examGateActions button{width:100%}}
+
+/* Exam info-only question */
+.infoOnlyQuestion{padding:16px 18px!important;border:1px dashed #66552d!important;background:linear-gradient(135deg,#111c29,#0b1521)!important;border-radius:12px!important}
+.infoOnlyBadge{display:inline-flex;padding:4px 8px;border-radius:6px;background:#211e14;border:1px solid #5c4c28;color:#d7b65e;font-size:8px;font-weight:800;margin-bottom:8px}
+.infoOnlyText{color:#e8edf3;font-size:13px;line-height:1.8;font-weight:700}
