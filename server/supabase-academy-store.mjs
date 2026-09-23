@@ -86,6 +86,19 @@ return data;
 async function examRowId(legacyId){const {data,error}=await supabase.from('exams').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
 async function attemptRowId(legacyId){const {data,error}=await supabase.from('exam_attempts').select('id').eq('legacy_id',String(legacyId)).maybeSingle();if(error)throw error;return data?.id||null}
 
+export async function deleteExam(legacyId){
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const key=String(legacyId);
+  const {data:row,error:findError}=await supabase.from('exams').select('id').eq('legacy_id',key).maybeSingle();
+  if(findError)throw findError;
+  if(!row?.id)return false;
+  await withRetry('delete exam',async()=>{
+    const {error}=await supabase.from('exams').delete().eq('id',row.id);
+    if(error)throw error;
+  });
+  return true;
+}
+
 export async function saveExam(exam){
   if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
   const legacyId=String(exam.id);
