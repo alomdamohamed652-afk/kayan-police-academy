@@ -12,9 +12,11 @@ const fallback=[
 
 const icons={car:Car,user:UserRound,radio:Radio,alert:AlertTriangle,settings:Settings};
 export function PoliceCodes(){
- const[data,setData]=useState(null),[q,setQ]=useState(''),[copied,setCopied]=useState('');
- useEffect(()=>{fetch('/api/police-codes').then(r=>r.ok?r.json():Promise.reject()).then(d=>setData(d.items||[])).catch(()=>setData(fallback))},[]);
- const groups=data||fallback;
+ const[data,setData]=useState(fallback),[q,setQ]=useState(''),[copied,setCopied]=useState('');
+const order=['movement','status','location','wanted','danger','services'];
+const normalize=groups=>(Array.isArray(groups)?groups:[]).slice().sort((a,b)=>order.indexOf(String(a.id))-order.indexOf(String(b.id))).map(g=>({...g,items:(g.items||[]).slice().sort((a,b)=>Number(a.position??a[2]??0)-Number(b.position??b[2]??0))}));
+ useEffect(()=>{fetch('/api/police-codes').then(r=>r.ok?r.json():Promise.reject()).then(d=>setData(normalize(d.items))).catch(()=>setData(fallback))},[]);
+ const groups=normalize(data||fallback);
  const visible=useMemo(()=>groups.map(g=>({...g,items:(g.items||[]).filter(x=>!q.trim()||String(x.code??x[0]).includes(q.trim())||String(x.description??x[1]).toLowerCase().includes(q.trim().toLowerCase()))})).filter(g=>g.items.length),[groups,q]);
  const copy=async code=>{try{await navigator.clipboard.writeText('Code '+code);setCopied(String(code));setTimeout(()=>setCopied(''),1200)}catch{}};
  return <div className="codesPage"><section className="codesHero"><div className="eyebrow">KAYAN POLICE TRAINING</div><h1>دليل الأكواد الشرطية</h1><p>مرجع تدريبي موحّد لفهم واستخدام رموز العمليات والاتصالات داخل شرطة كيان.</p><div className="codesHeroMeta"><span><BookOpen size={16}/> مرجع تدريبي</span><span><Shield size={16}/> مستقل عن Dispatch</span><span><MapPin size={16}/> للاستخدام الميداني</span></div></section><div className="codesToolbar"><div className="codesSearch"><Search size={17}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالكود أو الوصف..."/></div><span>{visible.reduce((n,g)=>n+g.items.length,0)} كود</span></div><div className="codesGrid">{visible.map(g=>{const I=icons[g.icon]||Shield;return <section className={'codeGroup '+g.tone} key={g.id}><header><div className="codeGroupIcon"><I size={21}/></div><div><h2>{g.title}</h2><small>مرجع تدريبي</small></div></header><div className="codeItems">{g.items.map(x=>{const code=String(x.code??x[0]),desc=String(x.description??x[1]);return <div className="codeItem" key={code}><b>Code {code}</b><span>{desc}</span><button type="button" title="نسخ الكود" onClick={()=>copy(code)}>{copied===code?<Check size={15}/>:<Copy size={15}/>}</button></div>})}</div></section>})}</div>{!visible.length&&<div className="codesEmpty">لا يوجد كود مطابق للبحث.</div>}</div>
