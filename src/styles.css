@@ -2685,3 +2685,14 @@ html.translated-ltr,html.translated-ltr body{direction:ltr!important}html.transl
   .welcome .actions{flex-wrap:wrap!important}
   .welcome p{white-space:normal!important}
 }
+
+
+/* Aviation exam eligibility gate */
+.examGateOverlay{position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,9,16,.78);backdrop-filter:blur(8px)}
+.examGateCard{width:min(500px,calc(100vw - 32px));padding:30px 28px;border:1px solid rgba(213,180,94,.5);border-radius:20px;background:linear-gradient(145deg,#0d1b2b,#07111d);box-shadow:0 25px 80px rgba(0,0,0,.5);text-align:center}
+.examGateIcon{width:52px;height:52px;margin:0 auto 14px;display:grid;place-items:center;border-radius:50%;background:#3b2717;border:1px solid #8b682e;color:#e5bf62;font-size:25px;font-weight:900}
+.examGateCard h3{margin:8px 0 10px;color:#f2f5f8;font-size:20px}
+.examGateCard p{margin:0 auto;color:#c6d0db;font-size:13px;line-height:1.9;max-width:420px}
+.examGateCard small{display:block;margin-top:12px;color:#d5b45e;font-size:10px;line-height:1.7}
+.examGateActions{display:flex;justify-content:center;gap:8px;margin-top:20px}
+@media(max-width:520px){.examGateCard{padding:25px 20px}.examGateActions{flex-direction:column}.examGateActions button{width:100%}}
