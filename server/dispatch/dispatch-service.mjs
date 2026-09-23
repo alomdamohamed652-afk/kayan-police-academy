@@ -1,4 +1,4 @@
-import { getState,getAccess,listAccess,insert,update,remove,addMember,leaveMember,swapMembers,clearAuditLogs } from './dispatch-store.mjs';
+import { getState,getAccess,listAccess,insert,update,remove,addMember,leaveMember,swapMembers,clearAuditLogs,clearAuditLogs } from './dispatch-store.mjs';
 import { cleanRegion,cleanLocation,cleanType,cleanVehicle,cleanUnit,cleanAssignment } from './dispatch-validation.mjs';
 import { recordAudit } from './dispatch-audit.mjs';
 import { requireSupabase } from '../supabase.mjs';
