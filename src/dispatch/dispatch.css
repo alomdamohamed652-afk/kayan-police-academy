@@ -696,3 +696,35 @@
  .adminEntityRow .rowActions>*{min-width:0}
  .dispatchConfirm .rowActions{display:grid;grid-template-columns:1fr 1fr}
 }
+
+/* Unit + personnel cards */
+.unitNameLine{display:flex;align-items:center;gap:7px;min-width:0}
+.unitNameLine strong{font-size:12px!important;color:#f5f7fa}
+.unitCodeBadge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:5px;background:#17283b;border:1px solid #2b4159;color:#d5b45e;font:700 8px ui-monospace,monospace;white-space:nowrap}
+.unitMemberPreview{display:flex;align-items:center;gap:5px;margin-top:7px;min-width:0;overflow:hidden}
+.miniMember{display:inline-flex;align-items:center;gap:4px;max-width:120px;padding:3px 6px;border-radius:6px;background:#0c1a2a;border:1px solid #1e3349;color:#aebdcd;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.miniMember i{display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#263c54;color:#e8eef5;font-style:normal;font-size:7px;font-weight:800;flex:0 0 auto}
+.miniMember.more{color:#d5b45e;font-weight:700}
+.noMembers{font-size:8px!important;color:#5f7084!important;margin:0!important}
+.dispatchMemberCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px}
+.dispatchMemberCard{position:relative;display:flex;align-items:center;gap:9px;min-width:0;padding:11px;background:linear-gradient(135deg,#0d1d2e,#0a1623);border:1px solid #21374f;border-radius:11px;transition:.18s}
+.dispatchMemberCard:hover{border-color:#3b5873;transform:translateY(-1px)}
+.memberAvatar{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#243c55,#16283a);border:1px solid #38536d;color:#f5f7fa;font-size:15px;font-weight:800;flex:0 0 auto}
+.memberIdentity{min-width:0;flex:1}
+.memberIdentity>strong{display:block;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memberBadges{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px}
+.memberRank,.memberBadge{display:inline-flex;align-items:center;max-width:100%;padding:3px 5px;border-radius:5px;font-size:7px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memberRank{background:#172d43;border:1px solid #294662;color:#b9c9d9}
+.memberBadge{background:#201f18;border:1px solid #554c2d;color:#d5b45e;font-family:ui-monospace,monospace;font-weight:700}
+.memberIdentity small{display:block;margin-top:5px;color:#667a8f;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memberActions{display:flex;gap:4px;align-self:flex-start}
+.iconAction{display:grid;place-items:center;width:28px;height:28px;padding:0;border-radius:7px;background:#101f30;border:1px solid #263d55;color:#8fa1b4;cursor:pointer}
+.iconAction:hover{color:#fff;border-color:#49647f}
+.iconAction.remove:hover{color:#ff9aa5;border-color:#703945;background:#281a20}
+.iconAction:disabled{opacity:.3;cursor:not-allowed}
+@media(max-width:760px){
+ .dispatchMemberCards{grid-template-columns:1fr}
+ .dispatchMemberCard{padding:10px}
+ .unitNameLine strong{font-size:11px!important}
+ .miniMember{max-width:100px}
+}
