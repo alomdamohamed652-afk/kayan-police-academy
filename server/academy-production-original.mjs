@@ -760,7 +760,7 @@ app.patch('/api/admin/exams/:examId/results/:resultId/grade',async(req,res)=>{
   if(q.type!=='text')return res.status(400).json({error:'ONLY_TEXT_ANSWERS_REQUIRE_MANUAL_GRADING'});
   const value=Boolean(req.body?.correct);
   r.manualGrades={...(r.manualGrades||{}),[qid]:value};
-  r.review=(e.questions||[]).map(qx=>({id:qx.id,text:qx.text,type:qx.type,answer:String(r.answers?.[qx.id]??''),correct:qx.correct??'',points:qx.points||1,manualCorrect:r.manualGrades?.[qx.id]}));
+  r.review=(e.questions||[]).map(qx=>({id:qx.id,text:qx.text,type:qx.type,answer:String(r.answers?.[qx.id]??r.answers?.[qx.legacyId]??r.answers?.[qx.legacy_id]??''),correct:qx.correct??'',points:qx.points||1,manualCorrect:r.manualGrades?.[qx.id]}));
   r.score=scoreAttempt(e,r.answers,r.manualGrades);
   r.passed=r.score>=Number(e.passingScore||60);
   r.manuallyGradedAt=new Date().toISOString();
