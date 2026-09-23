@@ -125,6 +125,18 @@ export async function saveExam(exam){
   });
   const examDbId=stored?.id;
   if(!examDbId)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');
+  const sections=cleanRows(exam.sections).map((sec,i)=>({
+    legacy_id:String(sec.id||('section-'+i)),
+    exam_id:examDbId,
+    title:str(sec.title)||('القسم '+(i+1)),
+    description:sec.description||null,
+    position:i,
+    gate_question_id:sec.gateQuestionId||null,
+    allowed_answers:Array.isArray(sec.allowedAnswers)?sec.allowedAnswers.map(str):[],
+    fail_message:sec.failMessage||null,
+    next_section_id:sec.nextSectionId||null
+  }));
+  if(sections.length)await upsert('exam_sections',sections,'exam_id,legacy_id');
   const bankRows=await all('question_bank');
   const bankMap=new Map(bankRows.filter(x=>x.legacy_id).map(x=>[String(x.legacy_id),x.id]));
   const questions=cleanRows(exam.questions);
