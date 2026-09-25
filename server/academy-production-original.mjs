@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { supabaseConfigured } from './supabase.mjs';
-import { loadAcademyData, saveAcademyData, saveExam, deleteExam, saveExamAttempt, saveExamResult, finalizeExamSubmission } from './supabase-academy-store.mjs';
+import { loadAcademyData, saveAcademyData, saveExam, deleteExam, saveExamAttempt, saveExamResult, finalizeExamSubmission, saveEvaluation } from './supabase-academy-store.mjs';
 import { registerDispatchRoutes } from './dispatch/dispatch-routes.mjs';
 import { getAccess } from './dispatch/dispatch-store.mjs';
 import { sqliteStatus, saveSqliteSnapshot, loadSqliteSnapshot } from './local-sqlite-backup.mjs';
@@ -730,7 +730,9 @@ app.post('/api/evaluations',async(req,res)=>{
   const complaint=String(req.body?.complaint||'').trim().slice(0,5000);
   const e={id:'eval-'+Date.now()+'-'+crypto.randomBytes(3).toString('hex'),type,fromDiscordId:String(c.x.id),fromName:c.police.name,fromRank:c.police.rank,targetDiscordId:target.discordId,targetName:target.name,targetRank:target.rank,trainerName:type==='trainer_to_trainee'?c.police.name:target.name,traineeName:type==='trainer_to_trainee'?target.name:c.police.name,ratings,overallRating:overall,rating:overall,hours:type==='trainer_to_trainee'?Math.max(0,Number(req.body?.hours||0)):0,notes:String(req.body?.notes||'').trim().slice(0,5000),sameTrainer:type==='trainee_to_trainer'?Boolean(req.body?.sameTrainer):false,complaint:complaint||'',hasComplaint:Boolean(complaint),status:'pending',createdAt:new Date().toISOString(),review:null};
   data.evaluations.unshift(e);audit(c,'SUBMIT_EVALUATION',e.id,type+(complaint?' · complaint':''));
-  try{await save();}catch(err){data.evaluations=data.evaluations.filter(x=>x.id!==e.id);return res.status(503).json({error:'STORAGE_ERROR'})}
+  try{
+    if(supabaseActive)await saveEvaluation(e);else await save();
+  }catch(err){data.evaluations=data.evaluations.filter(x=>x.id!==e.id);console.error('Evaluation submission persistence failed:',err?.message||err);return res.status(503).json({error:'STORAGE_ERROR',message:'تعذر حفظ التقييم على الخادم. لم يتم اعتماد التقييم.',retryable:true})}
   res.json({ok:true,evaluation:e});
 });
 app.patch('/api/admin/evaluations/:id/review',(req,res)=>saved(async()=>{
@@ -741,7 +743,7 @@ app.patch('/api/admin/evaluations/:id/review',(req,res)=>saved(async()=>{
   const investigationTarget=e.targetDiscordId;
   e.investigationTarget=status==='investigation'?investigationTarget:null;
   audit(c,'REVIEW_EVALUATION',e.id,status+(e.investigationTarget?':'+e.investigationTarget:''));
-  await save();res.json({ok:true,evaluation:e});
+  if(supabaseActive)await saveEvaluation(e);else await save();res.json({ok:true,evaluation:e});
 },req,res));
 
 app.get('/api/evaluations',async(req,res)=>{const c=await current(req);if(!c.x)return res.status(401).json({error:'UNAUTHENTICATED'});if(!c.admin)return res.status(403).json({error:'FORBIDDEN'});if(!c.permissions.includes('view_evaluations')&&!c.permissions.includes('manage_evaluations'))return res.status(403).json({error:'INSUFFICIENT_PERMISSION'});res.json({evaluations:data.evaluations,canViewAll:true})});
