@@ -252,6 +252,31 @@ export async function finalizeExamSubmission(examLegacyId,attemptLegacyId,attemp
   });
   return data;
 }
+export async function saveEvaluation(e){
+  if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');
+  const row={
+    legacy_id:String(e.id),
+    evaluator_discord_id:str(e.fromDiscordId||e.userId),
+    evaluator_role:e.type==='trainer_to_trainee'?'trainer':'trainee',
+    target_discord_id:str(e.targetDiscordId),
+    target_name_snapshot:e.targetName||e.target?.name||null,
+    target_rank_snapshot:e.targetRank||e.target?.rank||null,
+    hours:e.hours==null?null:Number(e.hours),
+    ratings:json(e.ratings),
+    overall_rating:e.overallRating==null?null:Number(e.overallRating),
+    same_trainer:e.sameTrainer==null?null:Boolean(e.sameTrainer),
+    notes:e.notes||null,
+    complaint:e.complaint||null,
+    status:['approved','rejected','investigation'].includes(String(e.status))?'reviewed':(String(e.status)==='archived'?'archived':'pending'),
+    reviewed_at:e.review?.at||e.reviewedAt||null,
+    reviewed_by:e.review?.by||e.reviewedBy||null,
+    review_note:e.review?.note||e.reviewNote||null,
+    legacy_data:e
+  };
+  if(!row.evaluator_discord_id||!row.target_discord_id||row.evaluator_discord_id===row.target_discord_id)throw new Error('EVALUATION_INVALID_PARTICIPANTS');
+  await withRetry('save evaluation',async()=>{const {error}=await supabase.from('evaluations').upsert(row,{onConflict:'legacy_id'});if(error)throw error});
+  return e;
+}
 export async function saveExamResult(result,attemptLegacyId=null){if(!supabaseConfigured)throw new Error('SUPABASE_NOT_CONFIGURED');const exam_id=await examRowId(result.examId);if(!exam_id)throw new Error('EXAM_FOREIGN_KEY_NOT_FOUND');const attempt_id=await attemptRowId(result.attemptId||attemptLegacyId);if(!attempt_id)throw new Error('ATTEMPT_FOREIGN_KEY_NOT_FOUND');const row={legacy_id:String(result.id),attempt_id,exam_id,discord_id:str(result.discordId||result.userId),score:Number(result.score||0),passed:Boolean(result.passed),duration_seconds:result.durationSeconds==null?null:Number(result.durationSeconds),submitted_at:result.submittedAt||new Date().toISOString(),published_at:result.publishedAt||null,review:Array.isArray(result.review)?result.review:[],legacy_data:{...result,attemptId:result.attemptId||attemptLegacyId||null}};await withRetry('save exam result',async()=>{const {error}=await supabase.from('exam_results').upsert(row,{onConflict:'legacy_id'});if(error)throw error})}
 
 export { saveAcademyData, loadAcademyData };
